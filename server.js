@@ -528,45 +528,105 @@ app.post('/checkout-session', async (req, res) => {
     }
 }); 
 */
-app.get('/download-bill', async (req,res)=>{
+app.get('/download-bill', async (req, res) => {
 
-    if(!req.isAuthenticated()){
+    if (!req.isAuthenticated()) {
         return res.redirect('/login');
     }
 
-    const doc = new PDFDocument();
+    const resident = await user_collection.User.findById(req.user.id);
+    const society = await society_collection.Society.findOne({
+        societyName: resident.societyName
+    });
 
-    res.setHeader('Content-Type','application/pdf');
+    const bill = society.maintenanceBill;
+
+    const total =
+        Number(bill.societyCharges) +
+        Number(bill.repairsAndMaintenance) +
+        Number(bill.sinkingFund) +
+        Number(bill.waterCharges) +
+        Number(bill.insuranceCharges) +
+        Number(bill.parkingCharges);
+
+    const doc = new PDFDocument({
+        size: "A4",
+        margin: 50
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
-        'Content-Disposition',
-        'attachment; filename=bill.pdf'
+        "Content-Disposition",
+        "attachment; filename=Maintenance_Bill.pdf"
     );
 
     doc.pipe(res);
 
-    doc.fontSize(20);
-    doc.text('Maintenance Bill');
+    doc
+        .fontSize(24)
+        .fillColor("#d62839")
+        .text("Maintenance Bill", {
+            align: "center"
+        });
 
     doc.moveDown();
 
-    doc.text(
-        'Resident: ' +
-        req.user.firstName +
-        ' ' +
-        req.user.lastName
-    );
+    doc
+        .fillColor("black")
+        .fontSize(15);
 
-    doc.text(
-        'Flat: ' +
-        req.user.flatNumber
-    );
+    doc.text(`Society : ${society.societyName}`);
+    doc.text(`Resident : ${resident.firstName} ${resident.lastName}`);
+    doc.text(`Flat No : ${resident.flatNumber}`);
+    doc.text(`Date : ${new Date().toLocaleDateString()}`);
 
-    doc.text(
-        'Society: ' +
-        req.user.societyName
-    );
+    doc.moveDown();
+
+    const startY = doc.y;
+
+    doc.rect(50,startY,500,25).fill("#d62839");
+
+    doc.fillColor("white");
+
+    doc.text("Sr",65,startY+7);
+    doc.text("Particular",120,startY+7);
+    doc.text("Amount",450,startY+7);
+
+    doc.fillColor("black");
+
+    const rows = [
+        ["1","Society Charges",bill.societyCharges],
+        ["2","Repairs & Maintenance",bill.repairsAndMaintenance],
+        ["3","Sinking Fund",bill.sinkingFund],
+        ["4","Water Charges",bill.waterCharges],
+        ["5","Insurance Charges",bill.insuranceCharges],
+        ["6","Parking Charges",bill.parkingCharges]
+    ];
+
+    let y = startY + 30;
+
+    rows.forEach(r=>{
+
+        doc.rect(50,y,500,25).stroke();
+
+        doc.text(r[0],65,y+7);
+        doc.text(r[1],120,y+7);
+        doc.text("₹ "+r[2],450,y+7);
+
+        y +=25;
+
+    });
+
+    doc.rect(50,y,500,30).fill("#d62839");
+
+    doc.fillColor("white");
+
+    doc.text("Total Amount",300,y+8);
+
+    doc.text("₹ "+total,450,y+8);
 
     doc.end();
+
 });
 
 app.post('/create-order', async (req,res)=>{
