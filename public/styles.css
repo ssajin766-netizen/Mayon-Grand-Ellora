@@ -306,3 +306,96 @@ tfoot td {
 .stats-item h3 {
     font-size: 24px;
 }
+
+/* ===========================
+   Emergency Contacts
+=========================== */
+
+.contact-wrapper{
+    background:#ececec;
+    border-radius:25px;
+    padding:40px;
+    margin:30px auto;
+    max-width:1200px;
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
+}
+
+.emergency-card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    background:#fff;
+    transition:.3s;
+}
+
+.emergency-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 15px 30px rgba(0,0,0,.2);
+}
+
+.emergency-header{
+    background:#d9534f;
+    color:#fff;
+    text-align:center;
+    font-size:18px;
+    padding:14px;
+    font-weight:600;
+}
+
+.phone-number{
+    font-size:18px;
+    font-weight:bold;
+    color:#333;
+    margin-top:10px;
+}
+
+.logo-img{
+    width:120px;
+    height:120px;
+    object-fit:cover;
+    border-radius:50%;
+    box-shadow:0 5px 15px rgba(0,0,0,.2);
+}
+
+.society-name{
+    font-size:38px;
+    font-weight:700;
+    color:#222;
+    margin-bottom:5px;
+}
+
+.page-subtitle{
+    color:#777;
+    font-size:18px;
+    margin-bottom:15px;
+}
+
+.page-title{
+    font-size:30px;
+    font-weight:600;
+    margin-bottom:20px;
+}
+
+.zoom{
+    transition:.3s;
+}
+
+.zoom:hover{
+    transform:translateY(-5px);
+}
+
+@media (max-width:768px){
+
+    .contact-wrapper{
+        padding:20px;
+    }
+
+    .society-name{
+        font-size:28px;
+    }
+
+    .page-title{
+        font-size:24px;
+    }
+
+}

@@ -1,16 +1,5 @@
 <%- include('partials/header') %>
 
-<style>
-.zoom {
-    transition: .3s ease;
-}
-
-.zoom:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,.2);
-}
-</style>
-
 <%
 const emergencyContacts = [
   { icon: "fa-wrench",       title: "Plumbing Service",   value: contact.plumbingService },
@@ -34,77 +23,86 @@ const emergencyContacts = [
 
 <div class="container py-4">
 
+    <!-- Header -->
     <div class="text-center mb-5">
 
-       <img src="/images/logo.png"
-       alt="E-Society Logo"
-       class="img-fluid rounded-circle shadow mb-3"
-      style="width:120px;height:120px;object-fit:cover;">
+        <img src="/images/logo.png"
+             alt="Society Logo"
+             class="logo-img mb-3">
 
-        <h2 class="font-weight-bold mb-0">
-            <%= society.societyName %>
+        <h2 class="society-name">
+            <%= society ? society.societyName : "E-Society" %>
         </h2>
 
-        <p class="text-muted">
+        <p class="page-subtitle">
             Community Management System
         </p>
 
-        <h4 class="mt-3">
+        <h3 class="page-title">
             <i class="fas fa-phone-alt"></i>
             Emergency Contacts
-        </h4>
+        </h3>
 
         <% if(isAdmin){ %>
-            <a href="/editContacts" class="btn btn-primary mt-3">
-                <i class="fas fa-edit"></i> Edit Contacts
+            <a href="/editContacts" class="btn btn-primary">
+                <i class="fas fa-edit"></i>
+                Edit Contacts
             </a>
         <% } %>
 
     </div>
 
-    <div class="row">
+    <!-- Cards -->
+    <div class="contact-wrapper">
 
+        <div class="row">
 
+            <% emergencyContacts.forEach(function(item){ %>
 
-        <% emergencyContacts.forEach(function(item){ %>
+            <div class="col-md-6 col-lg-4 mb-4">
 
-        <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card emergency-card zoom">
 
-            <div class="card shadow-sm h-100 border-0 zoom">
+                    <div class="card-header emergency-header">
 
-                <div class="card-header bg-primary text-white">
-                    <i class="fas <%= item.icon %>"></i>
-                    <strong><%= item.title %></strong>
-                </div>
+                        <i class="fas <%= item.icon %>"></i>
+                        <strong><%= item.title %></strong>
 
-                <div class="card-body text-center">
+                    </div>
 
-                    <% if(item.value && item.value !== "Not added by admin"){ %>
+                    <div class="card-body text-center">
 
-                    <a href="tel:<%= item.value %>" class="btn btn-success btn-block">
-                      <i class="fas fa-phone"></i>
-                      Call Now
-                    </a>
+                        <% if(item.value && item.value !== "Not added by admin"){ %>
 
-                  <div class="mt-2 text-dark">
-                    <strong><%= item.value %></strong>
-                  </div>
+                            <a href="tel:<%= item.value %>"
+                               class="btn btn-success btn-sm">
 
-                    <% } else { %>
+                                <i class="fas fa-phone"></i>
+                                Call Now
 
-                        <span class="text-muted">
-                            Not added by admin
-                        </span>
+                            </a>
 
-                    <% } %>
+                            <div class="phone-number">
+                                <%= item.value %>
+                            </div>
+
+                        <% } else { %>
+
+                            <span class="text-muted">
+                                Not added by admin
+                            </span>
+
+                        <% } %>
+
+                    </div>
 
                 </div>
 
             </div>
 
-        </div>
+            <% }) %>
 
-        <% }) %>
+        </div>
 
     </div>
 
