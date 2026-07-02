@@ -32,35 +32,39 @@ const emergencyContacts = [
 ];
 %>
 
-<div class="text-center mb-5">
+<div class="container py-4">
 
-    <!-- Society Logo -->
-    <img src="/images/logo.png"
-         alt="Society Logo"
-         class="mb-3"
-         style="width:90px;height:90px;border-radius:50%;box-shadow:0 5px 15px rgba(0,0,0,.2);">
+    <div class="text-center mb-5">
 
-    <!-- Society Name -->
-    <h2 class="mb-1 font-weight-bold">
-        <%= resident.societyName %>
-    </h2>
+       <img src="/images/logo.png"
+       alt="E-Society Logo"
+       class="img-fluid rounded-circle shadow mb-3"
+      style="width:120px;height:120px;object-fit:cover;">
 
-    <!-- Page Title -->
-    <h4 class="text-muted mb-4">
-        <i class="fas fa-phone-alt"></i>
-        Emergency Contacts
-    </h4>
+        <h2 class="font-weight-bold mb-0">
+            <%= society.societyName %>
+        </h2>
 
-    <% if(isAdmin){ %>
-        <a href="/editContacts" class="btn btn-primary">
-            <i class="fas fa-edit"></i>
-            Edit Contacts
-        </a>
-    <% } %>
+        <p class="text-muted">
+            Community Management System
+        </p>
 
-</div>
+        <h4 class="mt-3">
+            <i class="fas fa-phone-alt"></i>
+            Emergency Contacts
+        </h4>
+
+        <% if(isAdmin){ %>
+            <a href="/editContacts" class="btn btn-primary mt-3">
+                <i class="fas fa-edit"></i> Edit Contacts
+            </a>
+        <% } %>
+
+    </div>
 
     <div class="row">
+
+
 
         <% emergencyContacts.forEach(function(item){ %>
 

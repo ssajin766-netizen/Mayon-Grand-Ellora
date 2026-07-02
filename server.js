@@ -387,26 +387,34 @@ app.get("/complaint",(req,res) => {
 	}
 })
 
-app.get("/contacts",(req,res) => {
-    if(req.isAuthenticated() && req.user.validation=='approved'){
-        const userSocietyName = req.user.societyName;
-        society_collection.Society.findOne(
-            {"societyName": userSocietyName},
-            {emergencyContacts: 1}
-        )
-            .then(foundSociety => {
-                if(foundSociety){
-                    res.render("contacts", {contact: foundSociety.emergencyContacts, isAdmin: req.user.isAdmin});
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                res.status(500).send("Server error");
-            });
+app.get("/contacts", (req, res) => {
+    if (req.isAuthenticated() && req.user.validation == "approved") {
+
+        society_collection.Society.findOne({
+            societyName: req.user.societyName
+        })
+        .then(foundSociety => {
+
+            if(foundSociety){
+
+                res.render("contacts",{
+                    contact: foundSociety.emergencyContacts,
+                    society: foundSociety,
+                    isAdmin: req.user.isAdmin
+                });
+
+            }
+
+        })
+        .catch(err=>{
+            console.log(err);
+            res.status(500).send("Server Error");
+        });
+
     } else {
         res.redirect("/login");
     }
-})
+});
 
 app.get("/editContacts",(req,res) => {
     if(req.isAuthenticated() && req.user.isAdmin){
