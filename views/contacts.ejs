@@ -32,21 +32,33 @@ const emergencyContacts = [
 ];
 %>
 
-<div class="container py-4">
+<div class="text-center mb-5">
 
-    <div class="text-center mb-4">
-        <h2 class="bg-dark text-white rounded p-3">
-            <i class="fas fa-phone-alt"></i>
-            Emergency Contacts
-        </h2>
+    <!-- Society Logo -->
+    <img src="/images/logo.png"
+         alt="Society Logo"
+         class="mb-3"
+         style="width:90px;height:90px;border-radius:50%;box-shadow:0 5px 15px rgba(0,0,0,.2);">
 
-        <% if(isAdmin){ %>
-            <a href="/editContacts" class="btn btn-primary mt-3">
-                <i class="fas fa-edit"></i>
-                Edit Contacts
-            </a>
-        <% } %>
-    </div>
+    <!-- Society Name -->
+    <h2 class="mb-1 font-weight-bold">
+        <%= resident.societyName %>
+    </h2>
+
+    <!-- Page Title -->
+    <h4 class="text-muted mb-4">
+        <i class="fas fa-phone-alt"></i>
+        Emergency Contacts
+    </h4>
+
+    <% if(isAdmin){ %>
+        <a href="/editContacts" class="btn btn-primary">
+            <i class="fas fa-edit"></i>
+            Edit Contacts
+        </a>
+    <% } %>
+
+</div>
 
     <div class="row">
 
