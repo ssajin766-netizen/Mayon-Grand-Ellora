@@ -58,7 +58,50 @@ const societySchema = mongoose.Schema(
             policeStation: {
                 type: String,
                 default: 'Not added by admin'
-            }
+            },
+            electrician: {
+            type: String,
+            default: "Not added by admin"
+            },
+
+            hospital: {
+            type: String,
+            default: "Not added by admin"
+            },
+
+            liftService: {
+            type: String,
+            default: "Not added by admin"
+            },
+
+            waterSupply: {
+            type: String,
+            default: "Not added by admin"
+           },
+           securityOffice: {
+           type: String,
+           default: "Not added by admin"
+           },
+
+           generatorService: {
+           type: String,
+           default: "Not added by admin"
+           },
+
+           gasAgency: {
+           type: String,
+           default: "Not added by admin"
+          },
+
+          electricityBoard: {
+          type: String,
+          default: "Not added by admin"
+         },
+
+         maintenanceOffice: {
+         type: String,
+         default: "Not added by admin"
+        },
         },
         maintenanceBill: {
             societyCharges: {

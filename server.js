@@ -930,28 +930,41 @@ app.post("/editBill", (req,res) => {
         });
 });
 
-app.post("/editContacts", (req,res) => {
+app.post("/editContacts", (req, res) => {
     society_collection.Society.updateOne(
-        {societyName: req.user.societyName},
-        { $set: {
-            emergencyContacts: {
-                plumbingService: req.body.plumbingService,
-                medicineShop: req.body.medicineShop,
-                ambulance: req.body.ambulance,
-                doctor: req.body.doctor,
-                fireStation: req.body.fireStation,
-                guard: req.body.guard,
-                policeStation: req.body.policeStation
+        { societyName: req.user.societyName },
+        {
+            $set: {
+                emergencyContacts: {
+                    plumbingService: req.body.plumbingService,
+                    medicineShop: req.body.medicineShop,
+                    ambulance: req.body.ambulance,
+                    doctor: req.body.doctor,
+                    fireStation: req.body.fireStation,
+                    guard: req.body.guard,
+                    policeStation: req.body.policeStation,
+
+                    electrician: req.body.electrician,
+                    hospital: req.body.hospital,
+                    liftService: req.body.liftService,
+                    waterSupply: req.body.waterSupply,
+
+                    securityOffice: req.body.securityOffice,
+                    generatorService: req.body.generatorService,
+                    gasAgency: req.body.gasAgency,
+                    electricityBoard: req.body.electricityBoard,
+                    maintenanceOffice: req.body.maintenanceOffice
+                }
             }
-        }}
+        }
     )
-        .then(() => {
-            res.redirect("/contacts");
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(500).send("Server error");
-        });
+    .then(() => {
+        res.redirect("/contacts");
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).send("Server error");
+    });
 });
 
 app.post("/editProfile", (req,res) => {
