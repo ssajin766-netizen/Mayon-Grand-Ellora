@@ -23,7 +23,7 @@ section{
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    background: linear-gradient(rgba(255,255,255,0.1), rgba(5, 5, 5,1)), url('images/night.jpg');
+    background: linear-gradient(rgba(255,255,255,0.1), rgba(5, 5, 5,1)), url('images/night.png');
     background-size: cover;
 }
 .banner .content{
