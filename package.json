@@ -1,5 +1,5 @@
 {
-  "name": "e-society",
+  "name": "mayon-grand-ellora",
   "version": "1.1.0",
   "description": "Community management app",
   "main": "server.js",
@@ -10,16 +10,16 @@
     "start": "node server.js",
     "dev": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/abhijeetpandit7/E-Society.git"
-  },
+"repository": {
+  "type": "git",
+  "url": "https://github.com/ssajin766-netizen/Mayon-Grand-Ellora.git"
+},
   "author": "Abhijeet Pandit",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/abhijeetpandit7/E-Society/issues"
-  },
-  "homepage": "https://github.com/abhijeetpandit7/E-Society#readme",
+"bugs": {
+  "url": "https://github.com/ssajin766-netizen/Mayon-Grand-Ellora/issues"
+},
+"homepage": "https://github.com/ssajin766-netizen/Mayon-Grand-Ellora",
   "dependencies": {
     "@sparticuz/chromium": "^149.0.0",
     "connect-mongo": "^5.1.0",

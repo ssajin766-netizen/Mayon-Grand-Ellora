@@ -343,7 +343,7 @@ app.get("/editBill", (req,res) => {
                 res.status(500).send("Server error");
             });
     } else {
-        res.redirect("/login");
+        res.redirect("/login"); n     
     }
 })
 
@@ -792,7 +792,7 @@ app.post("/approveResident", async (req,res) => {
 
     await sendWhatsApp(
         `+91${approvedUser.phoneNumber}`,
-        'Your E-Society account has been approved.'
+        'Your Mayon Grand Ellora account has been approved.'
     );
 
     await WhatsAppLog.create({
@@ -817,7 +817,7 @@ app.post("/approveResident", async (req,res) => {
         from: process.env.EMAIL_USER,
         to: approvedUser.username,
         subject: 'Account Approved',
-        text: 'Your E-Society account has been approved.'
+        text: 'Your Mayon Grand Ellora account has been approved.'
     });
 
 } catch(emailErr) {
@@ -1232,7 +1232,7 @@ app.get('/test-email', async (req,res)=>{
         await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: process.env.EMAIL_USER,
-            subject: 'E-Society Test Email',
+            subject: "Mayon Grand Ellora Test Email",
             text: 'Nodemailer is working successfully.'
         });
 
@@ -1251,7 +1251,7 @@ app.get('/test-whatsapp', async (req, res) => {
 
         const result = await sendWhatsApp(
             '+919876543210', // replace with your number
-            'E-Society WhatsApp Test'
+            'Mayon Grand Ellora WhatsApp Test'
         );
 
         console.log(result.sid);
