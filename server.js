@@ -4,6 +4,7 @@ const dotenv = require('dotenv')
 const _ = require('lodash');
 const session = require('express-session');
 const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const MongoStore = require('connect-mongo');
 const user_collection = require("./models/userModel");
 const society_collection = require("./models/societyModel");
@@ -60,6 +61,46 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
+passport.use(new GoogleStrategy(
+{
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "/auth/google/callback"
+},
+async (accessToken, refreshToken, profile, done) => {
+
+    try {
+
+        let user = await user_collection.User.findOne({
+            username: profile.emails[0].value
+        });
+
+        if (user) {
+            return done(null, user);
+        }
+
+        user = new user_collection.User({
+            username: profile.emails[0].value,
+            firstName: profile.name.givenName,
+            lastName: profile.name.familyName || "",
+            validation: "applied",
+            isAdmin: false,
+            societyName: "Pending",
+            flatNumber: "Pending",
+            phoneNumber: 0
+        });
+
+        await user.save();
+
+        done(null, user);
+
+    } catch (err) {
+
+        done(err, null);
+
+    }
+
+}));
 db.connectDB()
 
 app.get("/", async (req,res) => {
@@ -1264,6 +1305,30 @@ app.get('/test-whatsapp', async (req, res) => {
         res.send('WhatsApp failed');
 
     }
+
+});
+
+app.get("/auth/google",
+passport.authenticate("google",
+{
+scope:["profile","email"]
+})
+);
+
+app.get("/auth/google/callback",
+
+passport.authenticate("google",
+{
+failureRedirect:"/login"
+}),
+
+(req,res)=>{
+
+if (req.user.societyName === "Pending") {
+    return res.redirect("/newRequest");
+}
+
+res.redirect("/home");
 
 });
 

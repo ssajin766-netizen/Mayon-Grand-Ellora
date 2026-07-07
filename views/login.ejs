@@ -17,8 +17,40 @@
                   <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
                   <label for="inputPassword">Password</label>
                 </div>
-                <button class="btn btn-lg btn-dark btn-block text-uppercase" type="submit" style="font-size:15px;">Sign in</button>
-                <hr class="my-4">
+            <button class="btn btn-lg btn-dark btn-block text-uppercase"
+            type="submit"
+            style="font-size:15px;">
+            Sign in
+            </button>
+
+           <div class="text-center my-3">
+           <strong>OR</strong>
+           </div>
+
+          <a href="/auth/google"
+          class="btn btn-lg btn-light btn-block"
+          style="
+          border:1px solid #dadce0;
+          background:#fff;
+          color:#3c4043;
+          font-size:15px;
+          font-weight:600;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:10px;
+          ">
+
+        <img
+        src="https://developers.google.com/identity/images/g-logo.png"
+        width="20"
+        height="20"
+        alt="Google Logo">
+
+        Continue with Google
+        </a>
+
+      <hr class="my-4">
                 <div class="d-flex align-items-center justify-content-center mb-3">
                   <h6 class="card-text mb-0">Don't have an account? </h6>
                   <button id="quickLoginBtn"
