@@ -6,41 +6,46 @@ const userSchema = new mongoose.Schema(
 {
     validation: {
         type: String,
-        required: true,
         default: 'applied'
     },
+
     isAdmin: {
         type: Boolean,
-        required: true,
         default: false
     },
+
+    // Google users won't have these immediately
     societyName: {
         type: String,
-        required: true
+        default: "Pending"
     },
+
     flatNumber: {
         type: String,
-        required: true
+        default: "Pending"
     },
+
     firstName: {
         type: String,
-        required: true
+        default: ""
     },
+
     lastName: {
         type: String,
-        required: true
+        default: ""
     },
+
     phoneNumber: {
         type: Number,
-        required: true
+        default: 0
     },
 
     googleId: {
-    type: String,
-    default: ""
+        type: String,
+        default: ""
     },
 
-    complaints: Array,
+    complaints: [],
 
     lastPayment: {
         date: Date,
@@ -62,12 +67,14 @@ const userSchema = new mongoose.Schema(
 },
 {
     timestamps: true
-}
-);
+});
 
 userSchema.plugin(passportLocalMongoose);
-const User = mongoose.model("User",userSchema);
+
+const User = mongoose.model("User", userSchema);
+
 passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
-exports.User = User
+
+exports.User = User;
