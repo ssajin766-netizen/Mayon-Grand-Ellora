@@ -1,6 +1,6 @@
+require("dotenv").config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const dotenv = require('dotenv')
 const _ = require('lodash');
 const session = require('express-session');
 const passport = require('passport');
@@ -14,8 +14,7 @@ const WhatsAppLog = require("./models/WhatsAppLog");
 const db = require(__dirname+'/config/db');
 const date = require(__dirname+'/date/date');
 
-// Access environment variables
-dotenv.config();
+
 console.log("EMAIL_USER =", process.env.EMAIL_USER);
 console.log("RAZORPAY_KEY_ID =", process.env.RAZORPAY_KEY_ID);
 //const stripe = require('stripe')(process.env.SECRET_KEY);
@@ -61,46 +60,79 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-passport.use(new GoogleStrategy(
+passport.use(
+new GoogleStrategy(
 {
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "/auth/google/callback"
+    callbackURL: process.env.GOOGLE_CALLBACK_URL
 },
+
 async (accessToken, refreshToken, profile, done) => {
 
     try {
 
         let user = await user_collection.User.findOne({
-            username: profile.emails[0].value
+            googleId: profile.id
         });
 
-        if (user) {
-            return done(null, user);
+        if (!user) {
+
+            user = await user_collection.User.findOne({
+                username: profile.emails[0].value
+            });
+
+            if (user) {
+
+                user.googleId = profile.id;
+                await user.save();
+
+                return done(null, user);
+
+            }
+
         }
 
-        user = new user_collection.User({
-            username: profile.emails[0].value,
-            firstName: profile.name.givenName,
-            lastName: profile.name.familyName || "",
-            validation: "applied",
-            isAdmin: false,
-            societyName: "Pending",
-            flatNumber: "Pending",
-            phoneNumber: 0
-        });
+        if (!user) {
 
-        await user.save();
+            user = new user_collection.User({
 
-        done(null, user);
+                googleId: profile.id,
 
-    } catch (err) {
+                username: profile.emails[0].value,
 
-        done(err, null);
+                firstName: profile.name.givenName,
+
+                lastName: profile.name.familyName || "",
+
+                validation: "applied",
+
+                isAdmin: false,
+
+                societyName: "Pending",
+
+                flatNumber: "Pending",
+
+                phoneNumber: 0
+
+            });
+
+            await user.save();
+
+        }
+
+        return done(null, user);
 
     }
 
-}));
+    catch(err){
+
+        return done(err,null);
+
+    }
+
+}
+));
 db.connectDB()
 
 app.get("/", async (req,res) => {
@@ -384,7 +416,7 @@ app.get("/editBill", (req,res) => {
                 res.status(500).send("Server error");
             });
     } else {
-        res.redirect("/login"); n     
+        res.redirect("/login");      
     }
 })
 
