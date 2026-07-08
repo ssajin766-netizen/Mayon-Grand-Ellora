@@ -18,7 +18,7 @@ const date = require(__dirname+'/date/date');
 console.log("EMAIL_USER =", process.env.EMAIL_USER);
 console.log("RAZORPAY_KEY_ID =", process.env.RAZORPAY_KEY_ID);
 //const stripe = require('stripe')(process.env.SECRET_KEY);
-const PDFDocument = require('pdfkit');
+const PDFDocument = require('pdfkit');      
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({

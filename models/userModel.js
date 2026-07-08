@@ -1,12 +1,12 @@
-const mongoose = require('mongoose');
-const passportLocalMongoose = require('passport-local-mongoose');
-const passport = require('passport');
+const mongoose = require("mongoose");
+const passportLocalMongoose = require("passport-local-mongoose");
+const passport = require("passport");
 
-const userSchema = new mongoose.Schema(
-{
+const userSchema = new mongoose.Schema({
+
     validation: {
         type: String,
-        default: 'applied'
+        default: "applied"
     },
 
     isAdmin: {
@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema(
         default: false
     },
 
-    // Google users won't have these immediately
     societyName: {
         type: String,
         default: "Pending"
@@ -40,9 +39,91 @@ const userSchema = new mongoose.Schema(
         default: 0
     },
 
+    username: {
+        type: String,
+        unique: true
+    },
+
     googleId: {
         type: String,
         default: ""
+    },
+
+    // Email Verification
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+
+    emailOTP: {
+        type: String,
+        default: ""
+    },
+
+    otpExpiry: {
+        type: Date,
+        default: null
+    },
+
+    // Forgot Password
+    resetPasswordOTP: {
+        type: String,
+        default: ""
+    },
+
+    resetPasswordExpiry: {
+        type: Date,
+        default: null
+    },
+
+    // Remember Me
+    rememberToken: {
+        type: String,
+        default: ""
+    },
+
+    // Login Activity
+    lastLogin: {
+        type: Date,
+        default: null
+    },
+
+    loginHistory: [
+        {
+            loginTime: {
+                type: Date,
+                default: Date.now
+            },
+
+            ip: String,
+
+            browser: String,
+
+            device: String,
+
+            location: String,
+
+            loginMethod: {
+                type: String,
+                default: "Password"
+            },
+
+            status: {
+                type: String,
+                default: "Success"
+            }
+        }
+    ],
+
+    // Security
+    failedLoginAttempts: {
+        type: Number,
+        default: 0
+    },
+
+    accountLockedUntil: {
+        type: Date,
+        default: null
     },
 
     complaints: [],
@@ -64,8 +145,7 @@ const userSchema = new mongoose.Schema(
         }
     ]
 
-},
-{
+}, {
     timestamps: true
 });
 
@@ -77,4 +157,4 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-exports.User = User;
+module.exports = { User };
