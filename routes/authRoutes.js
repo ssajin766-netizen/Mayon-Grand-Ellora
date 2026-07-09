@@ -456,6 +456,92 @@ router.get("/verify-otp", (req, res) => {
 
 });
 
+/*
+--------------------------------------------------
+VERIFY OTP
+--------------------------------------------------
+*/
+
+router.post("/verify-otp", async (req, res) => {
+
+    try {
+
+        const result = await otpController.verifyOTP(
+            req.body.email,
+            req.body.otp
+        );
+
+        if (!result.success) {
+
+            return res.render("verifyOtp", {
+
+                email: req.body.email,
+
+                error: result.message
+
+            });
+
+        }
+
+        return res.redirect("/home");
+
+    }
+
+    catch (err) {
+
+        console.log(err);
+
+        res.render("verifyOtp", {
+
+            email: req.body.email,
+
+            error: "Something went wrong."
+
+        });
+
+    }
+
+});
+
+/*
+--------------------------------------------------
+RESEND OTP
+--------------------------------------------------
+*/
+
+router.post("/resend-otp", async (req, res) => {
+
+    try {
+
+        await otpController.sendVerificationOTP(
+            req.body.email
+        );
+
+        res.render("verifyOtp", {
+
+            email: req.body.email,
+
+            success: "A new OTP has been sent."
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.log(err);
+
+        res.render("verifyOtp", {
+
+            email: req.body.email,
+
+            error: err.message
+
+        });
+
+    }
+
+});
 
 
 router.get("/loginFailure", (req, res) => {

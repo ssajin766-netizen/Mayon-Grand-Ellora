@@ -164,7 +164,7 @@ app.get("/", async (req, res) => {
 
     catch (err) {
 
-        console.log(err);
+        console.error(err);
 
         res.status(500).send("Server Error");
 
@@ -179,10 +179,6 @@ HOME
 */
 
 app.get("/home", (req, res) => {
-
-    console.log("========== HOME ==========");
-    console.log("Authenticated:", req.isAuthenticated());
-    console.log("User:", req.user);
 
     if (!req.isAuthenticated()) {
         return res.redirect("/login");
@@ -227,23 +223,30 @@ APPLICATION ROUTES
 */
 
 app.use("/", authRoutes);
+
 app.use("/", residentRoutes);
+
 app.use("/", billRoutes);
+
 app.use("/", paymentRoutes);
+
 app.use("/", complaintRoutes);
+
 app.use("/", noticeRoutes);
+
 app.use("/", profileRoutes);
+
 app.use("/", contactRoutes);
 
 /*
 --------------------------------------------------
-HEALTH
+HEALTH CHECK
 --------------------------------------------------
 */
 
 app.get("/health", (req, res) => {
 
-    res.send("Server running");
+    res.status(200).send("Server running");
 
 });
 
@@ -258,6 +261,34 @@ app.use((req, res) => {
     res.status(404).render("failure", {
 
         message: "Page not found.",
+
+        href: "/",
+
+        messageSecondary: "Return Home",
+
+        hrefSecondary: "/",
+
+        buttonSecondary: "Home"
+
+    });
+
+});
+
+/*
+--------------------------------------------------
+GLOBAL ERROR HANDLER
+--------------------------------------------------
+*/
+
+app.use((err, req, res, next) => {
+
+    console.error("GLOBAL ERROR:");
+
+    console.error(err);
+
+    res.status(500).render("failure", {
+
+        message: "Something went wrong.",
 
         href: "/",
 

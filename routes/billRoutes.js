@@ -18,7 +18,6 @@ const {
 router.get(
     "/bill",
     isLoggedIn,
-    isVerified,
     isApproved,
     async (req, res) => {
         try {
@@ -132,7 +131,6 @@ catch (err) {
 router.get(
     "/download-bill",
     isLoggedIn,
-    isVerified,
     isApproved,
     async (req, res) => {
 

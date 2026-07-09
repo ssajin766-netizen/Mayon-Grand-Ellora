@@ -19,7 +19,6 @@ PROFILE
 router.get(
     "/profile",
     isLoggedIn,
-    isVerified,
     isApproved,
     async (req, res) => {
 
@@ -73,11 +72,9 @@ router.get(
 EDIT PROFILE PAGE
 --------------------------------------------------
 */
-
 router.get(
     "/editProfile",
     isLoggedIn,
-    isVerified,
     isApproved,
     async (req, res) => {
 
@@ -135,7 +132,6 @@ UPDATE PROFILE
 router.post(
     "/editProfile",
     isLoggedIn,
-    isVerified,
     isApproved,
     async (req, res) => {
 

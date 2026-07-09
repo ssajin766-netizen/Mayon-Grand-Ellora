@@ -3,6 +3,10 @@ const passportLocalMongoose = require("passport-local-mongoose");
 
 const userSchema = new mongoose.Schema(
 {
+    // =========================
+    // Account
+    // =========================
+
     validation: {
         type: String,
         default: "applied"
@@ -49,7 +53,10 @@ const userSchema = new mongoose.Schema(
         default: ""
     },
 
+    // =========================
     // Email Verification
+    // =========================
+
     isEmailVerified: {
         type: Boolean,
         default: false
@@ -65,7 +72,30 @@ const userSchema = new mongoose.Schema(
         default: null
     },
 
+    failedOtpAttempts: {
+        type: Number,
+        default: 0
+    },
+
+    otpLockedUntil: {
+        type: Date,
+        default: null
+    },
+
+    otpResendCount: {
+        type: Number,
+        default: 0
+    },
+
+    lastOtpSentAt: {
+        type: Date,
+        default: null
+    },
+
+    // =========================
     // Forgot Password
+    // =========================
+
     resetPasswordOTP: {
         type: String,
         default: ""
@@ -76,13 +106,19 @@ const userSchema = new mongoose.Schema(
         default: null
     },
 
+    // =========================
     // Remember Me
+    // =========================
+
     rememberToken: {
         type: String,
         default: ""
     },
 
+    // =========================
     // Login Activity
+    // =========================
+
     lastLogin: {
         type: Date,
         default: null
@@ -127,7 +163,10 @@ const userSchema = new mongoose.Schema(
         }
     ],
 
-    // Security
+    // =========================
+    // Login Security
+    // =========================
+
     failedLoginAttempts: {
         type: Number,
         default: 0
@@ -138,13 +177,24 @@ const userSchema = new mongoose.Schema(
         default: null
     },
 
+    lastFailedLogin: {
+        type: Date,
+        default: null
+    },
+
+    // =========================
     // Complaints
+    // =========================
+
     complaints: {
         type: Array,
         default: []
     },
 
+    // =========================
     // Payments
+    // =========================
+
     lastPayment: {
 
         date: Date,
@@ -178,14 +228,22 @@ const userSchema = new mongoose.Schema(
 },
 {
     timestamps: true
-}
-);
+});
 
-// Passport Local Mongoose Plugin
+// =========================
+// Passport Plugin
+// =========================
+
 userSchema.plugin(passportLocalMongoose);
 
+// =========================
 // Model
+// =========================
+
 const User = mongoose.model("User", userSchema);
 
-// Export only the model
+// =========================
+// Export
+// =========================
+
 module.exports = { User };
