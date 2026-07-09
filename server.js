@@ -1,1370 +1,271 @@
 require("dotenv").config();
-const express = require('express');
-const bodyParser = require('body-parser');
-const _ = require('lodash');
-const session = require('express-session');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const MongoStore = require('connect-mongo');
+require("./config/passport");
+
+const express = require("express");
+const session = require("express-session");
+const passport = require("passport");
+const cookieParser = require("cookie-parser");
+const MongoStore = require("connect-mongo");
+
+const db = require("./config/db");
+
+const visit_collection = require("./models/visitModel");
 const user_collection = require("./models/userModel");
 const society_collection = require("./models/societyModel");
-const visit_collection = require("./models/visitModel");
-const sendWhatsApp = require("./services/whatsappService");
-const WhatsAppLog = require("./models/WhatsAppLog");
-const db = require(__dirname+'/config/db');
-const date = require(__dirname+'/date/date');
 
-
-console.log("EMAIL_USER =", process.env.EMAIL_USER);
-console.log("RAZORPAY_KEY_ID =", process.env.RAZORPAY_KEY_ID);
-//const stripe = require('stripe')(process.env.SECRET_KEY);
-const PDFDocument = require('pdfkit');      
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
-const app = express()
-const Razorpay = require('razorpay');
-
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-});
-app.set('view engine','ejs');
-app.use(express.static('public'));
-// Middleware to handle HTTP post requests
-app.use(express.urlencoded({extended: true}));
-app.use(express.json());
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-      collectionName: "sessions",
-    }),
-    proxy: true,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-  })
-);
-app.use(passport.initialize());
-app.use(passport.session());
-passport.use(
-new GoogleStrategy(
-{
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL
-},
-
-async (accessToken, refreshToken, profile, done) => {
-
-    try {
-
-        let user = await user_collection.User.findOne({
-            googleId: profile.id
-        });
-
-        if (!user) {
-
-            user = await user_collection.User.findOne({
-                username: profile.emails[0].value
-            });
-
-            if (user) {
-
-                user.googleId = profile.id;
-                await user.save();
-
-                return done(null, user);
-
-            }
-
-        }
-
-        if (!user) {
-
-            user = new user_collection.User({
-
-                googleId: profile.id,
-
-                username: profile.emails[0].value,
-
-                firstName: profile.name.givenName,
-
-                lastName: profile.name.familyName || "",
-
-                validation: "applied",
-
-                isAdmin: false,
-
-                societyName: "Pending",
-
-                flatNumber: "Pending",
-
-                phoneNumber: 0
-
-            });
-
-            await user.save();
-
-        }
-
-        return done(null, user);
-
-    }
-
-    catch(err){
-
-        return done(err,null);
-
-    }
-
-}
-));
-db.connectDB()
-
-app.get("/", async (req,res) => {
-	// Track page visits + users & societies registered
-	try {
-        let pageVisit = await visit_collection.Visit.findOne();
-        if(!pageVisit) {
-            pageVisit = new visit_collection.Visit({
-                count: 0
-            });
-        }
-        if (process.env.NODE_ENV === 'production') {
-            pageVisit.count += 1;
-        }
-        await pageVisit.save();
-        
-        const societies = await society_collection.Society.find();
-        const cities = societies.map(society => society.societyAddress.city.toLowerCase());
-        const cityCount = new Set(cities).size;
-        
-        const foundUser = await user_collection.User.find();
-        
-        res.render("index", {
-            city: cityCount,
-            society: societies.length,
-            user: foundUser.length,
-            visit: pageVisit.count
-        });
-    } catch(err) {
-        console.error(err);
-        res.status(500).send("Server error");
-    }
-});
-
-app.get("/login", (req,res) => {
-	res.render("login");
-});
-
-app.get("/signup", (req,res) => {
-    society_collection.Society.find()
-        .then(societies => {
-            res.render("signup", {societies});
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(500).send("Server error");
-        });
-});
-
-app.get("/register", (req,res) => {
-    res.render("register");
-});
-
-app.get("/home", (req,res) => {
-	if(req.isAuthenticated()){
-		// Conditionally render home as per user validation status
-		if(req.user.validation=='approved'){
-			res.render("home");
-		} else if(req.user.validation=='applied') {
-			res.render("homeStandby",{
-				icon: 'fa-user-clock',
-				title: 'Account pending for approval',
-				content: 'Your account will be active as soon as it is approved by your community.'+
-                'It usually takes 1-2 days for approval. If it is taking longer to get approval, ' +
-                'contact your society admin.'
-			});
-		} else {
-			res.render("homeStandby",{
-				icon: 'fa-user-lock',
-				title: 'Account approval declined',
-				content: 'Your account registration has been declined. '+
-                'Please contact the society administrator for more details.' +
-				'You can edit the request and apply again.'
-			});
-		}
-	} else {
-		res.redirect("/login");
-	}
-});
-
-app.get("/newRequest", (req,res) => {
-    if(req.isAuthenticated() && req.user.validation!='approved'){
-        society_collection.Society.find()
-            .then(societies => {
-                res.render("signupEdit", {user: req.user, societies});
-            })
-            .catch(err => {
-                console.error(err);
-                res.status(500).send("Server error");
-            });
-    } else {
-        res.redirect("/home");
-    }
-})
-
-app.get("/logout", (req,res) => {
-	req.logout(function() {
-        res.redirect("/")
-    });
-})
-
-app.get("/loginFailure", (req,res) => {
-	const failureMessage = "Sorry, entered password was incorrect, Please double-check.";
-	const hrefLink = "/login";
-	const secondaryMessage = "Account not created?";
-	const hrefSecondaryLink = "/signup";
-	const secondaryButton = "Create Account";
-	res.render("failure",{
-		message:failureMessage,
-		href:hrefLink,
-		messageSecondary:secondaryMessage,
-		hrefSecondary:hrefSecondaryLink,
-		buttonSecondary:secondaryButton
-	})
-});
-
-app.get("/residents", async (req,res) => {
-    if(req.isAuthenticated() && req.user.validation=='approved'){
-        try {
-            const userSocietyName = req.user.societyName;
-            
-            const allSocietyUsers = await user_collection.User.find({
-              societyName: userSocietyName,
-            });
-
-            const foundUsers = [];
-            const foundAppliedUsers = [];
-
-            allSocietyUsers.forEach((user) => {
-              if (user.validation === "approved") {
-                foundUsers.push(user);
-              } else if (user.validation === "applied") {
-                foundAppliedUsers.push(user);
-              }
-            });
-            
-            res.render("residents", {
-                societyResidents: foundUsers,
-                appliedResidents: foundAppliedUsers,
-                societyName: userSocietyName,
-                isAdmin: req.user.isAdmin
-            });
-        } catch(err) {
-            console.error(err);
-            res.status(500).send("Server error");
-        }
-    } else {
-        res.redirect("/login");
-    }
-})
-
-app.get("/noticeboard", (req,res) => {
-    if(req.isAuthenticated() && req.user.validation=='approved'){
-        society_collection.Society.findOne(
-          { societyName: req.user.societyName },
-          { noticeboard: 1 }
-        )
-          .then((foundSociety) => {
-            if (foundSociety) {
-              // Check if no notice is present
-              if (
-                !foundSociety.noticeboard ||
-                !foundSociety.noticeboard.length
-              ) {
-                foundSociety.noticeboard = [
-                  {
-                    subject:
-                      "Access all important announcements, notices and circulars here.",
-                  },
-                ];
-              }
-              res.render("noticeboard", {
-                notices: foundSociety.noticeboard,
-                isAdmin: req.user.isAdmin,
-              });
-            }
-          })
-          .catch((err) => {
-            console.error(err);
-            res.status(500).send("Server error");
-          });
-    } else {
-        res.redirect("/login");
-    }
-})
-
-app.get("/notice", (req,res) => {
-	if(req.isAuthenticated() && req.user.isAdmin){
-		res.render("notice");
-	} else {
-		res.redirect("/login");
-	}
-})
-
-app.get("/bill", async (req,res) => {
-    if(req.isAuthenticated() && req.user.validation=='approved'){
-        try {
-            const foundUser = await user_collection.User.findById(req.user.id);
-            const foundSociety = await society_collection.Society.findOne({societyName: foundUser.societyName});
-            
-            const dateToday = new Date();
-            // Payment required for total number of months
-            let totalMonth = 0;
-            // If lastPayment doesn't exist
-            let dateFrom = foundUser.createdAt;
-            // If lastPayment exists
-            if(foundUser.lastPayment.date){
-                dateFrom = foundUser.lastPayment.date;
-                totalMonth = date.monthDiff(dateFrom,dateToday);
-            }
-            else {
-                // Add an extra month, as users joining date month payment's also pending
-                totalMonth = date.monthDiff(dateFrom,dateToday) + 1;
-            }
-            
-            // Calculate monthly bill of society maintenance
-            const monthlyTotal = Object.values(foundSociety.maintenanceBill)
-                .filter(ele => typeof(ele)=='number')
-                .reduce((sum,ele) => sum+ele, 0);
-                
-            let credit = 0;
-            let due = 0;
-            if(totalMonth==0){
-                // Calculate credit balance
-                credit = monthlyTotal;
-            }
-            else if(totalMonth>1){
-                // Calculate pending due
-                due = (totalMonth-1)*monthlyTotal;
-            }
-            const totalAmount = monthlyTotal + due - credit;
-            
-            // Fetch validated society residents for admin features
-            const foundUsers = await user_collection.User.find({
-                $and: [
-                    {"societyName": req.user.societyName},
-                    {"validation": "approved"}
-                ]
-            });
-            
-            // Update amount to be paid on respective user collection
-            foundUser.makePayment = totalAmount;
-            await foundUser.save();
-            
-           res.render("bill", {
-               resident: foundUser,
-               society: foundSociety,
-               totalAmount: totalAmount,
-               pendingDue: due,
-               creditBalance: credit,
-               monthName: date.month,
-               date: date.today,
-               year: date.year,
-               receipt: foundUser.lastPayment,
-               societyResidents: foundUsers,
-               monthlyTotal: monthlyTotal,
-               razorpayKey: process.env.RAZORPAY_KEY_ID
-            });
-        } catch(err) {
-            console.error(err);
-            res.status(500).send("Server error");
-        }
-    } else {
-        res.redirect("/login");
-    }
-})
-
-app.get("/editBill", (req,res) => {
-    if(req.isAuthenticated() && req.user.isAdmin){
-        society_collection.Society.findOne(
-            {societyName: req.user.societyName},
-            {maintenanceBill: 1}
-        )
-            .then(foundSociety => {
-                if(foundSociety){
-                    res.render("editBill", {maintenanceBill: foundSociety.maintenanceBill});
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                res.status(500).send("Server error");
-            });
-    } else {
-        res.redirect("/login");      
-    }
-})
-
-app.get("/helpdesk",(req,res) => {
-    if(req.isAuthenticated() && req.user.validation=='approved') {
-        // Conditionally render user/admin helpdesk
-        if(req.user.isAdmin) {
-            user_collection.User.find({
-                $and: [
-                    {"societyName": req.user.societyName}, 
-                    {"validation": "approved"}
-                ]
-            })
-                .then(foundUsers => {
-                    res.render("helpdeskAdmin", {users: foundUsers});
-                })
-                .catch(err => {
-                    console.error(err);
-                    res.status(500).send("Server error");
-                });
-        } else {
-            // Check if no complaint is present
-            if(!req.user.complaints.length){
-                req.user.complaints = [{
-                    'category': 'You have not raised any complaint',
-                    'description': 'You can raise complaints and track their resolution by facility manager.'
-                }];
-            }
-            res.render("helpdesk", {complaints: req.user.complaints});
-        }
-    } else {
-        res.redirect("/login");
-    }
-})
-
-app.get("/complaint",(req,res) => {
-	if(req.isAuthenticated() && req.user.validation=='approved'){
-		res.render("complaint");
-	} else {
-		res.redirect("/login");
-	}
-})
-
-app.get("/contacts", (req, res) => {
-    if (req.isAuthenticated() && req.user.validation == "approved") {
-
-        society_collection.Society.findOne({
-            societyName: req.user.societyName
-        })
-        .then(foundSociety => {
-
-            if(foundSociety){
-
-                res.render("contacts",{
-                    contact: foundSociety.emergencyContacts,
-                    society: foundSociety,
-                    isAdmin: req.user.isAdmin
-                });
-
-            }
-
-        })
-        .catch(err=>{
-            console.log(err);
-            res.status(500).send("Server Error");
-        });
-
-    } else {
-        res.redirect("/login");
-    }
-});
-
-app.get("/editContacts",(req,res) => {
-    if(req.isAuthenticated() && req.user.isAdmin){
-        society_collection.Society.findOne(
-            {societyName: req.user.societyName},
-            {emergencyContacts: 1}
-        )
-            .then(foundSociety => {
-                if(foundSociety){
-                    res.render("editContacts", {contact: foundSociety.emergencyContacts});
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                res.status(500).send("Server error");
-            });
-    } else {
-        res.redirect("/login");
-    }
-})
-
-app.get("/profile", (req,res) => {
-    if(req.isAuthenticated() && req.user.validation=='approved'){
-        user_collection.User.findById(req.user.id)
-            .then(foundUser => {
-                if(foundUser){
-                    return society_collection.Society.findOne({societyName: foundUser.societyName})
-                        .then(foundSociety => {
-                            res.render("profile", {resident: foundUser, society: foundSociety});
-                        });
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                res.status(500).send("Server error");
-            });
-    } else {
-        res.redirect("/login");
-    }
-})
-
-app.get("/editProfile", (req,res) => {
-    if(req.isAuthenticated() && req.user.validation=='approved'){
-        user_collection.User.findById(req.user.id)
-            .then(foundUser => {
-                if(foundUser){
-                    return society_collection.Society.findOne({societyName: foundUser.societyName})
-                        .then(foundSociety => {
-                            res.render("editProfile", {resident: foundUser, society: foundSociety});
-                        });
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                res.status(500).send("Server error");
-            });
-    } else {
-        res.redirect("/login");
-    }
-})
 /*
-app.get('/success', async (req, res) => {
+--------------------------------------------------
+ROUTES
+--------------------------------------------------
+*/
+
+const authRoutes = require("./routes/authRoutes");
+const residentRoutes = require("./routes/residentRoutes");
+const billRoutes = require("./routes/billRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const complaintRoutes = require("./routes/complaintRoutes");
+const noticeRoutes = require("./routes/noticeRoutes");
+const profileRoutes = require("./routes/profileRoutes");
+const contactRoutes = require("./routes/contactRoutes");
+
+const app = express();
+
+/*
+--------------------------------------------------
+DATABASE
+--------------------------------------------------
+*/
+
+db.connectDB();
+
+/*
+--------------------------------------------------
+MIDDLEWARE
+--------------------------------------------------
+*/
+
+app.set("view engine", "ejs");
+
+app.use(express.static("public"));
+
+app.use(express.urlencoded({ extended: true }));
+
+app.use(express.json());
+
+app.use(cookieParser());
+
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: process.env.MONGO_URI,
+            collectionName: "sessions",
+        }),
+        cookie: {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 24 * 60 * 60 * 1000,
+        },
+    })
+);
+
+app.use(passport.initialize());
+
+app.use(passport.session());
+
+/*
+--------------------------------------------------
+HOME PAGE
+--------------------------------------------------
+*/
+
+app.get("/", async (req, res) => {
+
     try {
-        const session = await stripe.checkout.sessions.retrieve(req.query.session_id);
-        const customer = await stripe.customers.retrieve(session.customer);
-        
-        const foundUser = await user_collection.User.findOne({_id: req.user.id});
-        foundUser.lastPayment.date = new Date(customer.created*1000);
-        foundUser.lastPayment.amount = session.amount_total/100;
-        foundUser.lastPayment.invoice = customer.invoice_prefix;
-        
-        await foundUser.save();
-        
-        const transactionDate = new Date(customer.created*1000).toLocaleString().split(', ')[0];
-        res.render("success", {
-            invoice: customer.invoice_prefix,
-            amount: session.amount_total/100,
-            date: transactionDate
+
+        let pageVisit =
+            await visit_collection.Visit.findOne();
+
+        if (!pageVisit) {
+
+            pageVisit = new visit_collection.Visit({
+
+                count: 0
+
+            });
+
+        }
+
+        if (process.env.NODE_ENV === "production") {
+
+            pageVisit.count++;
+
+        }
+
+        await pageVisit.save();
+
+        const societies =
+            await society_collection.Society.find();
+
+        const foundUsers =
+            await user_collection.User.find();
+
+        const cities =
+            societies.map(
+
+                s => s.societyAddress.city.toLowerCase()
+
+            );
+
+        res.render("index", {
+
+            city: new Set(cities).size,
+
+            society: societies.length,
+
+            user: foundUsers.length,
+
+            visit: pageVisit.count
+
         });
-    } catch(err) {
-        console.error(err);
-        res.status(500).send("Server error");
+
     }
+
+    catch (err) {
+
+        console.log(err);
+
+        res.status(500).send("Server Error");
+
+    }
+
 });
 
-app.post('/checkout-session', async (req, res) => {
-
-    try {
-
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: [
-                {
-                    price_data: {
-                        currency: 'inr',
-                        product_data: {
-                            name: req.user.societyName
-                        },
-                        unit_amount: req.user.makePayment * 100,
-                    },
-                    quantity: 1,
-                },
-            ],
-            mode: 'payment',
-            success_url: "http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url: "http://localhost:3000/bill",
-        });
-
-        res.json({ id: session.id });
-
-    } catch(err) {
-
-        console.log("Stripe Error:", err.message);
-
-        res.status(500).json({
-            success:false,
-            message:"Payment gateway unavailable"
-        });
-    }
-}); 
+/*
+--------------------------------------------------
+HOME
+--------------------------------------------------
 */
-app.get('/download-bill', async (req, res) => {
+
+app.get("/home", (req, res) => {
 
     if (!req.isAuthenticated()) {
-        return res.redirect('/login');
+
+        return res.redirect("/login");
+
     }
 
-    const resident = await user_collection.User.findById(req.user.id);
-    const society = await society_collection.Society.findOne({
-        societyName: resident.societyName
-    });
+    if (req.user.validation === "approved") {
 
-    const bill = society.maintenanceBill;
+        return res.render("home");
 
-    const total =
-        Number(bill.societyCharges) +
-        Number(bill.repairsAndMaintenance) +
-        Number(bill.sinkingFund) +
-        Number(bill.waterCharges) +
-        Number(bill.insuranceCharges) +
-        Number(bill.parkingCharges);
-
-    const doc = new PDFDocument({
-        size: "A4",
-        margin: 50
-    });
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-        "Content-Disposition",
-        "attachment; filename=Maintenance_Bill.pdf"
-    );
-
-    doc.pipe(res);
-
-    doc
-        .fontSize(24)
-        .fillColor("#d62839")
-        .text("Maintenance Bill", {
-            align: "center"
-        });
-
-    doc.moveDown();
-
-    doc
-        .fillColor("black")
-        .fontSize(15);
-
-    doc.text(`Society : ${society.societyName}`);
-    doc.text(`Resident : ${resident.firstName} ${resident.lastName}`);
-    doc.text(`Flat No : ${resident.flatNumber}`);
-    doc.text(`Date : ${new Date().toLocaleDateString()}`);
-
-    doc.moveDown();
-
-    const startY = doc.y;
-
-    doc.rect(50,startY,500,25).fill("#d62839");
-
-    doc.fillColor("white");
-
-    doc.text("Sr",65,startY+7);
-    doc.text("Particular",120,startY+7);
-    doc.text("Amount",450,startY+7);
-
-    doc.fillColor("black");
-
-    const rows = [
-        ["1","Society Charges",bill.societyCharges],
-        ["2","Repairs & Maintenance",bill.repairsAndMaintenance],
-        ["3","Sinking Fund",bill.sinkingFund],
-        ["4","Water Charges",bill.waterCharges],
-        ["5","Insurance Charges",bill.insuranceCharges],
-        ["6","Parking Charges",bill.parkingCharges]
-    ];
-
-    let y = startY + 30;
-
-    rows.forEach(r=>{
-
-        doc.rect(50,y,500,25).stroke();
-
-        doc.text(r[0],65,y+7);
-        doc.text(r[1],120,y+7);
-        doc.text("₹ "+r[2],450,y+7);
-
-        y +=25;
-
-    });
-
-    doc.rect(50,y,500,30).fill("#d62839");
-
-    doc.fillColor("white");
-
-    doc.text("Total Amount",300,y+8);
-
-    doc.text("₹ "+total,450,y+8);
-
-    doc.end();
-
-});
-
-app.post('/create-order', async (req,res)=>{
-
-    try{
-
-        const order = await razorpay.orders.create({
-            amount: req.user.makePayment * 100,
-            currency: "INR",
-            receipt: "receipt_" + Date.now()
-        });
-
-        res.json(order);
-
-    }catch(err){
-        console.log(err);
-        res.status(500).json({success:false});
-    }
-});
-
-app.post('/payment-success', async(req,res)=>{
-
-    try{
-
-        const user =
-        await user_collection.User.findById(req.user.id);
-
-        const invoice =
-        'INV-' + Date.now();
-
-        user.lastPayment = {
-            date:new Date(),
-            amount:user.makePayment,
-            invoice:invoice
-        };
-
-       if (!user.paymentHistory) {
-       user.paymentHistory = [];
-       }
-      user.paymentHistory.push({
-      amount:user.makePayment,
-      invoice:invoice,
-      paidAt:new Date(),
-      method:'Razorpay'
-});
-
-  await user.save();
-
-  try {
-
-    await sendWhatsApp(
-        `+91${user.phoneNumber}`,
-        `Payment of Rs.${user.makePayment} received successfully. Invoice: ${invoice}`
-    );
-
-    await WhatsAppLog.create({
-        residentId: user._id,
-        mobileNumber: user.phoneNumber,
-        message: `Payment of Rs.${user.makePayment} received successfully.`,
-        status: 'Sent'
-    });
-
-} catch(err) {
-
-    console.log('WhatsApp failed:', err.message);
-
-}
-
-try {
-
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: user.username,
-        subject: 'Maintenance Payment Receipt',
-        html: `
-            <h2>Payment Successful</h2>
-            <p>Invoice: ${invoice}</p>
-            <p>Amount: ₹${user.makePayment}</p>
-            <p>Society: ${user.societyName}</p>
-        `
-    });
-
-} catch(emailErr) {
-
-    console.log(
-        'Email failed:',
-        emailErr.message
-    );
-
-}
-
-res.json({success:true});
-
-       
-
-    }catch(err){
-        console.log(err);
-        res.status(500).json({success:false});
-    }
-});
-
-app.post('/mark-paid', async(req,res)=>{
-
-    try{
-
-        const user =
-        await user_collection.User.findById(req.user.id);
-
-        const invoice = 'INV-' + Date.now();
-
-        user.lastPayment = {
-            date:new Date(),
-            amount:user.makePayment,
-            invoice:invoice
-        };
-
-        if (!user.paymentHistory) {
-            user.paymentHistory = [];
-        }
-
-        user.paymentHistory.push({
-            amount:user.makePayment,
-            invoice:invoice,
-            paidAt:new Date(),
-            method:'Manual'
-        });
-
-        await user.save();
-
-        res.redirect('/bill');
-
-    }catch(err){
-
-        console.log(err);
-        res.redirect('/bill');
-    }
-});
-
-app.post("/approveResident", async (req,res) => {
-
-    try {
-
-        const user_id = Object.keys(req.body.validate)[0];
-        const validate_state = Object.values(req.body.validate)[0];
-
-        await user_collection.User.updateOne(
-            {_id:user_id},
-            {$set:{validation:validate_state}}
-        );
-
-        const approvedUser =
-            await user_collection.User.findById(user_id);
-
-            try {
-
-    await sendWhatsApp(
-        `+91${approvedUser.phoneNumber}`,
-        'Your Mayon Grand Ellora account has been approved.'
-    );
-
-    await WhatsAppLog.create({
-        residentId: approvedUser._id,
-        mobileNumber: approvedUser.phoneNumber,
-        message: 'Your account has been approved.',
-        status: 'Sent'
-    });
-
-} catch(err) {
-
-    console.log(
-        'WhatsApp approval failed:',
-        err.message
-    );
-
-}
-
-        try {
-
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: approvedUser.username,
-        subject: 'Account Approved',
-        text: 'Your Mayon Grand Ellora account has been approved.'
-    });
-
-} catch(emailErr) {
-
-    console.log(
-        'Approval email failed:',
-        emailErr.message
-    );
-
-}
-
-        res.redirect("/residents");
-
-    } catch(err){
-        console.log(err);
-        res.redirect("/residents");
-    }
-});
-
-app.post("/complaint", (req,res) => {
-    user_collection.User.findById(req.user.id)
-        .then(foundUser => {
-            if(foundUser){
-                const complaint = {
-                    'date': date.dateString,
-                    'category': req.body.category,
-                    'type': req.body.type,
-                    'description': req.body.description,
-                    'status': 'open'
-                };
-                foundUser.complaints.push(complaint);
-                return foundUser.save()
-                    .then(() => {
-                        res.redirect("/helpdesk");
-                    });
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(500).send("Server error");
-        });
-})
-
-app.post("/closeTicket", (req,res) => {
-    const user_id = Object.keys(req.body.ticket)[0];
-    const ticket_index = Object.values(req.body.ticket)[0];
-    const ticket = 'complaints.'+ticket_index;
-    
-    // Find user for fetching ticket data
-    user_collection.User.findById(user_id)
-        .then(foundUser => {
-            if(foundUser){
-                return user_collection.User.updateOne(
-                    {_id: user_id},
-                    { $set: {
-                        [ticket]: {
-                            status: 'close',
-                            'date': foundUser.complaints[ticket_index].date,
-                            'category': foundUser.complaints[ticket_index].category,
-                            'type': foundUser.complaints[ticket_index].type,
-                            'description': foundUser.complaints[ticket_index].description
-                        }
-                    }}
-                )
-                    .then(() => {
-                        res.redirect("/helpdesk");
-                    });
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(500).send("Server error");
-        });
-});
-
-app.post("/notice", (req,res) => {
-    society_collection.Society.findOne({societyName: req.user.societyName})
-        .then(foundSociety => {
-            if(foundSociety){
-                const notice = {
-                    'date': date.dateString,
-                    'subject': req.body.subject,
-                    'details': req.body.details
-                };
-                foundSociety.noticeboard.push(notice);
-                return foundSociety.save()
-                    .then(() => {
-                        res.redirect("/noticeboard");
-                    });
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(500).send("Server error");
-        });
-});
-
-app.post("/editBill", (req,res) => {
-    society_collection.Society.updateOne(
-        {societyName: req.user.societyName},
-        { $set: {
-            maintenanceBill: {
-                societyCharges: req.body.societyCharges,
-                repairsAndMaintenance: req.body.repairsAndMaintenance,
-                sinkingFund: req.body.sinkingFund,
-                waterCharges: req.body.waterCharges,
-                insuranceCharges: req.body.insuranceCharges,
-                parkingCharges: req.body.parkingCharges
-            }
-        }}
-    )
-        .then(() => {
-            res.redirect("/bill");
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(500).send("Server error");
-        });
-});
-
-app.post("/editContacts", (req, res) => {
-    society_collection.Society.updateOne(
-        { societyName: req.user.societyName },
-        {
-            $set: {
-                emergencyContacts: {
-                    plumbingService: req.body.plumbingService,
-                    medicineShop: req.body.medicineShop,
-                    ambulance: req.body.ambulance,
-                    doctor: req.body.doctor,
-                    fireStation: req.body.fireStation,
-                    guard: req.body.guard,
-                    policeStation: req.body.policeStation,
-
-                    electrician: req.body.electrician,
-                    hospital: req.body.hospital,
-                    liftService: req.body.liftService,
-                    waterSupply: req.body.waterSupply,
-
-                    securityOffice: req.body.securityOffice,
-                    generatorService: req.body.generatorService,
-                    gasAgency: req.body.gasAgency,
-                    electricityBoard: req.body.electricityBoard,
-                    maintenanceOffice: req.body.maintenanceOffice
-                }
-            }
-        }
-    )
-    .then(() => {
-        res.redirect("/contacts");
-    })
-    .catch(err => {
-        console.error(err);
-        res.status(500).send("Server error");
-    });
-});
-
-app.post("/editProfile", (req,res) => {
-    user_collection.User.updateOne(
-        {_id: req.user.id},
-        { $set: { 
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            phoneNumber: req.body.phoneNumber,
-            flatNumber: req.body.flatNumber
-        }}
-    )
-        .then(() => {
-            // Update society data if any ~admin
-            if(req.body.address){
-                return society_collection.Society.updateOne(
-                    {admin: req.user.username},
-                    { $set: { 
-                        societyAddress: {
-                            address: req.body.address,
-                            city: req.body.city,
-                            district: req.body.district,
-                            postalCode: req.body.postalCode
-                        }
-                    }}
-                )
-                    .then(() => {
-                        res.redirect("/profile");
-                    });
-            } else {
-                res.redirect("/profile");
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(500).send("Server error");
-        });
-});
-
-app.post("/newRequest", (req,res) => {
-    // Submit new signup only if society exists
-    society_collection.Society.findOne({societyName: req.body.societyName})
-        .then(foundSociety => {
-            if(foundSociety){
-                return user_collection.User.updateOne(
-                    {_id: req.user.id},
-                    { $set: {
-                        firstName: req.body.firstName,
-                        lastName: req.body.lastName,
-                        phoneNumber: req.body.phoneNumber,
-                        societyName: req.body.societyName,
-                        flatNumber: req.body.flatNumber,
-                        validation: 'applied'
-                    }}
-                )
-                    .then(() => {
-                        res.redirect("/home");
-                    });
-            } else {
-                const failureMessage = "Sorry, society is not registered, Please double-check society name.";
-                const hrefLink = "/newRequest";
-                const secondaryMessage = "Account not created?";
-                const hrefSecondaryLink = "/signup";
-                const secondaryButton = "Create Account";
-                res.render("failure", {
-                    message: failureMessage,
-                    href: hrefLink,
-                    messageSecondary: secondaryMessage,
-                    hrefSecondary: hrefSecondaryLink,
-                    buttonSecondary: secondaryButton
-                });
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            res.status(500).send("Server error");
-        });
-});
-
-app.post("/signup", async (req,res) => {
-    try {
-        // Signup only if society is created
-        const foundSociety = await society_collection.Society.findOne({societyName: req.body.societyName});
-        
-        if(foundSociety) {
-            const user = await user_collection.User.register(
-                {
-                    username: req.body.username,
-                    societyName: req.body.societyName,
-                    flatNumber: req.body.flatNumber,
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName,
-                    phoneNumber: req.body.phoneNumber
-                },
-                req.body.password
-            );
-
-            await new Promise((resolve, reject) => {
-                req.login(user, (err) => {
-                    if (err) return reject(err);
-                    resolve();
-                });
-            });
-try {
-
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: user.username,
-        subject: 'Registration Submitted',
-        text: 'Your registration is pending admin approval.'
-    });
-
-} catch(emailErr) {
-
-    console.log(
-        'Signup email failed:',
-        emailErr.message
-    );
-
-}
-            
-            res.redirect("/home");
-        } else {
-            const failureMessage = "Sorry, society is not registered, Please double-check society name.";
-            const hrefLink = "/signup";
-            const secondaryMessage = "Society not registered?";
-            const hrefSecondaryLink = "/register";
-            const secondaryButton = "Register Society";
-            res.render("failure", {
-                message: failureMessage,
-                href: hrefLink,
-                messageSecondary: secondaryMessage,
-                hrefSecondary: hrefSecondaryLink,
-                buttonSecondary: secondaryButton
-            });
-        }
-    } catch(err) {
-        console.error(err);
-        const failureMessage = "Sorry, this email address is not available. Please choose a different address.";
-        const hrefLink = "/signup";
-        const secondaryMessage = "Society not registered?";
-        const hrefSecondaryLink = "/register";
-        const secondaryButton = "Register Society";
-        res.render("failure", {
-            message: failureMessage,
-            href: hrefLink,
-            messageSecondary: secondaryMessage,
-            hrefSecondary: hrefSecondaryLink,
-            buttonSecondary: secondaryButton
-        });
-    }
-});
-
-
-app.post("/register", async (req,res) => {
-
-    if(
-        req.body.adminSecret !==
-        process.env.ADMIN_SECRET
-    ){
-        return res.status(403).send(
-            "Invalid Admin Secret"
-        );
     }
 
-    try {
+    if (req.user.validation === "applied") {
 
-        const existingSociety =
-        await society_collection.Society.findOne({
-            societyName: req.body.societyName
+        return res.render("homeStandby", {
+
+            icon: "fa-user-clock",
+
+            title: "Account Pending",
+
+            content:
+                "Your account is waiting for approval from the administrator."
+
         });
 
-        if(existingSociety){
-
-            return res.render(
-                "failure",
-                {
-                    message:
-                    "Society already registered",
-
-                    href:
-                    "/register",
-
-                    messageSecondary:
-                    "Resident account?",
-
-                    hrefSecondary:
-                    "/signup",
-
-                    buttonSecondary:
-                    "Create Account"
-                }
-            );
-        }
-
-        const user =
-        await user_collection.User.register(
-            {
-                validation:'approved',
-                isAdmin:true,
-                username:req.body.username,
-                societyName:req.body.societyName,
-                flatNumber:req.body.flatNumber,
-                firstName:req.body.firstName,
-                lastName:req.body.lastName,
-                phoneNumber:req.body.phoneNumber
-            },
-            req.body.password
-        );
-
-        await req.login(
-            user,
-            ()=>{}
-        );
-
-        const society =
-        new society_collection.Society({
-
-            societyName:
-            user.societyName,
-
-            societyAddress:{
-                address:req.body.address,
-                city:req.body.city,
-                district:req.body.district,
-                postalCode:req.body.postalCode
-            },
-
-            admin:user.username
-        });
-
-        await society.save();
-
-        res.redirect("/home");
-
-    } catch(err){
-
-        console.log(err);
-
-        res.redirect("/register");
     }
+
+    return res.render("homeStandby", {
+
+        icon: "fa-user-lock",
+
+        title: "Account Declined",
+
+        content:
+            "Your account request has been declined. Please contact the administrator."
+
+    });
+
 });
 
-app.post("/login", passport.authenticate("local", {
-	successRedirect: "/home",
-	failureRedirect: "/loginFailure"
-}));
+/*
+--------------------------------------------------
+APPLICATION ROUTES
+--------------------------------------------------
+*/
+
+app.use("/", authRoutes);
+
+app.use("/", residentRoutes);
+
+app.use("/", billRoutes);
+
+app.use("/", paymentRoutes);
+
+app.use("/", complaintRoutes);
+
+app.use("/", noticeRoutes);
+
+app.use("/", profileRoutes);
+
+app.use("/", contactRoutes);
+
+/*
+--------------------------------------------------
+HEALTH CHECK
+--------------------------------------------------
+*/
 
 app.get("/health", (req, res) => {
+
     res.status(200).send("Server is running");
-});
-
-app.get('/test-email', async (req,res)=>{
-
-    try{
-
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: process.env.EMAIL_USER,
-            subject: "Mayon Grand Ellora Test Email",
-            text: 'Nodemailer is working successfully.'
-        });
-
-        res.send('Email sent successfully');
-
-    }catch(err){
-
-        console.log(err);
-        res.send('Email failed');
-    }
-});
-
-app.get('/test-whatsapp', async (req, res) => {
-
-    try {
-
-        const result = await sendWhatsApp(
-            '+919876543210', // replace with your number
-            'Mayon Grand Ellora WhatsApp Test'
-        );
-
-        console.log(result.sid);
-
-        res.send('WhatsApp sent successfully');
-
-    } catch (err) {
-
-        console.log(err);
-        res.send('WhatsApp failed');
-
-    }
 
 });
 
-app.get("/auth/google",
-passport.authenticate("google",
-{
-scope:["profile","email"]
-})
-);
+/*
+--------------------------------------------------
+404
+--------------------------------------------------
+*/
 
-app.get("/auth/google/callback",
+app.use((req, res) => {
 
-passport.authenticate("google",
-{
-failureRedirect:"/login"
-}),
+    res.status(404).render("failure", {
 
-(req,res)=>{
+        message: "Page not found.",
 
-if (req.user.societyName === "Pending") {
-    return res.redirect("/newRequest");
-}
+        href: "/",
 
-res.redirect("/home");
+        messageSecondary: "Return to Home",
+
+        hrefSecondary: "/",
+
+        buttonSecondary: "Home"
+
+    });
 
 });
 
-app.listen(
-    process.env.PORT || 3000, 
-    console.log("Server started")
-);
+/*
+--------------------------------------------------
+SERVER
+--------------------------------------------------
+*/
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+
+    console.log("===================================");
+
+    console.log("Server started");
+
+    console.log(`Running on Port ${PORT}`);
+
+    console.log("===================================");
+
+});

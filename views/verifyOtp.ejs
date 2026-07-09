@@ -1,53 +1,70 @@
 <%- include('partials/headerForm') %>
 
+<body>
+
 <div class="container">
 
-<div class="row justify-content-center">
+    <div class="row">
 
-<div class="col-md-5">
+        <div class="col-md-5 col-md-offset-3">
 
-<div class="card mt-5">
+            <div class="card card-signin my-5">
 
-<div class="card-body">
+                <div class="card-body">
 
-<h3 class="text-center">
+                    <h3 class="text-center">
 
-Verify Email
+                        Verify Email
 
-</h3>
+                    </h3>
 
-<form action="/verify-otp" method="POST">
+                    <p class="text-center">
 
-<input
+                        OTP sent to
 
-type="text"
+                        <br>
 
-name="otp"
+                        <b><%= email %></b>
 
-maxlength="6"
+                    </p>
 
-class="form-control"
+                    <form action="/verify-otp" method="POST">
 
-placeholder="Enter OTP"
+                        <input
+                            type="hidden"
+                            name="email"
+                            value="<%= email %>"
+                        >
 
-required>
+                        <input
+                            class="form-control"
+                            name="otp"
+                            maxlength="6"
+                            placeholder="Enter OTP"
+                            required
+                        >
 
-<button
+                        <br>
 
-class="btn btn-primary btn-block mt-3">
+                        <button
+                            class="btn btn-success btn-block">
 
-Verify OTP
+                            Verify OTP
 
-</button>
+                        </button>
 
-</form>
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 
-</div>
+</body>
 
-</div>
-
-</div>
-
-</div>
+</html>

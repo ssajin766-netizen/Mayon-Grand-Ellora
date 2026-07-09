@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 const passportLocalMongoose = require("passport-local-mongoose");
 const passport = require("passport");
 
-const userSchema = new mongoose.Schema({
-
+const userSchema = new mongoose.Schema(
+{
     validation: {
         type: String,
         default: "applied"
@@ -41,7 +41,8 @@ const userSchema = new mongoose.Schema({
 
     username: {
         type: String,
-        unique: true
+        unique: true,
+        required: true
     },
 
     googleId: {
@@ -49,7 +50,10 @@ const userSchema = new mongoose.Schema({
         default: ""
     },
 
+    // =========================
     // Email Verification
+    // =========================
+
     isEmailVerified: {
         type: Boolean,
         default: false
@@ -65,7 +69,10 @@ const userSchema = new mongoose.Schema({
         default: null
     },
 
+    // =========================
     // Forgot Password
+    // =========================
+
     resetPasswordOTP: {
         type: String,
         default: ""
@@ -76,13 +83,19 @@ const userSchema = new mongoose.Schema({
         default: null
     },
 
+    // =========================
     // Remember Me
+    // =========================
+
     rememberToken: {
         type: String,
         default: ""
     },
 
+    // =========================
     // Login Activity
+    // =========================
+
     lastLogin: {
         type: Date,
         default: null
@@ -95,13 +108,25 @@ const userSchema = new mongoose.Schema({
                 default: Date.now
             },
 
-            ip: String,
+            ip: {
+                type: String,
+                default: ""
+            },
 
-            browser: String,
+            browser: {
+                type: String,
+                default: ""
+            },
 
-            device: String,
+            device: {
+                type: String,
+                default: ""
+            },
 
-            location: String,
+            location: {
+                type: String,
+                default: ""
+            },
 
             loginMethod: {
                 type: String,
@@ -115,7 +140,10 @@ const userSchema = new mongoose.Schema({
         }
     ],
 
+    // =========================
     // Security
+    // =========================
+
     failedLoginAttempts: {
         type: Number,
         default: 0
@@ -126,15 +154,39 @@ const userSchema = new mongoose.Schema({
         default: null
     },
 
-    complaints: [],
+    // =========================
+    // Complaints
+    // =========================
 
-    lastPayment: {
-        date: Date,
-        amount: Number,
-        invoice: String
+    complaints: {
+        type: Array,
+        default: []
     },
 
-    makePayment: Number,
+    // =========================
+    // Payments
+    // =========================
+
+    lastPayment: {
+
+        date: Date,
+
+        amount: {
+            type: Number,
+            default: 0
+        },
+
+        invoice: {
+            type: String,
+            default: ""
+        }
+
+    },
+
+    makePayment: {
+        type: Number,
+        default: 0
+    },
 
     paymentHistory: [
         {
@@ -145,16 +197,20 @@ const userSchema = new mongoose.Schema({
         }
     ]
 
-}, {
+},
+{
     timestamps: true
-});
+}
+);
 
 userSchema.plugin(passportLocalMongoose);
 
 const User = mongoose.model("User", userSchema);
 
 passport.use(User.createStrategy());
+
 passport.serializeUser(User.serializeUser());
+
 passport.deserializeUser(User.deserializeUser());
 
 module.exports = { User };
