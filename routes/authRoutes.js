@@ -327,9 +327,22 @@ router.post("/login", (req, res, next) => {
                 return next(err);
             }
 
-            console.log("LOGIN SUCCESS");
+            console.log("========== LOGIN SUCCESS ==========");
+            console.log("Session ID:", req.sessionID);
+            console.log("User:", req.user.username);
 
-            return res.redirect("/home");
+            req.session.save((err) => {
+
+                if (err) {
+                    console.log("SESSION SAVE ERROR:", err);
+                    return next(err);
+                }
+
+                console.log("SESSION SAVED");
+
+                return res.redirect("/home");
+
+            });
 
         });
 

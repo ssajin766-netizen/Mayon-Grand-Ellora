@@ -32,6 +32,14 @@ const app = express();
 
 /*
 --------------------------------------------------
+IMPORTANT FOR RENDER
+--------------------------------------------------
+*/
+
+app.set("trust proxy", 1);
+
+/*
+--------------------------------------------------
 DATABASE
 --------------------------------------------------
 */
@@ -57,24 +65,54 @@ app.use(cookieParser());
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
+
         resave: false,
+
         saveUninitialized: false,
+
+        proxy: true,
+
         store: MongoStore.create({
             mongoUrl: process.env.MONGO_URI,
-            collectionName: "sessions",
+            collectionName: "sessions"
         }),
+
         cookie: {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            maxAge: 24 * 60 * 60 * 1000,
-        },
+            maxAge: 1000 * 60 * 60 * 24
+        }
     })
 );
 
 app.use(passport.initialize());
 
 app.use(passport.session());
+
+/*
+--------------------------------------------------
+SESSION DEBUG
+--------------------------------------------------
+*/
+
+app.use((req, res, next) => {
+
+    console.log("====================================");
+    console.log("SESSION ID :", req.sessionID);
+    console.log("AUTH :", req.isAuthenticated());
+
+    if (req.user) {
+        console.log("USER :", req.user.username);
+    } else {
+        console.log("USER : NONE");
+    }
+
+    console.log("====================================");
+
+    next();
+
+});
 
 /*
 --------------------------------------------------
@@ -86,39 +124,29 @@ app.get("/", async (req, res) => {
 
     try {
 
-        let pageVisit =
-            await visit_collection.Visit.findOne();
+        let pageVisit = await visit_collection.Visit.findOne();
 
         if (!pageVisit) {
 
             pageVisit = new visit_collection.Visit({
-
                 count: 0
-
             });
 
         }
 
         if (process.env.NODE_ENV === "production") {
-
             pageVisit.count++;
-
         }
 
         await pageVisit.save();
 
-        const societies =
-            await society_collection.Society.find();
+        const societies = await society_collection.Society.find();
 
-        const foundUsers =
-            await user_collection.User.find();
+        const foundUsers = await user_collection.User.find();
 
-        const cities =
-            societies.map(
-
-                s => s.societyAddress.city.toLowerCase()
-
-            );
+        const cities = societies.map(
+            s => s.societyAddress.city.toLowerCase()
+        );
 
         res.render("index", {
 
@@ -152,16 +180,16 @@ HOME
 
 app.get("/home", (req, res) => {
 
+    console.log("========== HOME ==========");
+    console.log("Authenticated:", req.isAuthenticated());
+    console.log("User:", req.user);
+
     if (!req.isAuthenticated()) {
-
         return res.redirect("/login");
-
     }
 
     if (req.user.validation === "approved") {
-
         return res.render("home");
-
     }
 
     if (req.user.validation === "applied") {
@@ -199,30 +227,23 @@ APPLICATION ROUTES
 */
 
 app.use("/", authRoutes);
-
 app.use("/", residentRoutes);
-
 app.use("/", billRoutes);
-
 app.use("/", paymentRoutes);
-
 app.use("/", complaintRoutes);
-
 app.use("/", noticeRoutes);
-
 app.use("/", profileRoutes);
-
 app.use("/", contactRoutes);
 
 /*
 --------------------------------------------------
-HEALTH CHECK
+HEALTH
 --------------------------------------------------
 */
 
 app.get("/health", (req, res) => {
 
-    res.status(200).send("Server is running");
+    res.send("Server running");
 
 });
 
@@ -240,7 +261,7 @@ app.use((req, res) => {
 
         href: "/",
 
-        messageSecondary: "Return to Home",
+        messageSecondary: "Return Home",
 
         hrefSecondary: "/",
 
@@ -261,11 +282,8 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
 
     console.log("===================================");
-
     console.log("Server started");
-
-    console.log(`Running on Port ${PORT}`);
-
+    console.log("Running on Port", PORT);
     console.log("===================================");
 
 });
