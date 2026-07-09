@@ -303,10 +303,39 @@ router.post("/register", async (req, res) => {
 
 });
 
-router.post("/login", passport.authenticate("local", {
-	successRedirect: "/home",
-	failureRedirect: "/loginFailure"
-}));
+router.post("/login", (req, res, next) => {
+
+    passport.authenticate("local", (err, user, info) => {
+
+        console.log("========== LOGIN ==========");
+        console.log("BODY:", req.body);
+        console.log("ERR:", err);
+        console.log("USER:", user);
+        console.log("INFO:", info);
+
+        if (err) {
+            return next(err);
+        }
+
+        if (!user) {
+            return res.redirect("/loginFailure");
+        }
+
+        req.logIn(user, (err) => {
+
+            if (err) {
+                return next(err);
+            }
+
+            console.log("LOGIN SUCCESS");
+
+            return res.redirect("/home");
+
+        });
+
+    })(req, res, next);
+
+});
 
 /*
 --------------------------------------------------

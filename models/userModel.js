@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const passportLocalMongoose = require("passport-local-mongoose");
-const passport = require("passport");
 
 const userSchema = new mongoose.Schema(
 {
@@ -50,10 +49,7 @@ const userSchema = new mongoose.Schema(
         default: ""
     },
 
-    // =========================
     // Email Verification
-    // =========================
-
     isEmailVerified: {
         type: Boolean,
         default: false
@@ -69,10 +65,7 @@ const userSchema = new mongoose.Schema(
         default: null
     },
 
-    // =========================
     // Forgot Password
-    // =========================
-
     resetPasswordOTP: {
         type: String,
         default: ""
@@ -83,19 +76,13 @@ const userSchema = new mongoose.Schema(
         default: null
     },
 
-    // =========================
     // Remember Me
-    // =========================
-
     rememberToken: {
         type: String,
         default: ""
     },
 
-    // =========================
     // Login Activity
-    // =========================
-
     lastLogin: {
         type: Date,
         default: null
@@ -140,10 +127,7 @@ const userSchema = new mongoose.Schema(
         }
     ],
 
-    // =========================
     // Security
-    // =========================
-
     failedLoginAttempts: {
         type: Number,
         default: 0
@@ -154,19 +138,13 @@ const userSchema = new mongoose.Schema(
         default: null
     },
 
-    // =========================
     // Complaints
-    // =========================
-
     complaints: {
         type: Array,
         default: []
     },
 
-    // =========================
     // Payments
-    // =========================
-
     lastPayment: {
 
         date: Date,
@@ -203,14 +181,11 @@ const userSchema = new mongoose.Schema(
 }
 );
 
+// Passport Local Mongoose Plugin
 userSchema.plugin(passportLocalMongoose);
 
+// Model
 const User = mongoose.model("User", userSchema);
 
-passport.use(User.createStrategy());
-
-passport.serializeUser(User.serializeUser());
-
-passport.deserializeUser(User.deserializeUser());
-
+// Export only the model
 module.exports = { User };

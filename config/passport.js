@@ -3,41 +3,33 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 const { User } = require("../models/userModel");
 
-// --------------------------------------------------
-// Local Strategy
-// --------------------------------------------------
+// Debug (remove after testing)
+console.log("createStrategy:", typeof User.createStrategy);
+console.log("authenticate:", typeof User.authenticate);
+
+/*
+--------------------------------------------------
+LOCAL STRATEGY
+--------------------------------------------------
+*/
 
 passport.use(User.createStrategy());
 
-// --------------------------------------------------
-// Session
-// --------------------------------------------------
+/*
+--------------------------------------------------
+SESSION
+--------------------------------------------------
+*/
 
-passport.serializeUser((user, done) => {
+passport.serializeUser(User.serializeUser());
 
-    done(null, user.id);
+passport.deserializeUser(User.deserializeUser());
 
-});
-
-passport.deserializeUser(async (id, done) => {
-
-    try {
-
-        const user = await User.findById(id);
-
-        done(null, user);
-
-    } catch (err) {
-
-        done(err);
-
-    }
-
-});
-
-// --------------------------------------------------
-// Google OAuth Strategy
-// --------------------------------------------------
+/*
+--------------------------------------------------
+GOOGLE STRATEGY
+--------------------------------------------------
+*/
 
 passport.use(
 
@@ -65,14 +57,28 @@ passport.use(
 
                 });
 
-                // Existing Google User
+                // Existing Google account
                 if (user) {
+
+                    user.lastLogin = new Date();
+
+                    user.loginHistory.push({
+
+                        loginTime: new Date(),
+
+                        loginMethod: "Google",
+
+                        status: "Success"
+
+                    });
+
+                    await user.save();
 
                     return done(null, user);
 
                 }
 
-                // Existing Email User
+                // Existing email account
                 user = await User.findOne({
 
                     username: email
@@ -103,8 +109,8 @@ passport.use(
 
                 }
 
-                // New Google User
-                user = new User({
+                // Create new Google account
+                const newUser = new User({
 
                     username: email,
 
@@ -146,13 +152,13 @@ passport.use(
 
                 await User.register(
 
-                    user,
+                    newUser,
 
                     Math.random().toString(36)
 
                 );
 
-                return done(null, user);
+                return done(null, newUser);
 
             }
 
