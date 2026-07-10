@@ -12,69 +12,59 @@ Send Verification OTP
 
 exports.sendVerificationOTP = async (email) => {
 
-    const user = await User.findOne({
-        username: email
-    });
+    try {
 
-    if (!user) {
-        throw new Error("User not found");
-    }
+        console.log("================================");
+        console.log("SEND OTP START");
+        console.log("Email:", email);
 
-    // Check for recent OTP (60 seconds)
+        const user = await User.findOne({
+            username: email.toLowerCase()
+        });
 
-    const recentOTP = await OTP.findOne({
-        email,
-        purpose: "email_verification",
-        createdAt: {
-            $gt: new Date(Date.now() - 60 * 1000)
+        if (!user) {
+            throw new Error("User not found");
         }
-    });
 
-    if (recentOTP) {
+        // Remove old OTPs
+        await OTP.deleteMany({
+            email: email.toLowerCase(),
+            purpose: "email_verification"
+        });
 
-        throw new Error(
-            "Please wait 60 seconds before requesting another OTP."
-        );
+        const otp = generateOTP();
 
+        console.log("Generated OTP:", otp);
+
+        await OTP.create({
+            email: email.toLowerCase(),
+            otp,
+            purpose: "email_verification",
+            isUsed: false,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+        });
+
+        console.log("OTP Saved Successfully");
+
+        console.log("Calling sendOTP()...");
+
+        await sendOTP(email, otp);
+
+        console.log("OTP Email Sent Successfully");
+
+        return true;
+
+    } catch (err) {
+
+        console.error("================================");
+        console.error("OTP CONTROLLER ERROR");
+        console.error(err);
+        console.error("================================");
+
+        throw err;
     }
-
-    // Remove old OTPs
-
-    await OTP.deleteMany({
-        email,
-        purpose: "email_verification"
-    });
-
-    const otp = generateOTP();
-
-    console.log("================================");
-    console.log("Generating OTP");
-    console.log("Email :", email);
-    console.log("OTP   :", otp);
-    console.log("================================");
-
-    await OTP.create({
-
-        email,
-
-        otp,
-
-        purpose: "email_verification",
-
-        expiresAt: new Date(
-            Date.now() + 10 * 60 * 1000
-        )
-
-    });
-
-    await sendOTP(email, otp);
-
-    console.log("OTP Email Sent Successfully");
-
-    return true;
 
 };
-
 
 /*
 =========================================
@@ -84,88 +74,86 @@ Verify OTP
 
 exports.verifyOTP = async (email, otp) => {
 
-    const user = await User.findOne({
-        username: email
-    });
+    try {
 
-    if (!user) {
+        const user = await User.findOne({
+            username: email.toLowerCase()
+        });
 
-        return {
+        if (!user) {
 
-            success: false,
+            return {
+                success: false,
+                message: "User not found."
+            };
 
-            message: "User not found."
+        }
 
-        };
+        const otpDoc = await OTP.findOne({
+            email: email.toLowerCase(),
+            otp: otp.trim(),
+            purpose: "email_verification",
+            isUsed: false
+        });
 
-    }
+        if (!otpDoc) {
 
-    const otpDoc = await OTP.findOne({
+            return {
+                success: false,
+                message: "Invalid OTP."
+            };
 
-        email,
+        }
 
-        otp,
+        if (otpDoc.expiresAt < new Date()) {
 
-        purpose: "email_verification",
+            await OTP.deleteOne({
+                _id: otpDoc._id
+            });
 
-        isUsed: false
+            return {
+                success: false,
+                message: "OTP expired."
+            };
 
-    });
+        }
 
-    if (!otpDoc) {
+        user.isEmailVerified = true;
 
-        return {
+        await user.save();
 
-            success: false,
+        otpDoc.isUsed = true;
 
-            message: "Invalid OTP."
+        await otpDoc.save();
 
-        };
-
-    }
-
-    if (otpDoc.expiresAt < new Date()) {
-
-        await OTP.deleteOne({
-            _id: otpDoc._id
+        await OTP.deleteMany({
+            email: email.toLowerCase(),
+            purpose: "email_verification"
         });
 
         return {
 
+            success: true,
+
+            message: "Email verified successfully."
+
+        };
+
+    } catch (err) {
+
+        console.error(err);
+
+        return {
+
             success: false,
 
-            message: "OTP has expired."
+            message: "Verification failed."
 
         };
 
     }
 
-    user.isEmailVerified = true;
-
-    await user.save();
-
-    otpDoc.isUsed = true;
-
-    await otpDoc.save();
-
-    await OTP.deleteMany({
-
-        email,
-
-        purpose: "email_verification"
-
-    });
-
-    return {
-
-        success: true,
-
-        message: "Email verified successfully."
-
-    };
-
 };
-
 
 /*
 =========================================
@@ -176,13 +164,10 @@ Resend OTP
 exports.resendOTP = async (email) => {
 
     await OTP.deleteMany({
-
-        email,
-
+        email: email.toLowerCase(),
         purpose: "email_verification"
-
     });
 
-    return await exports.sendVerificationOTP(email);
+    return exports.sendVerificationOTP(email);
 
 };

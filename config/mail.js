@@ -14,16 +14,14 @@ const transporter = nodemailer.createTransport({
 
 });
 
-transporter.verify(function (error) {
+transporter.verify((err) => {
 
-    if (error) {
+    if (err) {
 
-        console.log("MAIL ERROR");
-        console.log(error);
+        console.log("MAIL VERIFY FAILED");
+        console.log(err);
 
-    }
-
-    else {
+    } else {
 
         console.log("MAIL SERVER READY");
 
