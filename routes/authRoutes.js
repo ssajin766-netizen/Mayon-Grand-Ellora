@@ -331,22 +331,43 @@ router.post("/login", (req, res, next) => {
             console.log("Session ID:", req.sessionID);
             console.log("User:", req.user.username);
 
-            req.session.save((err) => {
+req.session.save(async (err) => {
 
-                if (err) {
-                    console.log("SESSION SAVE ERROR:", err);
-                    return next(err);
-                }
+    if (err) {
+        return next(err);
+    }
 
-                console.log("SESSION SAVED");
+    console.log("SESSION SAVED");
 
-                return res.redirect("/home");
+    // Send OTP if email is not verified
+    if (!user.isEmailVerified) {
 
+        try {
+
+            await otpController.sendVerificationOTP(user.username);
+
+            return res.redirect(
+                "/verify-otp?email=" +
+                encodeURIComponent(user.username)
+            );
+
+        } catch (e) {
+
+            console.error("OTP ERROR:", e);
+
+            return res.render("failure", {
+                message: e.message,
+                href: "/login",
+                messageSecondary: "Back to Login",
+                hrefSecondary: "/login",
+                buttonSecondary: "Login"
             });
 
-        });
+        }
 
-    })(req, res, next);
+    }
+
+    return res.redirect("/home");
 
 });
 
