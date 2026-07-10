@@ -303,6 +303,12 @@ router.post("/register", async (req, res) => {
 
 });
 
+/*
+--------------------------------------------------
+LOGIN
+--------------------------------------------------
+*/
+
 router.post("/login", (req, res, next) => {
 
     passport.authenticate("local", (err, user, info) => {
@@ -331,43 +337,49 @@ router.post("/login", (req, res, next) => {
             console.log("Session ID:", req.sessionID);
             console.log("User:", req.user.username);
 
-req.session.save(async (err) => {
+            req.session.save(async (err) => {
 
-    if (err) {
-        return next(err);
-    }
+                if (err) {
+                    return next(err);
+                }
 
-    console.log("SESSION SAVED");
+                console.log("SESSION SAVED");
 
-    // Send OTP if email is not verified
-    if (!user.isEmailVerified) {
+                // Send OTP if email is not verified
+                if (!user.isEmailVerified) {
 
-        try {
+                    try {
 
-            await otpController.sendVerificationOTP(user.username);
+                        await otpController.sendVerificationOTP(user.username);
 
-            return res.redirect(
-                "/verify-otp?email=" +
-                encodeURIComponent(user.username)
-            );
+                        return res.redirect(
+                            "/verify-otp?email=" +
+                            encodeURIComponent(user.username)
+                        );
 
-        } catch (e) {
+                    } catch (e) {
 
-            console.error("OTP ERROR:", e);
+                        console.error("OTP ERROR:", e);
 
-            return res.render("failure", {
-                message: e.message,
-                href: "/login",
-                messageSecondary: "Back to Login",
-                hrefSecondary: "/login",
-                buttonSecondary: "Login"
+                        return res.render("failure", {
+                            message: e.message,
+                            href: "/login",
+                            messageSecondary: "Back to Login",
+                            hrefSecondary: "/login",
+                            buttonSecondary: "Login"
+                        });
+
+                    }
+
+                }
+
+                return res.redirect("/home");
+
             });
 
-        }
+        });
 
-    }
-
-    return res.redirect("/home");
+    })(req, res, next);
 
 });
 
