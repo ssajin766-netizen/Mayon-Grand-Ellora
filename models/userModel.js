@@ -45,7 +45,9 @@ const userSchema = new mongoose.Schema(
     username: {
         type: String,
         unique: true,
-        required: true
+        required: true,
+        lowercase: true,
+        trim: true
     },
 
     googleId: {
@@ -60,50 +62,6 @@ const userSchema = new mongoose.Schema(
     isEmailVerified: {
         type: Boolean,
         default: false
-    },
-
-    emailOTP: {
-        type: String,
-        default: ""
-    },
-
-    otpExpiry: {
-        type: Date,
-        default: null
-    },
-
-    failedOtpAttempts: {
-        type: Number,
-        default: 0
-    },
-
-    otpLockedUntil: {
-        type: Date,
-        default: null
-    },
-
-    otpResendCount: {
-        type: Number,
-        default: 0
-    },
-
-    lastOtpSentAt: {
-        type: Date,
-        default: null
-    },
-
-    // =========================
-    // Forgot Password
-    // =========================
-
-    resetPasswordOTP: {
-        type: String,
-        default: ""
-    },
-
-    resetPasswordExpiry: {
-        type: Date,
-        default: null
     },
 
     // =========================
@@ -228,7 +186,8 @@ const userSchema = new mongoose.Schema(
 },
 {
     timestamps: true
-});
+}
+);
 
 // =========================
 // Passport Plugin

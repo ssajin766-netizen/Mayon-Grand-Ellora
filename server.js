@@ -7,6 +7,10 @@ const passport = require("passport");
 const cookieParser = require("cookie-parser");
 const MongoStore = require("connect-mongo");
 
+const helmet = require("helmet");
+const compression = require("compression");
+const morgan = require("morgan");
+
 const db = require("./config/db");
 
 const visit_collection = require("./models/visitModel");
@@ -32,7 +36,7 @@ const app = express();
 
 /*
 --------------------------------------------------
-IMPORTANT FOR RENDER
+TRUST PROXY
 --------------------------------------------------
 */
 
@@ -48,22 +52,47 @@ db.connectDB();
 
 /*
 --------------------------------------------------
-MIDDLEWARE
+VIEW ENGINE
 --------------------------------------------------
 */
 
 app.set("view engine", "ejs");
 
+/*
+--------------------------------------------------
+GLOBAL MIDDLEWARE
+--------------------------------------------------
+*/
+
+app.use(
+    helmet({
+        contentSecurityPolicy: false
+    })
+);
+app.use(compression());
+
+app.use(morgan("dev"));
+
 app.use(express.static("public"));
 
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({
+    extended: true
+}));
 
 app.use(express.json());
 
 app.use(cookieParser());
 
+/*
+--------------------------------------------------
+SESSION
+--------------------------------------------------
+*/
+
 app.use(
+
     session({
+
         secret: process.env.SESSION_SECRET,
 
         resave: false,
@@ -73,18 +102,34 @@ app.use(
         proxy: true,
 
         store: MongoStore.create({
+
             mongoUrl: process.env.MONGO_URI,
+
             collectionName: "sessions"
+
         }),
 
         cookie: {
+
             httpOnly: true,
+
             secure: process.env.NODE_ENV === "production",
+
             sameSite: "lax",
+
             maxAge: 1000 * 60 * 60 * 24
+
         }
+
     })
+
 );
+
+/*
+--------------------------------------------------
+PASSPORT
+--------------------------------------------------
+*/
 
 app.use(passport.initialize());
 
@@ -96,23 +141,31 @@ SESSION DEBUG
 --------------------------------------------------
 */
 
-app.use((req, res, next) => {
+if (process.env.NODE_ENV !== "production") {
 
-    console.log("====================================");
-    console.log("SESSION ID :", req.sessionID);
-    console.log("AUTH :", req.isAuthenticated());
+    app.use((req, res, next) => {
 
-    if (req.user) {
-        console.log("USER :", req.user.username);
-    } else {
-        console.log("USER : NONE");
-    }
+        console.log("====================================");
 
-    console.log("====================================");
+        console.log("SESSION :", req.sessionID);
 
-    next();
+        console.log("AUTH :", req.isAuthenticated());
 
-});
+        console.log(
+
+            "USER :",
+
+            req.user ? req.user.username : "NONE"
+
+        );
+
+        console.log("====================================");
+
+        next();
+
+    });
+
+}
 
 /*
 --------------------------------------------------
@@ -129,23 +182,29 @@ app.get("/", async (req, res) => {
         if (!pageVisit) {
 
             pageVisit = new visit_collection.Visit({
+
                 count: 0
+
             });
 
         }
 
         if (process.env.NODE_ENV === "production") {
+
             pageVisit.count++;
+
         }
 
         await pageVisit.save();
 
         const societies = await society_collection.Society.find();
 
-        const foundUsers = await user_collection.User.find();
+        const users = await user_collection.User.find();
 
         const cities = societies.map(
+
             s => s.societyAddress.city.toLowerCase()
+
         );
 
         res.render("index", {
@@ -154,7 +213,7 @@ app.get("/", async (req, res) => {
 
             society: societies.length,
 
-            user: foundUsers.length,
+            user: users.length,
 
             visit: pageVisit.count
 
@@ -166,7 +225,7 @@ app.get("/", async (req, res) => {
 
         console.error(err);
 
-        res.status(500).send("Server Error");
+        res.status(500).send("Internal Server Error");
 
     }
 
@@ -180,38 +239,38 @@ HOME
 
 app.get("/home", (req, res) => {
 
+    console.log("=================================");
+    console.log("HOME ROUTE");
+    console.log("Authenticated:", req.isAuthenticated());
+    console.log("User:", req.user);
+    console.log("Session:", req.sessionID);
+    console.log("=================================");
+
     if (!req.isAuthenticated()) {
+        console.log("Redirecting to /login");
         return res.redirect("/login");
     }
 
     if (req.user.validation === "approved") {
+        console.log("Rendering home.ejs");
         return res.render("home");
     }
 
     if (req.user.validation === "applied") {
-
+        console.log("Rendering homeStandby (Pending)");
         return res.render("homeStandby", {
-
             icon: "fa-user-clock",
-
             title: "Account Pending",
-
-            content:
-                "Your account is waiting for approval from the administrator."
-
+            content: "Your account is waiting for administrator approval."
         });
-
     }
 
+    console.log("Rendering homeStandby (Declined)");
+
     return res.render("homeStandby", {
-
         icon: "fa-user-lock",
-
         title: "Account Declined",
-
-        content:
-            "Your account request has been declined. Please contact the administrator."
-
+        content: "Please contact the society administrator."
     });
 
 });
@@ -240,13 +299,19 @@ app.use("/", contactRoutes);
 
 /*
 --------------------------------------------------
-HEALTH CHECK
+HEALTH
 --------------------------------------------------
 */
 
 app.get("/health", (req, res) => {
 
-    res.status(200).send("Server running");
+    res.status(200).json({
+
+        success: true,
+
+        message: "Server is running"
+
+    });
 
 });
 
@@ -282,13 +347,11 @@ GLOBAL ERROR HANDLER
 
 app.use((err, req, res, next) => {
 
-    console.error("GLOBAL ERROR:");
-
-    console.error(err);
+    console.error(err.stack);
 
     res.status(500).render("failure", {
 
-        message: "Something went wrong.",
+        message: "Internal Server Error",
 
         href: "/",
 
@@ -313,8 +376,13 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
 
     console.log("===================================");
+
     console.log("Server started");
+
     console.log("Running on Port", PORT);
+
+    console.log("Environment :", process.env.NODE_ENV);
+
     console.log("===================================");
 
 });

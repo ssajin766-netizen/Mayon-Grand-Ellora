@@ -1,36 +1,40 @@
 <%- include('partials/headerForm') %>
 
-<body>
+<body class="bg-light">
 
 <div class="container">
 
     <div class="row justify-content-center">
 
-        <div class="col-md-5">
+        <div class="col-lg-5 col-md-7">
 
-            <div class="card card-signin my-5 shadow">
+            <div class="card shadow-lg border-0 mt-5">
 
-                <div class="card-body">
+                <div class="card-body p-5">
 
-                    <h3 class="text-center mb-4">
+                    <div class="text-center mb-4">
 
-                        Verify Email
+                        <i class="fas fa-envelope-open-text fa-3x text-success mb-3"></i>
 
-                    </h3>
+                        <h3>Email Verification</h3>
 
-                    <p class="text-center text-muted">
+                        <p class="text-muted">
 
-                        We have sent a verification code to
+                            Enter the 6-digit OTP sent to
 
-                        <br>
+                        </p>
 
-                        <strong><%= email %></strong>
+                        <h6 class="text-primary">
 
-                    </p>
+                            <%= email %>
 
-                    <% if (typeof error !== 'undefined') { %>
+                        </h6>
 
-                        <div class="alert alert-danger">
+                    </div>
+
+                    <% if(typeof error !== "undefined"){ %>
+
+                        <div class="alert alert-danger text-center">
 
                             <%= error %>
 
@@ -38,9 +42,9 @@
 
                     <% } %>
 
-                    <% if (typeof success !== 'undefined') { %>
+                    <% if(typeof success !== "undefined"){ %>
 
-                        <div class="alert alert-success">
+                        <div class="alert alert-success text-center">
 
                             <%= success %>
 
@@ -55,25 +59,54 @@
                         <input
                             type="hidden"
                             name="email"
-                            value="<%= email %>">
+                            value="<%= email %>"
+                        >
 
                         <div class="form-group">
 
+                            <label>
+
+                                Verification Code
+
+                            </label>
+
                             <input
+
+                                id="otp"
+
                                 type="text"
+
+                                class="form-control text-center"
+
                                 name="otp"
+
                                 maxlength="6"
-                                class="form-control"
-                                placeholder="Enter 6 Digit OTP"
-                                required>
+
+                                minlength="6"
+
+                                pattern="[0-9]{6}"
+
+                                inputmode="numeric"
+
+                                autocomplete="one-time-code"
+
+                                placeholder="123456"
+
+                                required
+
+                            >
 
                         </div>
 
                         <button
-                            type="submit"
-                            class="btn btn-success btn-block mt-3">
 
-                            Verify OTP
+                            type="submit"
+
+                            class="btn btn-success btn-block mt-4"
+
+                        >
+
+                            Verify Email
 
                         </button>
 
@@ -83,36 +116,61 @@
 
                     <!-- Resend OTP -->
 
-                    <form
-                        action="/resend-otp"
-                        method="POST">
+                    <form action="/resend-otp" method="POST">
 
                         <input
+
                             type="hidden"
+
                             name="email"
-                            value="<%= email %>">
+
+                            value="<%= email %>"
+
+                        >
 
                         <button
-                            id="resendBtn"
-                            type="submit"
-                            class="btn btn-outline-primary btn-block"
-                            disabled>
 
-                            Resend OTP (<span id="timer">60</span>s)
+                            id="resendBtn"
+
+                            type="submit"
+
+                            class="btn btn-outline-primary btn-block"
+
+                            disabled
+
+                        >
+
+                            Resend OTP
+
+                            (
+
+                            <span id="timer">
+
+                                60
+
+                            </span>
+
+                            s)
 
                         </button>
 
                     </form>
 
-                    <br>
+                    <div class="text-center mt-4">
 
-                    <a
-                        href="/login"
-                        class="btn btn-secondary btn-block">
+                        <a
 
-                        Back to Login
+                            href="/login"
 
-                    </a>
+                            class="btn btn-secondary"
+
+                        >
+
+                            Back to Login
+
+                        </a>
+
+                    </div>
 
                 </div>
 
@@ -126,21 +184,35 @@
 
 <script>
 
+const otpInput = document.getElementById("otp");
+
+otpInput.focus();
+
+// Allow only numbers
+
+otpInput.addEventListener("input", function(){
+
+    this.value = this.value.replace(/\D/g,'');
+
+});
+
+// Countdown
+
 let seconds = 60;
 
 const timer = document.getElementById("timer");
 
 const resendBtn = document.getElementById("resendBtn");
 
-const countdown = setInterval(() => {
+const interval = setInterval(function(){
 
     seconds--;
 
     timer.innerText = seconds;
 
-    if (seconds <= 0) {
+    if(seconds <= 0){
 
-        clearInterval(countdown);
+        clearInterval(interval);
 
         resendBtn.disabled = false;
 
@@ -148,7 +220,7 @@ const countdown = setInterval(() => {
 
     }
 
-}, 1000);
+},1000);
 
 </script>
 

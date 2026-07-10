@@ -38,7 +38,6 @@ CREATE ORDER
 router.post(
     "/create-order",
     isLoggedIn,
-    isVerified,
     isApproved,
     async (req, res) => {
 
@@ -80,11 +79,9 @@ router.post(
 PAYMENT SUCCESS
 --------------------------------------------------
 */
-
 router.post(
     "/payment-success",
     isLoggedIn,
-    isVerified,
     isApproved,
     async (req, res) => {
 
@@ -250,7 +247,6 @@ MANUAL PAYMENT
 router.post(
     "/mark-paid",
     isLoggedIn,
-    isVerified,
     isApproved,
     async (req, res) => {
 

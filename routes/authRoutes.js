@@ -513,7 +513,7 @@ router.post("/resend-otp", async (req, res) => {
 
     try {
 
-        await otpController.sendVerificationOTP(
+        await otpController.resendOTP(
             req.body.email
         );
 

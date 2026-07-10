@@ -1,4 +1,6 @@
 const { User } = require("../models/userModel");
+const OTP = require("../models/otpModel");
+
 const generateOTP = require("../utils/otpGenerator");
 const sendOTP = require("../utils/sendOTP");
 
@@ -18,48 +20,56 @@ exports.sendVerificationOTP = async (email) => {
         throw new Error("User not found");
     }
 
-    // ----------------------------
-    // Prevent OTP spam
-    // ----------------------------
+    // Check for recent OTP (60 seconds)
 
-    if (
-        user.lastOtpSentAt &&
-        Date.now() - user.lastOtpSentAt.getTime() < 60 * 1000
-    ) {
+    const recentOTP = await OTP.findOne({
+        email,
+        purpose: "email_verification",
+        createdAt: {
+            $gt: new Date(Date.now() - 60 * 1000)
+        }
+    });
+
+    if (recentOTP) {
+
         throw new Error(
             "Please wait 60 seconds before requesting another OTP."
         );
+
     }
 
-    // ----------------------------
-    // Daily resend limit
-    // ----------------------------
+    // Remove old OTPs
 
-    if (user.otpResendCount >= 5) {
-        throw new Error(
-            "Maximum OTP resend limit reached."
-        );
-    }
+    await OTP.deleteMany({
+        email,
+        purpose: "email_verification"
+    });
 
     const otp = generateOTP();
 
-    const expiry = new Date(
-        Date.now() + 10 * 60 * 1000
-    );
+    console.log("================================");
+    console.log("Generating OTP");
+    console.log("Email :", email);
+    console.log("OTP   :", otp);
+    console.log("================================");
 
-    user.emailOTP = otp;
-    user.otpExpiry = expiry;
+    await OTP.create({
 
-    user.failedOtpAttempts = 0;
-    user.otpLockedUntil = null;
+        email,
 
-    user.lastOtpSentAt = new Date();
+        otp,
 
-    user.otpResendCount += 1;
+        purpose: "email_verification",
 
-    await user.save();
+        expiresAt: new Date(
+            Date.now() + 10 * 60 * 1000
+        )
+
+    });
 
     await sendOTP(email, otp);
+
+    console.log("OTP Email Sent Successfully");
 
     return true;
 
@@ -81,40 +91,44 @@ exports.verifyOTP = async (email, otp) => {
     if (!user) {
 
         return {
+
             success: false,
+
             message: "User not found."
+
         };
 
     }
 
-    // ----------------------------
-    // Locked?
-    // ----------------------------
+    const otpDoc = await OTP.findOne({
 
-    if (
-        user.otpLockedUntil &&
-        user.otpLockedUntil > Date.now()
-    ) {
+        email,
+
+        otp,
+
+        purpose: "email_verification",
+
+        isUsed: false
+
+    });
+
+    if (!otpDoc) {
 
         return {
 
             success: false,
 
-            message:
-                "Too many incorrect OTP attempts. Please try again later."
+            message: "Invalid OTP."
 
         };
 
     }
 
-    // ----------------------------
-    // Expired?
-    // ----------------------------
+    if (otpDoc.expiresAt < new Date()) {
 
-    if (
-        !user.otpExpiry ||
-        user.otpExpiry < Date.now()
-    ) {
+        await OTP.deleteOne({
+            _id: otpDoc._id
+        });
 
         return {
 
@@ -126,52 +140,21 @@ exports.verifyOTP = async (email, otp) => {
 
     }
 
-    // ----------------------------
-    // Wrong OTP
-    // ----------------------------
-
-    if (user.emailOTP !== otp) {
-
-        user.failedOtpAttempts += 1;
-
-        if (user.failedOtpAttempts >= 5) {
-
-            user.otpLockedUntil =
-                new Date(Date.now() + 15 * 60 * 1000);
-
-        }
-
-        await user.save();
-
-        return {
-
-            success: false,
-
-            message: "Incorrect OTP."
-
-        };
-
-    }
-
-    // ----------------------------
-    // Success
-    // ----------------------------
-
     user.isEmailVerified = true;
 
-    user.emailOTP = "";
-
-    user.otpExpiry = null;
-
-    user.failedOtpAttempts = 0;
-
-    user.otpLockedUntil = null;
-
-    user.otpResendCount = 0;
-
-    user.lastOtpSentAt = null;
-
     await user.save();
+
+    otpDoc.isUsed = true;
+
+    await otpDoc.save();
+
+    await OTP.deleteMany({
+
+        email,
+
+        purpose: "email_verification"
+
+    });
 
     return {
 
@@ -191,6 +174,14 @@ Resend OTP
 */
 
 exports.resendOTP = async (email) => {
+
+    await OTP.deleteMany({
+
+        email,
+
+        purpose: "email_verification"
+
+    });
 
     return await exports.sendVerificationOTP(email);
 

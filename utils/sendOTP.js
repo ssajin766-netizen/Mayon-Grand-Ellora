@@ -8,57 +8,65 @@ Send OTP Email
 
 async function sendOTP(email, otp) {
 
-    try {
+    const mailOptions = {
 
-        const mailOptions = {
+        from: `"Mayon Grand Ellora" <${process.env.EMAIL_USER}>`,
 
-            from: `"Mayon Grand Ellora" <${process.env.EMAIL_USER}>`,
+        to: email,
 
-            to: email,
+        subject: "Verify Your Email - Mayon Grand Ellora",
 
-            subject: "Verify your Email - Mayon Grand Ellora",
+        text: `Hello,
 
-            text:
-`Your OTP is ${otp}
+Your verification code is: ${otp}
 
 This OTP is valid for 10 minutes.
 
-If you did not request this verification, please ignore this email.`,
+If you did not request this verification, please ignore this email.
 
-            html: `
+Regards,
+Mayon Grand Ellora Team`,
+
+        html: `
 <!DOCTYPE html>
 <html>
 
 <head>
 <meta charset="UTF-8">
+<title>Email Verification</title>
 </head>
 
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif;">
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
 
 <tr>
 
 <td align="center">
 
 <table width="600" cellpadding="0" cellspacing="0"
-style="background:#ffffff;margin:30px;border-radius:10px;overflow:hidden;">
+style="
+background:#ffffff;
+border-radius:10px;
+overflow:hidden;
+box-shadow:0 2px 10px rgba(0,0,0,.08);
+">
 
 <tr>
 
 <td
 style="
 background:#198754;
+color:#ffffff;
 padding:25px;
 text-align:center;
-color:white;
 ">
 
 <h2 style="margin:0;">
 Mayon Grand Ellora
 </h2>
 
-<p style="margin-top:8px;">
+<p style="margin:8px 0 0;">
 Email Verification
 </p>
 
@@ -73,31 +81,27 @@ Email Verification
 <h3>Hello,</h3>
 
 <p>
-
 Thank you for registering with
-<b>Mayon Grand Ellora</b>.
-
+<strong>Mayon Grand Ellora</strong>.
 </p>
 
 <p>
-
-Please use the following OTP to verify your email address.
-
+Please use the verification code below to activate your account.
 </p>
 
 <div
 style="
-margin:30px auto;
+margin:35px 0;
 text-align:center;
 ">
 
 <span
 style="
 display:inline-block;
-padding:18px 40px;
+padding:18px 45px;
 background:#198754;
-color:white;
-font-size:32px;
+color:#ffffff;
+font-size:34px;
 font-weight:bold;
 letter-spacing:10px;
 border-radius:8px;
@@ -111,29 +115,28 @@ ${otp}
 
 <p>
 
-This OTP will expire in
-<b>10 minutes</b>.
+This verification code is valid for
+<strong>10 minutes</strong>.
 
 </p>
 
 <p>
 
-If you did not request this email,
+If you didn't request this email,
 you can safely ignore it.
 
 </p>
 
-<hr>
+<hr style="margin:30px 0;">
 
 <p
 style="
 font-size:12px;
-color:#888;
+color:#777;
 text-align:center;
 ">
 
-© ${new Date().getFullYear()}
-Mayon Grand Ellora
+© ${new Date().getFullYear()} Mayon Grand Ellora
 
 </p>
 
@@ -153,24 +156,24 @@ Mayon Grand Ellora
 
 </html>
 `
-        };
+    };
+
+    try {
 
         const info = await transporter.sendMail(mailOptions);
 
         console.log("=================================");
-        console.log("OTP Email Sent");
-        console.log("To :", email);
-        console.log("Message ID :", info.messageId);
+        console.log("OTP EMAIL SENT SUCCESSFULLY");
+        console.log("To        :", email);
+        console.log("Message ID:", info.messageId);
         console.log("=================================");
 
         return info;
 
-    }
-
-    catch (err) {
+    } catch (err) {
 
         console.error("=================================");
-        console.error("OTP Email Failed");
+        console.error("OTP EMAIL FAILED");
         console.error(err);
         console.error("=================================");
 
