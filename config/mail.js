@@ -1,3 +1,4 @@
+const dns = require("dns");
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
@@ -10,7 +11,9 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS
     },
 
-    family: 4,
+    dnsLookup(hostname, options, callback) {
+        return dns.lookup(hostname, { family: 4 }, callback);
+    },
 
     connectionTimeout: 30000,
     greetingTimeout: 30000,
@@ -20,12 +23,12 @@ const transporter = nodemailer.createTransport({
     debug: true
 });
 
-transporter.verify((err, success) => {
+transporter.verify((err) => {
     console.log("================================");
 
     if (err) {
         console.log("MAIL VERIFY FAILED");
-        console.log(err);
+        console.error(err);
     } else {
         console.log("MAIL SERVER READY");
     }
