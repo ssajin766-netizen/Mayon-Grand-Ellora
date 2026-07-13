@@ -181,7 +181,7 @@ router.post(
 
                 await transporter.sendMail({
 
-                    from: process.env.EMAIL_USER,
+                    from: `"Mayon Grand Ellora" <${process.env.EMAIL_FROM}>`,
 
                     to: user.username,
 
