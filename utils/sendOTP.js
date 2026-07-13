@@ -1,16 +1,36 @@
-const info = await transporter.sendMail({
+const transporter = require("../config/mail");
 
-    from: `"Mayon Grand Ellora" <${process.env.EMAIL_FROM}>`,
+async function sendOTP(email, otp) {
+    try {
+        console.log("================================");
+        console.log("Sending Email...");
+        console.log("To:", email);
 
-    to: email,
+        const info = await transporter.sendMail({
+            from: `"Mayon Grand Ellora" <${process.env.EMAIL_FROM}>`,
+            to: email,
+            subject: "Verify Your Email",
+            html: `
+                <h2>Mayon Grand Ellora</h2>
+                <h1>${otp}</h1>
+                <p>This OTP is valid for 10 minutes.</p>
+            `
+        });
 
-    subject: "Verify Your Email",
+        console.log("================================");
+        console.log("MAIL SENT");
+        console.log("Message ID:", info.messageId);
+        console.log("================================");
 
-    html: `
-        <h2>Mayon Grand Ellora</h2>
+        return info;
 
-        <h1>${otp}</h1>
+    } catch (err) {
+        console.log("================================");
+        console.log("MAIL ERROR");
+        console.error(err);
+        console.log("================================");
+        throw err;
+    }
+}
 
-        <p>This OTP is valid for 10 minutes.</p>
-    `
-});
+module.exports = sendOTP;
