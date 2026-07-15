@@ -1,12 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const user_collection = require("../models/userModel");
-const society_collection = require("../models/societyModel");
+const { User } = require("../models/userModel");
+const { Society } = require("../models/societyModel");
 
 const {
     isLoggedIn,
-    isVerified,
     isApproved
 } = require("../middleware/auth");
 
@@ -24,33 +23,27 @@ router.get(
 
         try {
 
-            const foundUser =
-                await user_collection.User.findById(req.user.id);
+            const resident = await User.findById(req.user.id);
 
-            if (!foundUser) {
-
+            if (!resident) {
                 return res.status(404).send("User not found");
-
             }
 
-            const foundSociety =
-                await society_collection.Society.findOne({
+            const society = await Society.findOne({
 
-                    societyName: foundUser.societyName
+                societyName: resident.societyName
 
-                });
+            });
 
-            if (!foundSociety) {
-
+            if (!society) {
                 return res.status(404).send("Society not found");
-
             }
 
             res.render("profile", {
 
-                resident: foundUser,
+                resident,
 
-                society: foundSociety
+                society
 
             });
 
@@ -65,6 +58,7 @@ router.get(
         }
 
     }
+
 );
 
 /*
@@ -72,6 +66,7 @@ router.get(
 EDIT PROFILE PAGE
 --------------------------------------------------
 */
+
 router.get(
     "/editProfile",
     isLoggedIn,
@@ -80,33 +75,27 @@ router.get(
 
         try {
 
-            const foundUser =
-                await user_collection.User.findById(req.user.id);
+            const resident = await User.findById(req.user.id);
 
-            if (!foundUser) {
-
+            if (!resident) {
                 return res.status(404).send("User not found");
-
             }
 
-            const foundSociety =
-                await society_collection.Society.findOne({
+            const society = await Society.findOne({
 
-                    societyName: foundUser.societyName
+                societyName: resident.societyName
 
-                });
+            });
 
-            if (!foundSociety) {
-
+            if (!society) {
                 return res.status(404).send("Society not found");
-
             }
 
             res.render("editProfile", {
 
-                resident: foundUser,
+                resident,
 
-                society: foundSociety
+                society
 
             });
 
@@ -121,6 +110,7 @@ router.get(
         }
 
     }
+
 );
 
 /*
@@ -137,37 +127,50 @@ router.post(
 
         try {
 
-            await user_collection.User.updateOne(
+            await User.findByIdAndUpdate(
+
+                req.user.id,
 
                 {
 
-                    _id: req.user.id
+                    firstName: req.body.firstName,
+
+                    lastName: req.body.lastName,
+
+                    phoneNumber: req.body.phoneNumber,
+
+                    flatNumber: req.body.flatNumber,
+
+                    twoFactorEnabled:
+                        req.body.twoFactorEnabled === "on"
 
                 },
 
                 {
 
-                    $set: {
+                    new: true,
 
-                        firstName: req.body.firstName,
-
-                        lastName: req.body.lastName,
-
-                        phoneNumber: req.body.phoneNumber,
-
-                        flatNumber: req.body.flatNumber
-
-                    }
+                    runValidators: true
 
                 }
 
             );
 
-            // Update Society Address (Admin Only)
+            /*
+            ------------------------------------------
+            Update Society Address (Admin Only)
+            ------------------------------------------
+            */
 
-            if (req.user.isAdmin && req.body.address) {
+            if (
 
-                await society_collection.Society.updateOne(
+                req.user.isAdmin &&
+
+                req.body.address
+
+            ) {
+
+                await Society.findOneAndUpdate(
 
                     {
 
@@ -177,21 +180,23 @@ router.post(
 
                     {
 
-                        $set: {
+                        societyAddress: {
 
-                            societyAddress: {
+                            address: req.body.address,
 
-                                address: req.body.address,
+                            city: req.body.city,
 
-                                city: req.body.city,
+                            district: req.body.district,
 
-                                district: req.body.district,
-
-                                postalCode: req.body.postalCode
-
-                            }
+                            postalCode: req.body.postalCode
 
                         }
+
+                    },
+
+                    {
+
+                        runValidators: true
 
                     }
 
@@ -212,6 +217,49 @@ router.post(
         }
 
     }
+
+);
+
+/*
+--------------------------------------------------
+Toggle Two-Step Verification
+--------------------------------------------------
+*/
+
+router.post(
+    "/profile/two-factor",
+    isLoggedIn,
+    async (req, res) => {
+
+        try {
+
+            await User.findByIdAndUpdate(
+
+                req.user.id,
+
+                {
+
+                    twoFactorEnabled:
+                        req.body.enabled === "true"
+
+                }
+
+            );
+
+            res.redirect("/profile");
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            res.status(500).send("Server Error");
+
+        }
+
+    }
+
 );
 
 module.exports = router;

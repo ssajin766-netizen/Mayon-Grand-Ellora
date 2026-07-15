@@ -36,12 +36,13 @@ const userSchema = new mongoose.Schema(
         type: String,
         default: ""
     },
-
-    phoneNumber: {
-        type: Number,
-        default: 0
-    },
-
+phoneNumber: {
+    type: String,
+    default: "",
+    trim: true,
+    unique: true,
+    sparse: true
+},
     username: {
         type: String,
         unique: true,
@@ -50,10 +51,11 @@ const userSchema = new mongoose.Schema(
         trim: true
     },
 
-    googleId: {
-        type: String,
-        default: ""
-    },
+googleId: {
+    type: String,
+    default: "",
+    index: true
+},
 
     // =========================
     // Email Verification
@@ -63,6 +65,38 @@ const userSchema = new mongoose.Schema(
         type: Boolean,
         default: false
     },
+
+    // =========================
+// Phone Verification
+// =========================
+
+isPhoneVerified: {
+    type: Boolean,
+    default: false
+},
+
+// =========================
+// Two Factor Authentication
+// =========================
+
+twoFactorEnabled: {
+    type: Boolean,
+    default: false
+},
+
+// =========================
+// Login Type
+// =========================
+
+loginType: {
+    type: String,
+    enum: [
+        "password",
+        "google",
+        "phone"
+    ],
+    default: "password"
+},
 
     // =========================
     // Remember Me

@@ -16,24 +16,25 @@ const otpSchema = new mongoose.Schema(
             required: true
         },
 
-        purpose: {
+purpose: {
 
-            type: String,
+    type: String,
 
-            enum: [
+    enum: [
 
-                "email_verification",
+        "email_verification",
 
-                "forgot_password",
+        "forgot_password",
 
-                "login"
+        "login",
 
-            ],
+        "phone_login"
 
-            default: "login"
+    ],
 
-        },
+    default: "email_verification"
 
+},
         isUsed: {
 
             type: Boolean,

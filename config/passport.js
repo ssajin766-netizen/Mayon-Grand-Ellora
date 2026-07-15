@@ -3,7 +3,7 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 const { User } = require("../models/userModel");
 
-// Debug (remove after testing)
+// Debug (Remove after testing)
 console.log("createStrategy:", typeof User.createStrategy);
 console.log("authenticate:", typeof User.authenticate);
 
@@ -49,7 +49,13 @@ passport.use(
 
             try {
 
-                const email = profile.emails[0].value;
+                const email = profile.emails[0].value.toLowerCase();
+
+                /*
+                -----------------------------------------
+                Existing Google User
+                -----------------------------------------
+                */
 
                 let user = await User.findOne({
 
@@ -57,10 +63,11 @@ passport.use(
 
                 });
 
-                // Existing Google account
                 if (user) {
 
                     user.lastLogin = new Date();
+
+                    user.loginType = "google";
 
                     user.loginHistory.push({
 
@@ -72,13 +79,22 @@ passport.use(
 
                     });
 
+                    if (user.loginHistory.length > 20) {
+                        user.loginHistory.shift();
+                    }
+
                     await user.save();
 
                     return done(null, user);
 
                 }
 
-                // Existing email account
+                /*
+                -----------------------------------------
+                Existing Email User
+                -----------------------------------------
+                */
+
                 user = await User.findOne({
 
                     username: email
@@ -88,6 +104,8 @@ passport.use(
                 if (user) {
 
                     user.googleId = profile.id;
+
+                    user.loginType = "google";
 
                     user.isEmailVerified = true;
 
@@ -103,18 +121,29 @@ passport.use(
 
                     });
 
+                    if (user.loginHistory.length > 20) {
+                        user.loginHistory.shift();
+                    }
+
                     await user.save();
 
                     return done(null, user);
 
                 }
 
-                // Create new Google account
+                /*
+                -----------------------------------------
+                Create New Google User
+                -----------------------------------------
+                */
+
                 const newUser = new User({
 
                     username: email,
 
                     googleId: profile.id,
+
+                    loginType: "google",
 
                     firstName: profile.name.givenName || "",
 
@@ -128,9 +157,13 @@ passport.use(
 
                     flatNumber: "Pending",
 
-                    phoneNumber: 0,
+                    phoneNumber: "",
 
                     isEmailVerified: true,
+
+                    isPhoneVerified: false,
+
+                    twoFactorEnabled: false,
 
                     lastLogin: new Date(),
 
@@ -164,7 +197,7 @@ passport.use(
 
             catch (err) {
 
-                console.log(err);
+                console.error(err);
 
                 return done(err, null);
 

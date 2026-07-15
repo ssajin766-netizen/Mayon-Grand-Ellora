@@ -6,17 +6,13 @@ const sendOTP = require("../utils/sendOTP");
 
 /*
 =========================================
-Send Login OTP
+Send Signup OTP
 =========================================
 */
 
-exports.sendVerificationOTP = async (email) => {
+exports.sendSignupOTP = async (email) => {
 
     try {
-
-        console.log("================================");
-        console.log("SEND LOGIN OTP");
-        console.log("Email:", email);
 
         const user = await User.findOne({
             username: email.toLowerCase()
@@ -26,7 +22,52 @@ exports.sendVerificationOTP = async (email) => {
             throw new Error("User not found");
         }
 
-        // Delete previous login OTPs
+        await OTP.deleteMany({
+            email: email.toLowerCase(),
+            purpose: "email_verification"
+        });
+
+        const otp = generateOTP();
+
+        await OTP.create({
+            email: email.toLowerCase(),
+            otp,
+            purpose: "email_verification",
+            isUsed: false,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+        });
+
+        await sendOTP(email, otp);
+
+        return true;
+
+    } catch (err) {
+
+        console.error(err);
+        throw err;
+
+    }
+
+};
+
+/*
+=========================================
+Send Login OTP
+=========================================
+*/
+
+exports.sendLoginOTP = async (email) => {
+
+    try {
+
+        const user = await User.findOne({
+            username: email.toLowerCase()
+        });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
         await OTP.deleteMany({
             email: email.toLowerCase(),
             purpose: "login"
@@ -34,49 +75,34 @@ exports.sendVerificationOTP = async (email) => {
 
         const otp = generateOTP();
 
-        console.log("Generated OTP:", otp);
-
         await OTP.create({
-
             email: email.toLowerCase(),
-
             otp,
-
             purpose: "login",
-
             isUsed: false,
-
             expiresAt: new Date(Date.now() + 10 * 60 * 1000)
-
         });
 
         await sendOTP(email, otp);
-
-        console.log("OTP Sent Successfully");
 
         return true;
 
     } catch (err) {
 
-        console.error("================================");
-        console.error("OTP CONTROLLER ERROR");
         console.error(err);
-        console.error("================================");
-
         throw err;
 
     }
 
 };
 
-
 /*
 =========================================
-Verify Login OTP
+Verify OTP
 =========================================
 */
 
-exports.verifyOTP = async (email, otp) => {
+exports.verifyOTP = async (email, otp, purpose) => {
 
     try {
 
@@ -87,11 +113,8 @@ exports.verifyOTP = async (email, otp) => {
         if (!user) {
 
             return {
-
                 success: false,
-
                 message: "User not found."
-
             };
 
         }
@@ -102,7 +125,7 @@ exports.verifyOTP = async (email, otp) => {
 
             otp: otp.trim(),
 
-            purpose: "login",
+            purpose,
 
             isUsed: false
 
@@ -144,9 +167,17 @@ exports.verifyOTP = async (email, otp) => {
 
             email: email.toLowerCase(),
 
-            purpose: "login"
+            purpose
 
         });
+
+        if (purpose === "email_verification") {
+
+            user.isEmailVerified = true;
+
+            await user.save();
+
+        }
 
         return {
 
@@ -174,6 +205,25 @@ exports.verifyOTP = async (email, otp) => {
 
 };
 
+/*
+=========================================
+Resend Signup OTP
+=========================================
+*/
+
+exports.resendSignupOTP = async (email) => {
+
+    await OTP.deleteMany({
+
+        email: email.toLowerCase(),
+
+        purpose: "email_verification"
+
+    });
+
+    return exports.sendSignupOTP(email);
+
+};
 
 /*
 =========================================
@@ -181,7 +231,7 @@ Resend Login OTP
 =========================================
 */
 
-exports.resendOTP = async (email) => {
+exports.resendLoginOTP = async (email) => {
 
     await OTP.deleteMany({
 
@@ -191,6 +241,6 @@ exports.resendOTP = async (email) => {
 
     });
 
-    return exports.sendVerificationOTP(email);
+    return exports.sendLoginOTP(email);
 
 };

@@ -66,8 +66,7 @@ router.post("/signup", async (req, res) => {
         const foundSociety =
             await society_collection.Society.findOne({
 
-                societyName:
-                    req.body.societyName
+                societyName: req.body.societyName
 
             });
 
@@ -76,19 +75,15 @@ router.post("/signup", async (req, res) => {
             return res.render("failure", {
 
                 message:
-                    "Sorry, society is not registered, Please double-check society name.",
+                    "Sorry, society is not registered. Please double-check the society name.",
 
-                href:
-                    "/signup",
+                href: "/signup",
 
-                messageSecondary:
-                    "Society not registered?",
+                messageSecondary: "Society not registered?",
 
-                hrefSecondary:
-                    "/register",
+                hrefSecondary: "/register",
 
-                buttonSecondary:
-                    "Register Society"
+                buttonSecondary: "Register Society"
 
             });
 
@@ -99,23 +94,25 @@ router.post("/signup", async (req, res) => {
 
                 {
 
-                    username:
-                        req.body.username,
+                    username: req.body.username,
 
-                    societyName:
-                        req.body.societyName,
+                    loginType: "password",
 
-                    flatNumber:
-                        req.body.flatNumber,
+                    societyName: req.body.societyName,
 
-                    firstName:
-                        req.body.firstName,
+                    flatNumber: req.body.flatNumber,
 
-                    lastName:
-                        req.body.lastName,
+                    firstName: req.body.firstName,
 
-                    phoneNumber:
-                        req.body.phoneNumber
+                    lastName: req.body.lastName,
+
+                    phoneNumber: req.body.phoneNumber,
+
+                    isEmailVerified: false,
+
+                    isPhoneVerified: false,
+
+                    twoFactorEnabled: false
 
                 },
 
@@ -123,40 +120,30 @@ router.post("/signup", async (req, res) => {
 
             );
 
-        await new Promise((resolve, reject) => {
+        req.session.pendingUser = user._id;
 
-            req.login(user, err => {
-
-                if (err) return reject(err);
-
-                resolve();
-
-            });
-
-        });
-
-        await otpController.sendVerificationOTP(
+        await otpController.sendSignupOTP(
             user.username
         );
 
-        res.redirect(
-            "/verify-otp?email=" +
-            encodeURIComponent(user.username)
-        );
+        return res.redirect(
+        "/verify-otp?email=" +
+         encodeURIComponent(user.username) +
+        "&purpose=signup"
+      );
 
     }
 
     catch (err) {
 
-        console.log(err);
+        console.error(err);
 
-        res.render("failure", {
+        return res.render("failure", {
 
             message:
                 "Sorry, this email address is already registered.",
 
-            href:
-                "/signup",
+            href: "/signup",
 
             messageSecondary:
                 "Society not registered?",
@@ -311,13 +298,7 @@ LOGIN
 
 router.post("/login", (req, res, next) => {
 
-    passport.authenticate("local", (err, user, info) => {
-
-        console.log("========== LOGIN ==========");
-        console.log("BODY:", req.body);
-        console.log("ERR:", err);
-        console.log("USER:", user);
-        console.log("INFO:", info);
+    passport.authenticate("local", (err, user) => {
 
         if (err) {
             return next(err);
@@ -327,7 +308,23 @@ router.post("/login", (req, res, next) => {
             return res.redirect("/loginFailure");
         }
 
-        // Save user temporarily until OTP is verified
+        // 2FA Disabled → Login directly
+        if (!user.twoFactorEnabled) {
+
+            return req.logIn(user, (err) => {
+
+                if (err) {
+                    return next(err);
+                }
+
+                return res.redirect("/home");
+
+            });
+
+        }
+
+        // 2FA Enabled → Send Login OTP
+
         req.session.pendingUser = user._id;
 
         req.session.save(async (err) => {
@@ -338,18 +335,19 @@ router.post("/login", (req, res, next) => {
 
             try {
 
-                // Send OTP
-                await otpController.sendVerificationOTP(user.username);
+           await otpController.sendLoginOTP(user.username);
 
-                // Redirect to OTP page
-                return res.redirect(
-                    "/verify-otp?email=" +
-                    encodeURIComponent(user.username)
-                );
+           return res.redirect(
+           "/verify-otp?email=" +
+           encodeURIComponent(user.username) +
+           "&purpose=login"
+        );
 
-            } catch (e) {
+            }
 
-                console.error("OTP ERROR:", e);
+            catch (e) {
+
+                console.error(e);
 
                 return res.render("failure", {
 
@@ -440,75 +438,9 @@ router.get(
 
     }),
 
-    async (req, res, next) => {
+    (req, res) => {
 
-        try {
-
-            if (!req.user) {
-                return res.redirect("/login");
-            }
-
-            const user = req.user;
-            const email = user.username;
-
-            req.logout(function (err) {
-
-                if (err) {
-                    return next(err);
-                }
-
-                // Save AFTER logout
-                req.session.pendingUser = user._id;
-
-                req.session.save(async (err) => {
-
-                    if (err) {
-                        return next(err);
-                    }
-
-                    console.log(
-                        "Pending User:",
-                        req.session.pendingUser
-                    );
-
-                    try {
-
-                        await otpController.sendVerificationOTP(email);
-
-                        return res.redirect(
-                            "/verify-otp?email=" +
-                            encodeURIComponent(email)
-                        );
-
-                    } catch (e) {
-
-                        console.error(e);
-
-                        return res.render("failure", {
-
-                            message: "Unable to send OTP.",
-
-                            href: "/login",
-
-                            messageSecondary: "Try Again",
-
-                            hrefSecondary: "/login",
-
-                            buttonSecondary: "Login"
-
-                        });
-
-                    }
-
-                });
-
-            });
-
-        } catch (err) {
-
-            next(err);
-
-        }
+        return res.redirect("/home");
 
     }
 
@@ -531,8 +463,12 @@ router.get("/verify-otp", (req, res) => {
     }
 
     res.render("verifyOtp", {
-        email: req.query.email
-    });
+
+    email: req.query.email,
+
+    purpose: req.query.purpose || "login"
+
+});
 
 });
 
@@ -547,13 +483,20 @@ router.post("/verify-otp", async (req, res, next) => {
     try {
 
         if (!req.session.pendingUser) {
-        return res.redirect("/login");
+            return res.redirect("/login");
         }
 
-        const result = await otpController.verifyOTP(
-            req.body.email,
-            req.body.otp
-        );
+const result = await otpController.verifyOTP(
+
+    req.body.email,
+
+    req.body.otp,
+
+    req.body.purpose === "signup"
+        ? "email_verification"
+        : "login"
+
+);
 
         if (!result.success) {
 
@@ -568,34 +511,42 @@ router.post("/verify-otp", async (req, res, next) => {
         }
 
         const user = await user_collection.User.findById(
-    req.session.pendingUser
-);
 
-if (!user) {
-    return res.redirect("/login");
-}
+            req.session.pendingUser
 
-req.logIn(user, (err) => {
+        );
 
-    if (err) {
-        return next(err);
-    }
+        if (!user) {
 
-    delete req.session.pendingUser;
+            return res.redirect("/login");
 
-    req.session.save(() => {
-        return res.redirect("/home");
-    });
+        }
 
-});
+        req.logIn(user, (err) => {
+
+            if (err) {
+
+                return next(err);
+
+            }
+
+            delete req.session.pendingUser;
+
+            req.session.save(() => {
+
+                return res.redirect("/home");
+
+            });
+
+        });
 
     }
 
     catch (err) {
 
-        console.log(err);
+        console.error(err);
 
-        res.render("verifyOtp", {
+        return res.render("verifyOtp", {
 
             email: req.body.email,
 
@@ -617,13 +568,25 @@ router.post("/resend-otp", async (req, res) => {
 
     try {
 
-        await otpController.resendOTP(
-            req.body.email
-        );
+        if (req.body.purpose === "signup") {
 
-        res.render("verifyOtp", {
+            await otpController.resendSignupOTP(
+                req.body.email
+            );
+
+        } else {
+
+            await otpController.resendLoginOTP(
+                req.body.email
+            );
+
+        }
+
+        return res.render("verifyOtp", {
 
             email: req.body.email,
+
+            purpose: req.body.purpose,
 
             success: "A new OTP has been sent."
 
@@ -633,11 +596,13 @@ router.post("/resend-otp", async (req, res) => {
 
     catch (err) {
 
-        console.log(err);
+        console.error(err);
 
-        res.render("verifyOtp", {
+        return res.render("verifyOtp", {
 
             email: req.body.email,
+
+            purpose: req.body.purpose,
 
             error: err.message
 

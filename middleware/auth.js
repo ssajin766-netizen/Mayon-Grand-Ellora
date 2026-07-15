@@ -12,18 +12,17 @@ User must be logged in
 
 exports.isLoggedIn = (req, res, next) => {
 
-    if (req.isAuthenticated()) {
-        return next();
+    if (!req.isAuthenticated()) {
+        return res.redirect("/login");
     }
 
-    return res.redirect("/login");
+    next();
 
 };
 
-
 /*
 -----------------------------------------
-User must be Admin
+Administrator Only
 -----------------------------------------
 */
 
@@ -41,7 +40,7 @@ exports.isAdmin = (req, res, next) => {
 
             href: "/home",
 
-            messageSecondary: "Go back",
+            messageSecondary: "Go Back",
 
             hrefSecondary: "/home",
 
@@ -51,32 +50,78 @@ exports.isAdmin = (req, res, next) => {
 
     }
 
-    return next();
+    next();
 
 };
 
-
 /*
 -----------------------------------------
-OTP Authentication Check
+Email Verification Required
+Used for features that require a verified email
 -----------------------------------------
 */
 
 exports.isVerified = (req, res, next) => {
 
-    // User has already completed login + OTP
-    if (req.isAuthenticated()) {
-        return next();
+    if (!req.isAuthenticated()) {
+        return res.redirect("/login");
     }
 
-    return res.redirect("/login");
+    if (!req.user.isEmailVerified) {
+
+        return res.redirect(
+
+            "/verify-otp?email=" +
+
+            encodeURIComponent(req.user.username) +
+
+            "&purpose=signup"
+
+        );
+
+    }
+
+    next();
 
 };
 
+/*
+-----------------------------------------
+Phone Verification Required (Future)
+-----------------------------------------
+*/
+
+exports.isPhoneVerified = (req, res, next) => {
+
+    if (!req.isAuthenticated()) {
+        return res.redirect("/login");
+    }
+
+    if (!req.user.isPhoneVerified) {
+
+        return res.render("failure", {
+
+            message: "Please verify your phone number.",
+
+            href: "/verify-phone",
+
+            messageSecondary: "Verify Phone",
+
+            hrefSecondary: "/verify-phone",
+
+            buttonSecondary: "Verify"
+
+        });
+
+    }
+
+    next();
+
+};
 
 /*
 -----------------------------------------
-User must be approved
+Admin Approval Required
 -----------------------------------------
 */
 
@@ -94,7 +139,7 @@ exports.isApproved = (req, res, next) => {
 
             href: "/logout",
 
-            messageSecondary: "Need help?",
+            messageSecondary: "Need Help?",
 
             hrefSecondary: "/contacts",
 
@@ -104,6 +149,6 @@ exports.isApproved = (req, res, next) => {
 
     }
 
-    return next();
+    next();
 
 };
