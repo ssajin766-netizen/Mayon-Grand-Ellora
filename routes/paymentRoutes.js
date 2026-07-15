@@ -3,7 +3,7 @@ const router = express.Router();
 
 const Razorpay = require("razorpay");
 
-const transporter = require("../config/mail");
+const sendMail = require("../services/sendMail");
 const sendWhatsApp = require("../services/whatsappService");
 
 const WhatsAppLog = require("../models/WhatsAppLog");
@@ -11,7 +11,6 @@ const user_collection = require("../models/userModel");
 
 const {
     isLoggedIn,
-    isVerified,
     isApproved
 } = require("../middleware/auth");
 
@@ -55,9 +54,7 @@ router.post(
 
             res.json(order);
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             console.error(err);
 
@@ -79,6 +76,7 @@ router.post(
 PAYMENT SUCCESS
 --------------------------------------------------
 */
+
 router.post(
     "/payment-success",
     isLoggedIn,
@@ -87,8 +85,7 @@ router.post(
 
         try {
 
-            const user =
-                await user_collection.User.findById(req.user.id);
+            const user = await user_collection.User.findById(req.user.id);
 
             if (!user) {
 
@@ -102,8 +99,7 @@ router.post(
 
             }
 
-            const invoice =
-                "INV-" + Date.now();
+            const invoice = "INV-" + Date.now();
 
             user.lastPayment = {
 
@@ -163,9 +159,7 @@ router.post(
 
                 });
 
-            }
-
-            catch (err) {
+            } catch (err) {
 
                 console.log("WhatsApp Error:", err.message);
 
@@ -179,33 +173,29 @@ router.post(
 
             try {
 
-                await transporter.sendMail({
+                await sendMail(
 
-                    from: `"Mayon Grand Ellora" <${process.env.EMAIL_FROM}>`,
+                    user.username,
 
-                    to: user.username,
-
-                    subject: "Maintenance Payment Receipt",
-
-                    html: `
-
-                        <h2>Payment Successful</h2>
-
-                        <p><strong>Invoice:</strong> ${invoice}</p>
-
-                        <p><strong>Amount:</strong> ₹${user.makePayment}</p>
-
-                        <p><strong>Society:</strong> ${user.societyName}</p>
-
-                        <p>Thank you for your payment.</p>
+                    "Maintenance Payment Receipt",
 
                     `
+                    <h2>Payment Successful</h2>
 
-                });
+                    <p><strong>Invoice:</strong> ${invoice}</p>
 
-            }
+                    <p><strong>Amount:</strong> ₹${user.makePayment}</p>
 
-            catch (err) {
+                    <p><strong>Society:</strong> ${user.societyName}</p>
+
+                    <p>Thank you for your payment.</p>
+                    `
+
+                );
+
+                console.log("Payment email sent.");
+
+            } catch (err) {
 
                 console.log("Email Error:", err.message);
 
@@ -219,9 +209,7 @@ router.post(
 
             });
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             console.error(err);
 
@@ -252,8 +240,7 @@ router.post(
 
         try {
 
-            const user =
-                await user_collection.User.findById(req.user.id);
+            const user = await user_collection.User.findById(req.user.id);
 
             if (!user) {
 
@@ -261,8 +248,7 @@ router.post(
 
             }
 
-            const invoice =
-                "INV-" + Date.now();
+            const invoice = "INV-" + Date.now();
 
             user.lastPayment = {
 
@@ -294,11 +280,41 @@ router.post(
 
             await user.save();
 
+            /*
+            ------------------------------
+            Email
+            ------------------------------
+            */
+
+            try {
+
+                await sendMail(
+
+                    user.username,
+
+                    "Maintenance Payment Received",
+
+                    `
+                    <h2>Payment Recorded</h2>
+
+                    <p>Your maintenance payment has been marked as received.</p>
+
+                    <p><strong>Invoice:</strong> ${invoice}</p>
+
+                    <p><strong>Amount:</strong> ₹${user.makePayment}</p>
+                    `
+
+                );
+
+            } catch (err) {
+
+                console.log("Email Error:", err.message);
+
+            }
+
             res.redirect("/bill");
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             console.error(err);
 

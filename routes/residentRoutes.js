@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-const transporter = require("../config/mail");
-
+const sendMail = require("../services/sendMail");
 const sendWhatsApp = require("../services/whatsappService");
 
 const WhatsAppLog = require("../models/WhatsAppLog");
-
 const user_collection = require("../models/userModel");
 
 const {
@@ -31,12 +29,9 @@ router.get(
 
             const userSocietyName = req.user.societyName;
 
-            const allResidents =
-                await user_collection.User.find({
-
-                    societyName: userSocietyName
-
-                });
+            const allResidents = await user_collection.User.find({
+                societyName: userSocietyName
+            });
 
             const approvedResidents = [];
             const appliedResidents = [];
@@ -47,9 +42,7 @@ router.get(
 
                     approvedResidents.push(user);
 
-                }
-
-                else if (user.validation === "applied") {
+                } else if (user.validation === "applied") {
 
                     appliedResidents.push(user);
 
@@ -69,9 +62,7 @@ router.get(
 
             });
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             console.error(err);
 
@@ -96,28 +87,20 @@ router.post(
 
         try {
 
-            const userId =
-                Object.keys(req.body.validate)[0];
+            const userId = Object.keys(req.body.validate)[0];
 
-            const validationState =
-                Object.values(req.body.validate)[0];
+            const validationState = Object.values(req.body.validate)[0];
 
             await user_collection.User.updateOne(
 
                 {
-
                     _id: userId
-
                 },
 
                 {
-
                     $set: {
-
                         validation: validationState
-
                     }
-
                 }
 
             );
@@ -153,74 +136,59 @@ router.post(
 
                     mobileNumber: approvedUser.phoneNumber,
 
-                    message:
-                        "Your account has been approved.",
+                    message: "Your account has been approved.",
 
                     status: "Sent"
 
                 });
 
-            }
+            } catch (err) {
 
-            catch (err) {
-
-                console.log(
-
-                    "WhatsApp Error:",
-
-                    err.message
-
-                );
+                console.log("WhatsApp Error:", err.message);
 
             }
 
             /*
             --------------------------
-            Email
+            Email (Brevo API)
             --------------------------
             */
 
             try {
 
-                await transporter.sendMail({
+                await sendMail(
 
-                    from: process.env.EMAIL_USER,
+                    approvedUser.username,
 
-                    to: approvedUser.username,
-
-                    subject: "Account Approved",
-
-                    html: `
-
-                        <h2>Congratulations!</h2>
-
-                        <p>Your Mayon Grand Ellora resident account has been approved.</p>
-
-                        <p>You can now log in and access all resident services.</p>
+                    "Account Approved",
 
                     `
+                    <h2>Congratulations!</h2>
 
-                });
+                    <p>Your <strong>Mayon Grand Ellora</strong> resident account has been approved.</p>
 
-            }
+                    <p>You can now log in and access all resident services.</p>
 
-            catch (err) {
+                    <br>
 
-                console.log(
+                    <p>Thank you,</p>
 
-                    "Email Error:",
-
-                    err.message
+                    <p><strong>Mayon Grand Ellora Team</strong></p>
+                    `
 
                 );
+
+                console.log("Approval email sent.");
+
+            } catch (err) {
+
+                console.log("Email Error:", err.message);
 
             }
 
             res.redirect("/residents");
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             console.error(err);
 
