@@ -23,6 +23,7 @@
   "dependencies": {
     "@getbrevo/brevo": "^6.0.2",
     "@sparticuz/chromium": "^149.0.0",
+    "axios": "^1.18.1",
     "compression": "^1.8.1",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.7",

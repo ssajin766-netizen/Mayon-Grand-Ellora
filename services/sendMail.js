@@ -1,40 +1,34 @@
-const apiInstance = require("../config/brevo");
+const axios = require("axios");
 
 async function sendMail(to, subject, html) {
-
     try {
-
-        const response = await apiInstance.sendTransacEmail({
-
-            sender: {
-                name: "Mayon Grand Ellora",
-                email: process.env.EMAIL_FROM
+        const response = await axios.post(
+            "https://api.brevo.com/v3/smtp/email",
+            {
+                sender: {
+                    name: "Mayon Grand Ellora",
+                    email: process.env.EMAIL_FROM
+                },
+                to: [{ email: to }],
+                subject,
+                htmlContent: html
             },
-
-            to: [
-                {
-                    email: to
+            {
+                headers: {
+                    "accept": "application/json",
+                    "content-type": "application/json",
+                    "api-key": process.env.BREVO_API_KEY
                 }
-            ],
+            }
+        );
 
-            subject,
-
-            htmlContent: html
-
-        });
-
-        console.log("MAIL SENT:", response.messageId || "Success");
-
-        return response;
+        console.log("Mail sent:", response.data);
+        return response.data;
 
     } catch (err) {
-
-        console.error("MAIL ERROR:", err);
-
+        console.error(err.response?.data || err.message);
         throw err;
-
     }
-
 }
 
 module.exports = sendMail;
