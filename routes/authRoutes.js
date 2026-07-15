@@ -377,17 +377,17 @@ LOGOUT
 --------------------------------------------------
 */
 
-router.get("/logout",(req,res,next)=>{
+router.get("/logout",(req,res)=>{
 
-    req.logout(function(err){
+    req.logout(()=>{
 
-        if(err){
+        req.session.destroy(()=>{
 
-            return next(err);
+            res.clearCookie("connect.sid");
 
-        }
+            res.redirect("/");
 
-        res.redirect("/");
+        });
 
     });
 

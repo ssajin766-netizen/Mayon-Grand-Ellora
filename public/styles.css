@@ -399,3 +399,26 @@ tfoot td {
     }
 
 }
+
+.card {
+    border-radius: 18px;
+}
+
+.card-header {
+    border-radius: 18px 18px 0 0 !important;
+}
+
+.form-control,
+.form-select {
+    border-radius: 10px;
+    min-height: 46px;
+}
+
+.badge {
+    font-size: 0.9rem;
+}
+
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+}

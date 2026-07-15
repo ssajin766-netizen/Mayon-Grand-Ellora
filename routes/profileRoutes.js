@@ -66,6 +66,12 @@ EDIT PROFILE
 --------------------------------------------------
 */
 
+/*
+--------------------------------------------------
+EDIT PROFILE PAGE
+--------------------------------------------------
+*/
+
 router.get(
     "/editProfile",
     isLoggedIn,
@@ -74,34 +80,90 @@ router.get(
 
         try {
 
-            const resident = await User.findById(req.user.id).lean();
+            // ==========================================
+            // Fetch Logged-in User
+            // ==========================================
+
+            const resident = await User.findById(req.user.id);
 
             if (!resident) {
-                return res.status(404).send("User not found");
+
+                return res.status(404).render("failure", {
+
+                    message: "Resident account not found.",
+
+                    href: "/login",
+
+                    buttonSecondary: "Login Again"
+
+                });
+
             }
+
+            // ==========================================
+            // Fetch Society Details
+            // ==========================================
 
             const society = await Society.findOne({
+
                 societyName: resident.societyName
-            }).lean();
 
-            if (!society) {
-                return res.status(404).send("Society not found");
-            }
-
-            res.render("editProfile", {
-                resident,
-                society
             });
 
-        } catch (err) {
+            if (!society) {
+
+                return res.status(404).render("failure", {
+
+                    message: "Society information not found.",
+
+                    href: "/home",
+
+                    buttonSecondary: "Go Home"
+
+                });
+
+            }
+
+            // ==========================================
+            // Render Edit Profile
+            // ==========================================
+
+            res.render("editProfile", {
+
+                title: "Edit Profile",
+
+                resident,
+
+                society,
+
+                success: req.flash ? req.flash("success") : [],
+
+                error: req.flash ? req.flash("error") : []
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error("EDIT PROFILE ERROR");
 
             console.error(err);
 
-            res.status(500).send("Server Error");
+            return res.status(500).render("failure", {
+
+                message: "Something went wrong while loading your profile.",
+
+                href: "/profile",
+
+                buttonSecondary: "Back to Profile"
+
+            });
 
         }
 
     }
+
 );
 
 /*
@@ -120,34 +182,22 @@ router.post(
 
             const updateData = {
 
-                firstName: req.body.firstName,
+                firstName: req.body.firstName?.trim(),
 
-                lastName: req.body.lastName,
+                lastName: req.body.lastName?.trim(),
 
-                phoneNumber: req.body.phoneNumber,
+                phoneNumber: req.body.phoneNumber?.trim(),
 
-                flatNumber: req.body.flatNumber,
+                flatNumber: req.body.flatNumber?.trim(),
 
-                loginType:
-                    req.body.loginType || "password",
+                loginType: req.body.loginType || "password",
 
                 twoFactorEnabled:
                     req.body.twoFactorEnabled === "on"
 
             };
 
-            await User.findByIdAndUpdate(
-            req.user.id,
-           {
-           $set: updateData
-           },
-          {
-          new: true,
-          runValidators: true
-          }
-          );
-
-            // Optional
+            // Optional verification fields
 
             if (req.body.isEmailVerified !== undefined) {
 
@@ -162,8 +212,6 @@ router.post(
                     req.body.isPhoneVerified === "true";
 
             }
-
-            updateData.lastLogin = new Date();
 
             const resident = await User.findByIdAndUpdate(
 
@@ -182,48 +230,61 @@ router.post(
 
             if (!resident) {
 
-                return res.status(404).send("User not found");
+                return res.status(404).render("failure", {
+
+                    message: "Resident not found.",
+
+                    href: "/home"
+
+                });
 
             }
 
             /*
-            ----------------------------------
-            Update Society
-            ----------------------------------
+            ======================================
+            Update Society (Admin Only)
+            ======================================
             */
 
             if (
+
                 req.user.isAdmin &&
+
                 req.body.address
+
             ) {
 
                 await Society.findOneAndUpdate(
 
                     {
+
                         admin: req.user.username
+
                     },
 
                     {
 
                         $set: {
 
-                            societyAddress: {
+                            "societyAddress.address":
+                                req.body.address,
 
-                                address:
-                                    req.body.address,
+                            "societyAddress.city":
+                                req.body.city,
 
-                                city:
-                                    req.body.city,
+                            "societyAddress.district":
+                                req.body.district,
 
-                                district:
-                                    req.body.district,
-
-                                postalCode:
-                                    req.body.postalCode
-
-                            }
+                            "societyAddress.postalCode":
+                                req.body.postalCode
 
                         }
+
+                    },
+
+                    {
+
+                        runValidators: true
 
                     }
 
@@ -231,17 +292,35 @@ router.post(
 
             }
 
+            req.flash(
+
+                "success",
+
+                "Profile updated successfully."
+
+            );
+
             res.redirect("/profile");
 
         }
 
         catch (err) {
 
-            console.error("PROFILE UPDATE ERROR");
+            console.error(
 
-            console.error(err);
+                "PROFILE UPDATE ERROR",
 
-            res.status(500).send("Unable to update profile.");
+                err
+
+            );
+
+            res.status(500).render("failure", {
+
+                message: "Unable to update profile.",
+
+                href: "/editProfile"
+
+            });
 
         }
 

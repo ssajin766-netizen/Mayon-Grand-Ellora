@@ -1,6 +1,7 @@
 require("dotenv").config();
 require("./config/passport");
 
+const flash = require("connect-flash");
 const express = require("express");
 const session = require("express-session");
 const passport = require("passport");
@@ -65,9 +66,13 @@ GLOBAL MIDDLEWARE
 */
 
 app.use(
-    helmet({
-        contentSecurityPolicy: false
-    })
+helmet({
+
+    crossOriginEmbedderPolicy:false,
+
+    contentSecurityPolicy:false
+
+})
 );
 app.use(compression());
 
@@ -88,9 +93,7 @@ app.use(cookieParser());
 SESSION
 --------------------------------------------------
 */
-
 app.use(
-
     session({
 
         secret: process.env.SESSION_SECRET,
@@ -111,19 +114,22 @@ app.use(
 
         cookie: {
 
-            httpOnly: true,
+    httpOnly: true,
 
-            secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === "production",
 
-            sameSite: "lax",
+    sameSite: "lax",
 
-            maxAge: 1000 * 60 * 60 * 24
+    maxAge: 1000 * 60 * 60 * 24,
 
-        }
+    path: "/"
+
+}
 
     })
-
 );
+
+app.use(flash());
 
 /*
 --------------------------------------------------
@@ -134,6 +140,24 @@ PASSPORT
 app.use(passport.initialize());
 
 app.use(passport.session());
+
+/*
+--------------------------------------------------
+GLOBAL VARIABLES
+--------------------------------------------------
+*/
+
+app.use((req, res, next) => {
+
+    res.locals.currentUser = req.user || null;
+
+    res.locals.success = req.flash("success");
+
+    res.locals.error = req.flash("error");
+
+    next();
+
+});
 
 /*
 --------------------------------------------------
