@@ -3,33 +3,55 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 const { User } = require("../models/userModel");
 
-// Debug (Remove after testing)
-console.log("createStrategy:", typeof User.createStrategy);
-console.log("authenticate:", typeof User.authenticate);
-
-/*
---------------------------------------------------
-LOCAL STRATEGY
---------------------------------------------------
-*/
+// --------------------------------------------------
+// Local Strategy
+// --------------------------------------------------
 
 passport.use(User.createStrategy());
 
-/*
---------------------------------------------------
-SESSION
---------------------------------------------------
-*/
+// --------------------------------------------------
+// Session
+// --------------------------------------------------
 
 passport.serializeUser(User.serializeUser());
 
 passport.deserializeUser(User.deserializeUser());
 
-/*
---------------------------------------------------
-GOOGLE STRATEGY
---------------------------------------------------
-*/
+// --------------------------------------------------
+// Helper
+// --------------------------------------------------
+
+async function updateLogin(user, method) {
+
+    user.lastLogin = new Date();
+
+    user.loginType = method.toLowerCase();
+
+    user.failedLoginAttempts = 0;
+
+    user.accountLockedUntil = null;
+
+    user.lastFailedLogin = null;
+
+    user.loginHistory.unshift({
+
+        loginTime: new Date(),
+
+        loginMethod: method,
+
+        status: "Success"
+
+    });
+
+    user.loginHistory = user.loginHistory.slice(0, 20);
+
+    await user.save();
+
+}
+
+// --------------------------------------------------
+// Google Strategy
+// --------------------------------------------------
 
 passport.use(
 
@@ -41,21 +63,55 @@ passport.use(
 
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 
-            callbackURL: process.env.GOOGLE_CALLBACK_URL
+            callbackURL: process.env.GOOGLE_CALLBACK_URL,
+
+            passReqToCallback: false
 
         },
 
-        async (accessToken, refreshToken, profile, done) => {
+        async (
+
+            accessToken,
+
+            refreshToken,
+
+            profile,
+
+            done
+
+        ) => {
 
             try {
 
-                const email = profile.emails[0].value.toLowerCase();
+                if (
 
-                /*
-                -----------------------------------------
-                Existing Google User
-                -----------------------------------------
-                */
+                    !profile.emails ||
+
+                    profile.emails.length === 0
+
+                ) {
+
+                    return done(
+
+                        new Error("Google account has no email"),
+
+                        null
+
+                    );
+
+                }
+
+                const email =
+
+                    profile.emails[0].value
+
+                        .toLowerCase()
+
+                        .trim();
+
+                // =====================================================
+                // Existing Google User
+                // =====================================================
 
                 let user = await User.findOne({
 
@@ -65,35 +121,25 @@ passport.use(
 
                 if (user) {
 
-                    user.lastLogin = new Date();
+                    user.firstName =
 
-                    user.loginType = "google";
+                        profile.name.givenName || user.firstName;
 
-                    user.loginHistory.push({
+                    user.lastName =
 
-                        loginTime: new Date(),
+                        profile.name.familyName || user.lastName;
 
-                        loginMethod: "Google",
+                    user.isEmailVerified = true;
 
-                        status: "Success"
-
-                    });
-
-                    if (user.loginHistory.length > 20) {
-                        user.loginHistory.shift();
-                    }
-
-                    await user.save();
+                    await updateLogin(user, "Google");
 
                     return done(null, user);
 
                 }
 
-                /*
-                -----------------------------------------
-                Existing Email User
-                -----------------------------------------
-                */
+                // =====================================================
+                // Existing Email User
+                // =====================================================
 
                 user = await User.findOne({
 
@@ -105,37 +151,27 @@ passport.use(
 
                     user.googleId = profile.id;
 
-                    user.loginType = "google";
+                    user.firstName =
+
+                        profile.name.givenName || user.firstName;
+
+                    user.lastName =
+
+                        profile.name.familyName || user.lastName;
 
                     user.isEmailVerified = true;
 
-                    user.lastLogin = new Date();
+                    user.loginType = "google";
 
-                    user.loginHistory.push({
-
-                        loginTime: new Date(),
-
-                        loginMethod: "Google",
-
-                        status: "Success"
-
-                    });
-
-                    if (user.loginHistory.length > 20) {
-                        user.loginHistory.shift();
-                    }
-
-                    await user.save();
+                    await updateLogin(user, "Google");
 
                     return done(null, user);
 
                 }
 
-                /*
-                -----------------------------------------
-                Create New Google User
-                -----------------------------------------
-                */
+                // =====================================================
+                // Create New User
+                // =====================================================
 
                 const newUser = new User({
 
@@ -144,10 +180,6 @@ passport.use(
                     googleId: profile.id,
 
                     loginType: "google",
-
-                    firstName: profile.name.givenName || "",
-
-                    lastName: profile.name.familyName || "",
 
                     validation: "applied",
 
@@ -158,6 +190,24 @@ passport.use(
                     flatNumber: "Pending",
 
                     phoneNumber: "",
+
+                    firstName:
+
+                        profile.name.givenName || "",
+
+                    lastName:
+
+                        profile.name.familyName || "",
+
+                    profileImage:
+
+                        profile.photos &&
+
+                        profile.photos.length
+
+                            ? profile.photos[0].value
+
+                            : "/images/default-avatar.png",
 
                     isEmailVerified: true,
 
@@ -197,7 +247,13 @@ passport.use(
 
             catch (err) {
 
-                console.error(err);
+                console.error(
+
+                    "Google Strategy Error:",
+
+                    err
+
+                );
 
                 return done(err, null);
 

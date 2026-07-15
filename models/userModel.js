@@ -1,14 +1,92 @@
 const mongoose = require("mongoose");
 const passportLocalMongoose = require("passport-local-mongoose");
 
+const loginHistorySchema = new mongoose.Schema(
+{
+    loginTime: {
+        type: Date,
+        default: Date.now
+    },
+
+    ip: {
+        type: String,
+        default: ""
+    },
+
+    browser: {
+        type: String,
+        default: ""
+    },
+
+    device: {
+        type: String,
+        default: ""
+    },
+
+    location: {
+        type: String,
+        default: ""
+    },
+
+    loginMethod: {
+        type: String,
+        enum: ["Password", "Google", "Phone", "OTP"],
+        default: "Password"
+    },
+
+    status: {
+        type: String,
+        enum: ["Success", "Failed"],
+        default: "Success"
+    }
+},
+{
+    _id: false
+});
+
+const paymentHistorySchema = new mongoose.Schema(
+{
+    amount: {
+        type: Number,
+        default: 0
+    },
+
+    invoice: {
+        type: String,
+        default: ""
+    },
+
+    paidAt: {
+        type: Date,
+        default: Date.now
+    },
+
+    method: {
+        type: String,
+        default: "Manual"
+    },
+
+    paymentStatus: {
+        type: String,
+        enum: ["Pending", "Paid"],
+        default: "Paid"
+    }
+
+},
+{
+    _id: false
+});
+
 const userSchema = new mongoose.Schema(
 {
-    // =========================
+
+    // ===========================================
     // Account
-    // =========================
+    // ===========================================
 
     validation: {
         type: String,
+        enum: ["applied", "approved", "rejected"],
         default: "applied"
     },
 
@@ -36,128 +114,126 @@ const userSchema = new mongoose.Schema(
         type: String,
         default: ""
     },
-phoneNumber: {
-    type: String,
-    default: "",
-    trim: true,
-    unique: true,
-    sparse: true
-},
+
+    profileImage: {
+        type: String,
+        default: "/images/default-avatar.png"
+    },
+
     username: {
         type: String,
-        unique: true,
         required: true,
+        unique: true,
         lowercase: true,
         trim: true
     },
 
-googleId: {
-    type: String,
-    default: "",
-    index: true
-},
+    phoneNumber: {
+        type: String,
+        trim: true,
+        unique: true,
+        sparse: true,
+        match: /^[6-9]\d{9}$/,
+        default: ""
+    },
 
-    // =========================
-    // Email Verification
-    // =========================
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,
+        trim: true,
+        default: null
+    },
+
+    // ===========================================
+    // Verification
+    // ===========================================
 
     isEmailVerified: {
         type: Boolean,
         default: false
     },
 
-    // =========================
-// Phone Verification
-// =========================
+    isPhoneVerified: {
+        type: Boolean,
+        default: false
+    },
 
-isPhoneVerified: {
-    type: Boolean,
-    default: false
-},
+    // ===========================================
+    // OTP
+    // ===========================================
 
-// =========================
-// Two Factor Authentication
-// =========================
+    emailOtp: {
+        type: String,
+        default: ""
+    },
 
-twoFactorEnabled: {
-    type: Boolean,
-    default: false
-},
+    emailOtpExpires: {
+        type: Date,
+        default: null
+    },
 
-// =========================
-// Login Type
-// =========================
+    phoneOtp: {
+        type: String,
+        default: ""
+    },
 
-loginType: {
-    type: String,
-    enum: [
-        "password",
-        "google",
-        "phone"
-    ],
-    default: "password"
-},
+    phoneOtpExpires: {
+        type: Date,
+        default: null
+    },
 
-    // =========================
-    // Remember Me
-    // =========================
+    // ===========================================
+    // Login
+    // ===========================================
+
+    loginType: {
+        type: String,
+        enum: [
+            "password",
+            "google",
+            "phone"
+        ],
+        default: "password"
+    },
+
+    twoFactorEnabled: {
+        type: Boolean,
+        default: false
+    },
 
     rememberToken: {
         type: String,
         default: ""
     },
 
-    // =========================
+    rememberTokenExpires: {
+        type: Date,
+        default: null
+    },
+
+    // ===========================================
     // Login Activity
-    // =========================
+    // ===========================================
 
     lastLogin: {
         type: Date,
         default: null
     },
 
-    loginHistory: [
-        {
-            loginTime: {
-                type: Date,
-                default: Date.now
-            },
+    lastLoginIp: {
+        type: String,
+        default: ""
+    },
 
-            ip: {
-                type: String,
-                default: ""
-            },
+    loginHistory: {
+        type: [loginHistorySchema],
+        default: []
+    },
 
-            browser: {
-                type: String,
-                default: ""
-            },
-
-            device: {
-                type: String,
-                default: ""
-            },
-
-            location: {
-                type: String,
-                default: ""
-            },
-
-            loginMethod: {
-                type: String,
-                default: "Password"
-            },
-
-            status: {
-                type: String,
-                default: "Success"
-            }
-        }
-    ],
-
-    // =========================
-    // Login Security
-    // =========================
+    // ===========================================
+    // Security
+    // ===========================================
 
     failedLoginAttempts: {
         type: Number,
@@ -174,18 +250,18 @@ loginType: {
         default: null
     },
 
-    // =========================
+    // ===========================================
     // Complaints
-    // =========================
+    // ===========================================
 
     complaints: {
         type: Array,
         default: []
     },
 
-    // =========================
+    // ===========================================
     // Payments
-    // =========================
+    // ===========================================
 
     lastPayment: {
 
@@ -208,35 +284,67 @@ loginType: {
         default: 0
     },
 
-    paymentHistory: [
-        {
-            amount: Number,
-            invoice: String,
-            paidAt: Date,
-            method: String
-        }
-    ]
+    paymentHistory: {
+        type: [paymentHistorySchema],
+        default: []
+    }
 
 },
 {
     timestamps: true
-}
-);
+});
 
-// =========================
-// Passport Plugin
-// =========================
+// ===========================================
+// Passport
+// ===========================================
 
 userSchema.plugin(passportLocalMongoose);
 
-// =========================
+// ===========================================
+// Indexes
+// ===========================================
+
+userSchema.index({ username: 1 });
+userSchema.index({ phoneNumber: 1 });
+userSchema.index({ googleId: 1 });
+userSchema.index({ societyName: 1 });
+userSchema.index({ validation: 1 });
+
+// ===========================================
+// Hide Sensitive Fields
+// ===========================================
+
+userSchema.set("toJSON", {
+    transform(doc, ret) {
+
+        delete ret.hash;
+        delete ret.salt;
+        delete ret.__v;
+
+        return ret;
+    }
+});
+
+// ===========================================
+// Helper
+// ===========================================
+
+userSchema.methods.addLoginHistory = async function (data) {
+
+    this.loginHistory.unshift(data);
+
+    if (this.loginHistory.length > 20) {
+        this.loginHistory = this.loginHistory.slice(0, 20);
+    }
+
+    await this.save();
+
+};
+
+// ===========================================
 // Model
-// =========================
+// ===========================================
 
 const User = mongoose.model("User", userSchema);
-
-// =========================
-// Export
-// =========================
 
 module.exports = { User };

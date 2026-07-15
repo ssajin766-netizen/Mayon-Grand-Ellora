@@ -1,156 +1,170 @@
-<!-- Security Settings -->
+<!-- ==========================================================
+     SECURITY SETTINGS
+========================================================== -->
 
 <hr class="my-4">
 
-<div class="col-sm-12">
-
-    <h5>
-
+<div class="col-12">
+    <h4 class="fw-bold text-primary">
+        <i class="fas fa-shield-alt"></i>
         Security Settings
-
-    </h5>
-
+    </h4>
 </div>
 
-<!-- Email -->
+<!-- Email Address -->
 
-<div class="col-sm-12 col-lg-12 mt-3">
+<div class="col-md-6 mt-4">
 
-    <b>Email Address :</b>
-
-</div>
-
-<div class="col-sm-12 col-lg-12 mt-1">
+    <label class="form-label fw-bold">
+        Email Address
+    </label>
 
     <input
-
+        type="email"
         class="form-control"
-
         value="<%= resident.username %>"
-
         readonly
+    >
 
+</div>
+
+<!-- Phone -->
+
+<div class="col-md-6 mt-4">
+
+    <label class="form-label fw-bold">
+        Phone Number
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        value="<%= resident.phoneNumber || 'Not Added' %>"
+        readonly
     >
 
 </div>
 
 <!-- Email Verification -->
 
-<div class="col-sm-12 col-lg-12 mt-3">
+<div class="col-md-6 mt-4">
 
-    <b>Email Verification :</b>
+    <label class="form-label fw-bold">
+        Email Verification
+    </label>
 
-</div>
+    <div>
 
-<div class="col-sm-12 col-lg-12 mt-1">
+        <% if (resident.isEmailVerified) { %>
 
-    <% if(resident.isEmailVerified){ %>
+            <span class="badge bg-success">
+                <i class="fas fa-check-circle"></i>
+                Verified
+            </span>
 
-        <span class="badge badge-success">
+        <% } else { %>
 
-            Verified
+            <span class="badge bg-danger">
+                <i class="fas fa-times-circle"></i>
+                Not Verified
+            </span>
 
-        </span>
+        <% } %>
 
-    <% } else { %>
-
-        <span class="badge badge-danger">
-
-            Not Verified
-
-        </span>
-
-    <% } %>
+    </div>
 
 </div>
 
 <!-- Phone Verification -->
 
-<div class="col-sm-12 col-lg-12 mt-3">
+<div class="col-md-6 mt-4">
 
-    <b>Phone Verification :</b>
+    <label class="form-label fw-bold">
+        Phone Verification
+    </label>
 
-</div>
+    <div>
 
-<div class="col-sm-12 col-lg-12 mt-1">
+        <% if (resident.isPhoneVerified) { %>
 
-    <% if(resident.isPhoneVerified){ %>
+            <span class="badge bg-success">
+                <i class="fas fa-check-circle"></i>
+                Verified
+            </span>
 
-        <span class="badge badge-success">
+        <% } else { %>
 
-            Verified
+            <span class="badge bg-warning text-dark">
+                <i class="fas fa-exclamation-circle"></i>
+                Not Verified
+            </span>
 
-        </span>
+        <% } %>
 
-    <% } else { %>
-
-        <span class="badge badge-warning">
-
-            Not Verified
-
-        </span>
-
-    <% } %>
-
-</div>
-
-<!-- Login Method -->
-
-<div class="col-sm-12 col-lg-12 mt-3">
-
-    <b>Preferred Login :</b>
+    </div>
 
 </div>
 
-<div class="col-sm-12 col-lg-12 mt-1">
+<!-- Preferred Login -->
+
+<div class="col-md-6 mt-4">
+
+    <label class="form-label fw-bold">
+
+        Preferred Login Method
+
+    </label>
 
     <select
-
+        class="form-select"
         name="loginType"
-
-        class="form-control"
-
     >
 
         <option
             value="password"
-            <%= resident.loginType === "password" ? "selected" : "" %>>
-
+            <%= (resident.loginType || "password") === "password" ? "selected" : "" %>>
             Email & Password
-
         </option>
 
         <option
             value="google"
             <%= resident.loginType === "google" ? "selected" : "" %>>
-
-            Google
-
+            Google Sign-In
         </option>
 
         <option
             value="phone"
             <%= resident.loginType === "phone" ? "selected" : "" %>>
-
-            Phone (SMS OTP)
-
+            Phone OTP
         </option>
 
     </select>
+
+    <small class="text-muted">
+
+        Choose your preferred login method.
+
+    </small>
 
 </div>
 
 <!-- Two Factor -->
 
-<div class="col-sm-12 col-lg-12 mt-4">
+<div class="col-md-6 mt-4">
 
-    <div class="custom-control custom-switch">
+    <label class="form-label fw-bold">
+
+        Two-Step Verification
+
+    </label>
+
+    <div class="form-check form-switch">
 
         <input
 
-            type="checkbox"
+            class="form-check-input"
 
-            class="custom-control-input"
+            type="checkbox"
 
             id="twoFactor"
 
@@ -161,17 +175,125 @@
         >
 
         <label
-
-            class="custom-control-label"
-
+            class="form-check-label"
             for="twoFactor"
-
         >
 
-            Enable Two-Step Verification (Email OTP)
+            Enable Email OTP Verification
 
         </label>
 
     </div>
+
+    <small class="text-muted">
+
+        When enabled, an OTP will be sent to your email
+        after entering your password.
+
+    </small>
+
+</div>
+
+<!-- Last Login -->
+
+<div class="col-md-6 mt-4">
+
+    <label class="form-label fw-bold">
+
+        Last Login
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        value="<%= resident.lastLogin ? resident.lastLogin.toLocaleString() : 'Never Logged In' %>"
+        readonly
+    >
+
+</div>
+
+<!-- Login History -->
+
+<div class="col-md-6 mt-4">
+
+    <label class="form-label fw-bold">
+
+        Login Attempts
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        value="<%= resident.loginHistory ? resident.loginHistory.length : 0 %> Records"
+        readonly
+    >
+
+</div>
+
+<!-- Failed Login -->
+
+<div class="col-md-6 mt-4">
+
+    <label class="form-label fw-bold">
+
+        Failed Login Attempts
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        value="<%= resident.failedLoginAttempts || 0 %>"
+        readonly
+    >
+
+</div>
+
+<!-- Account Lock -->
+
+<div class="col-md-6 mt-4">
+
+    <label class="form-label fw-bold">
+
+        Account Status
+
+    </label>
+
+    <% if(resident.accountLockedUntil && resident.accountLockedUntil > new Date()){ %>
+
+        <input
+            class="form-control text-danger fw-bold"
+            value="Locked"
+            readonly
+        >
+
+    <% } else { %>
+
+        <input
+            class="form-control text-success fw-bold"
+            value="Active"
+            readonly
+        >
+
+    <% } %>
+
+</div>
+
+<!-- Save -->
+
+<div class="col-12 mt-5">
+
+    <button
+        type="submit"
+        class="btn btn-primary btn-lg"
+    >
+
+        <i class="fas fa-save"></i>
+
+        Save Security Settings
+
+    </button>
 
 </div>

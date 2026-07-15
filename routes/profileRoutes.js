@@ -20,50 +20,49 @@ router.get(
     isLoggedIn,
     isApproved,
     async (req, res) => {
-
         try {
 
-            const resident = await User.findById(req.user.id);
+            const resident = await User.findById(req.user.id).lean();
 
             if (!resident) {
-                return res.status(404).send("User not found");
+                return res.status(404).render("failure", {
+                    message: "User not found",
+                    href: "/login"
+                });
             }
 
             const society = await Society.findOne({
-
                 societyName: resident.societyName
-
-            });
+            }).lean();
 
             if (!society) {
-                return res.status(404).send("Society not found");
+                return res.status(404).render("failure", {
+                    message: "Society not found",
+                    href: "/home"
+                });
             }
 
             res.render("profile", {
-
                 resident,
-
                 society
+            });
 
+        } catch (err) {
+
+            console.error("PROFILE ERROR:", err);
+
+            res.status(500).render("failure", {
+                message: "Unable to load profile.",
+                href: "/home"
             });
 
         }
-
-        catch (err) {
-
-            console.error(err);
-
-            res.status(500).send("Server Error");
-
-        }
-
     }
-
 );
 
 /*
 --------------------------------------------------
-EDIT PROFILE PAGE
+EDIT PROFILE
 --------------------------------------------------
 */
 
@@ -75,33 +74,26 @@ router.get(
 
         try {
 
-            const resident = await User.findById(req.user.id);
+            const resident = await User.findById(req.user.id).lean();
 
             if (!resident) {
                 return res.status(404).send("User not found");
             }
 
             const society = await Society.findOne({
-
                 societyName: resident.societyName
-
-            });
+            }).lean();
 
             if (!society) {
                 return res.status(404).send("Society not found");
             }
 
             res.render("editProfile", {
-
                 resident,
-
                 society
-
             });
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             console.error(err);
 
@@ -110,7 +102,6 @@ router.get(
         }
 
     }
-
 );
 
 /*
@@ -127,76 +118,112 @@ router.post(
 
         try {
 
+            const updateData = {
+
+                firstName: req.body.firstName,
+
+                lastName: req.body.lastName,
+
+                phoneNumber: req.body.phoneNumber,
+
+                flatNumber: req.body.flatNumber,
+
+                loginType:
+                    req.body.loginType || "password",
+
+                twoFactorEnabled:
+                    req.body.twoFactorEnabled === "on"
+
+            };
+
             await User.findByIdAndUpdate(
+            req.user.id,
+           {
+           $set: updateData
+           },
+          {
+          new: true,
+          runValidators: true
+          }
+          );
+
+            // Optional
+
+            if (req.body.isEmailVerified !== undefined) {
+
+                updateData.isEmailVerified =
+                    req.body.isEmailVerified === "true";
+
+            }
+
+            if (req.body.isPhoneVerified !== undefined) {
+
+                updateData.isPhoneVerified =
+                    req.body.isPhoneVerified === "true";
+
+            }
+
+            updateData.lastLogin = new Date();
+
+            const resident = await User.findByIdAndUpdate(
 
                 req.user.id,
 
                 {
-
-                    firstName: req.body.firstName,
-
-                    lastName: req.body.lastName,
-
-                    phoneNumber: req.body.phoneNumber,
-
-                    flatNumber: req.body.flatNumber,
-
-                    twoFactorEnabled:
-                        req.body.twoFactorEnabled === "on"
-
+                    $set: updateData
                 },
 
                 {
-
                     new: true,
-
                     runValidators: true
-
                 }
 
             );
 
+            if (!resident) {
+
+                return res.status(404).send("User not found");
+
+            }
+
             /*
-            ------------------------------------------
-            Update Society Address (Admin Only)
-            ------------------------------------------
+            ----------------------------------
+            Update Society
+            ----------------------------------
             */
 
             if (
-
                 req.user.isAdmin &&
-
                 req.body.address
-
             ) {
 
                 await Society.findOneAndUpdate(
 
                     {
-
                         admin: req.user.username
-
                     },
 
                     {
 
-                        societyAddress: {
+                        $set: {
 
-                            address: req.body.address,
+                            societyAddress: {
 
-                            city: req.body.city,
+                                address:
+                                    req.body.address,
 
-                            district: req.body.district,
+                                city:
+                                    req.body.city,
 
-                            postalCode: req.body.postalCode
+                                district:
+                                    req.body.district,
+
+                                postalCode:
+                                    req.body.postalCode
+
+                            }
 
                         }
-
-                    },
-
-                    {
-
-                        runValidators: true
 
                     }
 
@@ -210,9 +237,11 @@ router.post(
 
         catch (err) {
 
+            console.error("PROFILE UPDATE ERROR");
+
             console.error(err);
 
-            res.status(500).send("Server Error");
+            res.status(500).send("Unable to update profile.");
 
         }
 
@@ -222,7 +251,7 @@ router.post(
 
 /*
 --------------------------------------------------
-Toggle Two-Step Verification
+Toggle Two Factor
 --------------------------------------------------
 */
 
@@ -239,14 +268,25 @@ router.post(
 
                 {
 
-                    twoFactorEnabled:
-                        req.body.enabled === "true"
+                    $set: {
+
+                        twoFactorEnabled:
+                            req.body.enabled === "true"
+
+                    }
 
                 }
 
             );
 
-            res.redirect("/profile");
+            res.json({
+
+                success: true,
+
+                enabled:
+                    req.body.enabled === "true"
+
+            });
 
         }
 
@@ -254,7 +294,11 @@ router.post(
 
             console.error(err);
 
-            res.status(500).send("Server Error");
+            res.status(500).json({
+
+                success: false
+
+            });
 
         }
 
