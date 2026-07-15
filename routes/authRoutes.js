@@ -430,33 +430,84 @@ router.get(
 GOOGLE CALLBACK
 --------------------------------------------------
 */
-
 router.get(
 
     "/auth/google/callback",
 
-    passport.authenticate(
+    passport.authenticate("google", {
 
-        "google",
+        failureRedirect: "/login"
 
-        {
+    }),
 
-            failureRedirect:
-                "/login"
+    async (req, res, next) => {
+
+        try {
+
+            if (!req.user) {
+                return res.redirect("/login");
+            }
+
+            // Save user information BEFORE logout
+            const user = req.user;
+            const email = user.username;
+
+            // Save user id temporarily for OTP verification
+            req.session.pendingUser = user._id;
+
+            // Logout until OTP is verified
+            req.logout(function (err) {
+
+                if (err) {
+                    return next(err);
+                }
+
+                req.session.save(async (err) => {
+
+                    if (err) {
+                        return next(err);
+                    }
+
+                    try {
+
+                        // Send OTP
+                        await otpController.sendVerificationOTP(email);
+
+                        // Redirect to OTP page
+                        return res.redirect(
+                            "/verify-otp?email=" +
+                            encodeURIComponent(email)
+                        );
+
+                    } catch (e) {
+
+                        console.error("GOOGLE OTP ERROR:", e);
+
+                        return res.render("failure", {
+
+                            message: "Unable to send OTP.",
+
+                            href: "/login",
+
+                            messageSecondary: "Try Again",
+
+                            hrefSecondary: "/login",
+
+                            buttonSecondary: "Login"
+
+                        });
+
+                    }
+
+                });
+
+            });
+
+        } catch (err) {
+
+            return next(err);
 
         }
-
-    ),
-
-    (req, res) => {
-
-        if (req.user.societyName === "Pending") {
-
-            return res.redirect("/newRequest");
-
-        }
-
-        res.redirect("/home");
 
     }
 
@@ -470,11 +521,12 @@ VERIFY OTP PAGE
 
 router.get("/verify-otp", (req, res) => {
 
+    if (!req.session.pendingUser) {
+        return res.redirect("/login");
+    }
+
     res.render("verifyOtp", {
-
-        email:
-            req.query.email
-
+        email: req.query.email
     });
 
 });
