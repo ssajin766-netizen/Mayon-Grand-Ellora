@@ -448,19 +448,17 @@ router.get(
                 return res.redirect("/login");
             }
 
-            // Save user information BEFORE logout
             const user = req.user;
             const email = user.username;
 
-            // Save user id temporarily for OTP verification
-            req.session.pendingUser = user._id;
-
-            // Logout until OTP is verified
             req.logout(function (err) {
 
                 if (err) {
                     return next(err);
                 }
+
+                // Save AFTER logout
+                req.session.pendingUser = user._id;
 
                 req.session.save(async (err) => {
 
@@ -468,12 +466,15 @@ router.get(
                         return next(err);
                     }
 
+                    console.log(
+                        "Pending User:",
+                        req.session.pendingUser
+                    );
+
                     try {
 
-                        // Send OTP
                         await otpController.sendVerificationOTP(email);
 
-                        // Redirect to OTP page
                         return res.redirect(
                             "/verify-otp?email=" +
                             encodeURIComponent(email)
@@ -481,7 +482,7 @@ router.get(
 
                     } catch (e) {
 
-                        console.error("GOOGLE OTP ERROR:", e);
+                        console.error(e);
 
                         return res.render("failure", {
 
@@ -505,14 +506,13 @@ router.get(
 
         } catch (err) {
 
-            return next(err);
+            next(err);
 
         }
 
     }
 
 );
-
 /*
 --------------------------------------------------
 VERIFY OTP PAGE
@@ -520,6 +520,11 @@ VERIFY OTP PAGE
 */
 
 router.get("/verify-otp", (req, res) => {
+
+    console.log(
+        "VERIFY SESSION:",
+        req.session.pendingUser
+    );
 
     if (!req.session.pendingUser) {
         return res.redirect("/login");
