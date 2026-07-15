@@ -4,7 +4,12 @@ Authentication Middleware
 =========================================
 */
 
-// User must be logged in
+/*
+-----------------------------------------
+User must be logged in
+-----------------------------------------
+*/
+
 exports.isLoggedIn = (req, res, next) => {
 
     if (req.isAuthenticated()) {
@@ -16,7 +21,12 @@ exports.isLoggedIn = (req, res, next) => {
 };
 
 
-// User must be Admin
+/*
+-----------------------------------------
+User must be Admin
+-----------------------------------------
+*/
+
 exports.isAdmin = (req, res, next) => {
 
     if (!req.isAuthenticated()) {
@@ -24,40 +34,52 @@ exports.isAdmin = (req, res, next) => {
     }
 
     if (!req.user.isAdmin) {
+
         return res.status(403).render("failure", {
+
             message: "Access denied. Administrator privileges required.",
+
             href: "/home",
+
             messageSecondary: "Go back",
+
             hrefSecondary: "/home",
+
             buttonSecondary: "Home"
+
         });
+
     }
 
-    next();
+    return next();
 
 };
 
 
-// Email must be verified
+/*
+-----------------------------------------
+OTP Authentication Check
+-----------------------------------------
+*/
+
 exports.isVerified = (req, res, next) => {
 
-    if (!req.isAuthenticated()) {
-        return res.redirect("/login");
+    // User has already completed login + OTP
+    if (req.isAuthenticated()) {
+        return next();
     }
 
-    if (!req.user.isEmailVerified) {
-        return res.redirect(
-            "/verify-otp?email=" +
-            encodeURIComponent(req.user.username)
-        );
-    }
-
-    next();
+    return res.redirect("/login");
 
 };
 
 
-// User must be approved by Admin
+/*
+-----------------------------------------
+User must be approved
+-----------------------------------------
+*/
+
 exports.isApproved = (req, res, next) => {
 
     if (!req.isAuthenticated()) {
@@ -82,6 +104,6 @@ exports.isApproved = (req, res, next) => {
 
     }
 
-    next();
+    return next();
 
 };

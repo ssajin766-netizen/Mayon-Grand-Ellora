@@ -1,82 +1,228 @@
 <!-- Login page -->
 <%- include('partials/headerForm') %>
 
-  <body>
-    <div class="container">
-      <div class="row">
+<body>
+
+<div class="container">
+
+    <div class="row">
+
         <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
-          <div class="card card-signin my-5">
-            <div class="card-body">       
-              <h5 class="card-title text-center">Login</h5>
-              <form class="form-signin" action="/login" method="POST">
-                <div class="form-label-group">
-                  <input name="username" type="email" id="email" class="form-control" placeholder="Email" required>
-                  <label for="email">Email</label>
+
+            <div class="card card-signin my-5">
+
+                <div class="card-body">
+
+                    <h4 class="card-title text-center">
+
+                        Login with OTP Verification
+
+                    </h4>
+
+                    <p class="text-center text-muted mb-4">
+
+                        Enter your email and password.
+                        A 6-digit OTP will be sent to your registered email.
+
+                    </p>
+
+                    <form class="form-signin"
+                          action="/login"
+                          method="POST">
+
+                        <!-- Email -->
+
+                        <div class="form-label-group">
+
+                            <input
+
+                                name="username"
+
+                                type="email"
+
+                                id="email"
+
+                                class="form-control"
+
+                                placeholder="Email"
+
+                                required
+
+                                autofocus
+
+                            >
+
+                            <label for="email">
+
+                                Email
+
+                            </label>
+
+                        </div>
+
+                        <!-- Password -->
+
+                        <div class="form-label-group">
+
+                            <input
+
+                                name="password"
+
+                                type="password"
+
+                                id="inputPassword"
+
+                                class="form-control"
+
+                                placeholder="Password"
+
+                                required
+
+                            >
+
+                            <label for="inputPassword">
+
+                                Password
+
+                            </label>
+
+                        </div>
+
+                        <!-- Login Button -->
+
+                        <button
+
+                            class="btn btn-lg btn-dark btn-block text-uppercase"
+
+                            type="submit"
+
+                            style="font-size:15px;"
+
+                        >
+
+                            Sign In
+
+                        </button>
+
+                        <div class="text-center mt-3">
+
+                            <small class="text-muted">
+
+                                You will be asked to enter a One-Time Password (OTP)
+                                before accessing your account.
+
+                            </small>
+
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Google Login -->
+
+                        <div class="text-center mb-3">
+
+                            <strong>OR</strong>
+
+                        </div>
+
+                        <a
+
+                            href="/auth/google"
+
+                            class="btn btn-lg btn-light btn-block"
+
+                            style="
+
+                                border:1px solid #dadce0;
+
+                                background:#fff;
+
+                                color:#3c4043;
+
+                                font-size:15px;
+
+                                font-weight:600;
+
+                                display:flex;
+
+                                align-items:center;
+
+                                justify-content:center;
+
+                                gap:10px;
+
+                            "
+
+                        >
+
+                            <img
+
+                                src="https://developers.google.com/identity/images/g-logo.png"
+
+                                width="20"
+
+                                height="20"
+
+                                alt="Google"
+
+                            >
+
+                            Continue with Google
+
+                        </a>
+
+                        <hr class="my-4">
+
+                        <!-- Register -->
+
+                        <div class="text-center mb-3">
+
+                            <h6>
+
+                                Don't have an account?
+
+                            </h6>
+
+                        </div>
+
+                        <a
+
+                            href="/signup"
+
+                            class="btn btn-danger btn-block text-uppercase"
+
+                            style="font-size:15px;"
+
+                        >
+
+                            Sign Up
+
+                        </a>
+
+                        <a
+
+                            href="/"
+
+                            class="btn btn-secondary btn-block text-uppercase"
+
+                        >
+
+                            Home
+
+                        </a>
+
+                    </form>
+
                 </div>
-                <div class="form-label-group">
-                  <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
-                  <label for="inputPassword">Password</label>
-                </div>
-            <button class="btn btn-lg btn-dark btn-block text-uppercase"
-            type="submit"
-            style="font-size:15px;">
-            Sign in
-            </button>
 
-           <div class="text-center my-3">
-           <strong>OR</strong>
-           </div>
-
-          <a href="/auth/google"
-          class="btn btn-lg btn-light btn-block"
-          style="
-          border:1px solid #dadce0;
-          background:#fff;
-          color:#3c4043;
-          font-size:15px;
-          font-weight:600;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          gap:10px;
-          ">
-
-        <img
-        src="https://developers.google.com/identity/images/g-logo.png"
-        width="20"
-        height="20"
-        alt="Google Logo">
-
-        Continue with Google
-        </a>
-
-      <hr class="my-4">
-                <div class="d-flex align-items-center justify-content-center mb-3">
-                  <h6 class="card-text mb-0">Don't have an account? </h6>
-                  <button id="quickLoginBtn"
-                    style="width: 32px; height: 32px; border-radius: 50%; background-color: #343a40; border: none; color: white; margin-left: 10px; display: flex; align-items: center; justify-content: center;"
-                    title="Quick demo access" onclick="quickDemoLogin()" type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                      <path
-                        d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641l2.5-8.5z" />
-                    </svg>
-                  </button>
-                </div>
-                <a href="/signup" class="btn  btn-danger btn-block text-uppercase" type="submit" style="font-size:15px;">sign-up</a>
-                <a href="/" class="btn  btn-secondary btn-block text-uppercase">Home</a>
-              </form>
             </div>
-          </div>
+
         </div>
-      </div>
-    </div>  
-    <script>
-      function quickDemoLogin() {
-        document.getElementById('email').value = 'rajesh@saikrupa.com';
-        document.getElementById('inputPassword').value = 'demo';
-        document.querySelector('.form-signin').submit();
-      }
-    </script>
-  </body>
+
+    </div>
+
+</div>
+
+</body>
 
 </html>

@@ -6,7 +6,7 @@ const sendOTP = require("../utils/sendOTP");
 
 /*
 =========================================
-Send Verification OTP
+Send Login OTP
 =========================================
 */
 
@@ -15,7 +15,7 @@ exports.sendVerificationOTP = async (email) => {
     try {
 
         console.log("================================");
-        console.log("SEND OTP START");
+        console.log("SEND LOGIN OTP");
         console.log("Email:", email);
 
         const user = await User.findOne({
@@ -26,10 +26,10 @@ exports.sendVerificationOTP = async (email) => {
             throw new Error("User not found");
         }
 
-        // Remove old OTPs
+        // Delete previous login OTPs
         await OTP.deleteMany({
             email: email.toLowerCase(),
-            purpose: "email_verification"
+            purpose: "login"
         });
 
         const otp = generateOTP();
@@ -37,20 +37,22 @@ exports.sendVerificationOTP = async (email) => {
         console.log("Generated OTP:", otp);
 
         await OTP.create({
+
             email: email.toLowerCase(),
+
             otp,
-            purpose: "email_verification",
+
+            purpose: "login",
+
             isUsed: false,
+
             expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+
         });
-
-        console.log("OTP Saved Successfully");
-
-        console.log("Calling sendOTP()...");
 
         await sendOTP(email, otp);
 
-        console.log("OTP Email Sent Successfully");
+        console.log("OTP Sent Successfully");
 
         return true;
 
@@ -62,13 +64,15 @@ exports.sendVerificationOTP = async (email) => {
         console.error("================================");
 
         throw err;
+
     }
 
 };
 
+
 /*
 =========================================
-Verify OTP
+Verify Login OTP
 =========================================
 */
 
@@ -83,24 +87,35 @@ exports.verifyOTP = async (email, otp) => {
         if (!user) {
 
             return {
+
                 success: false,
+
                 message: "User not found."
+
             };
 
         }
 
         const otpDoc = await OTP.findOne({
+
             email: email.toLowerCase(),
+
             otp: otp.trim(),
-            purpose: "email_verification",
+
+            purpose: "login",
+
             isUsed: false
+
         });
 
         if (!otpDoc) {
 
             return {
+
                 success: false,
+
                 message: "Invalid OTP."
+
             };
 
         }
@@ -112,34 +127,38 @@ exports.verifyOTP = async (email, otp) => {
             });
 
             return {
+
                 success: false,
+
                 message: "OTP expired."
+
             };
 
         }
-
-        user.isEmailVerified = true;
-
-        await user.save();
 
         otpDoc.isUsed = true;
 
         await otpDoc.save();
 
         await OTP.deleteMany({
+
             email: email.toLowerCase(),
-            purpose: "email_verification"
+
+            purpose: "login"
+
         });
 
         return {
 
             success: true,
 
-            message: "Email verified successfully."
+            message: "OTP verified successfully."
 
         };
 
-    } catch (err) {
+    }
+
+    catch (err) {
 
         console.error(err);
 
@@ -155,17 +174,21 @@ exports.verifyOTP = async (email, otp) => {
 
 };
 
+
 /*
 =========================================
-Resend OTP
+Resend Login OTP
 =========================================
 */
 
 exports.resendOTP = async (email) => {
 
     await OTP.deleteMany({
+
         email: email.toLowerCase(),
-        purpose: "email_verification"
+
+        purpose: "login"
+
     });
 
     return exports.sendVerificationOTP(email);

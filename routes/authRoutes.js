@@ -327,55 +327,45 @@ router.post("/login", (req, res, next) => {
             return res.redirect("/loginFailure");
         }
 
-        req.logIn(user, (err) => {
+        // Save user temporarily until OTP is verified
+        req.session.pendingUser = user._id;
+
+        req.session.save(async (err) => {
 
             if (err) {
                 return next(err);
             }
 
-            console.log("========== LOGIN SUCCESS ==========");
-            console.log("Session ID:", req.sessionID);
-            console.log("User:", req.user.username);
+            try {
 
-            req.session.save(async (err) => {
+                // Send OTP
+                await otpController.sendVerificationOTP(user.username);
 
-                if (err) {
-                    return next(err);
-                }
+                // Redirect to OTP page
+                return res.redirect(
+                    "/verify-otp?email=" +
+                    encodeURIComponent(user.username)
+                );
 
-                console.log("SESSION SAVED");
+            } catch (e) {
 
-                // Send OTP if email is not verified
-                if (!user.isEmailVerified) {
+                console.error("OTP ERROR:", e);
 
-                    try {
+                return res.render("failure", {
 
-                        await otpController.sendVerificationOTP(user.username);
+                    message: "Unable to send OTP.",
 
-                        return res.redirect(
-                            "/verify-otp?email=" +
-                            encodeURIComponent(user.username)
-                        );
+                    href: "/login",
 
-                    } catch (e) {
+                    messageSecondary: "Try Again",
 
-                        console.error("OTP ERROR:", e);
+                    hrefSecondary: "/login",
 
-                        return res.render("failure", {
-                            message: e.message,
-                            href: "/login",
-                            messageSecondary: "Back to Login",
-                            hrefSecondary: "/login",
-                            buttonSecondary: "Login"
-                        });
+                    buttonSecondary: "Login"
 
-                    }
+                });
 
-                }
-
-                return res.redirect("/home");
-
-            });
+            }
 
         });
 
@@ -495,9 +485,13 @@ VERIFY OTP
 --------------------------------------------------
 */
 
-router.post("/verify-otp", async (req, res) => {
+router.post("/verify-otp", async (req, res, next) => {
 
     try {
+
+        if (!req.session.pendingUser) {
+        return res.redirect("/login");
+        }
 
         const result = await otpController.verifyOTP(
             req.body.email,
@@ -516,7 +510,27 @@ router.post("/verify-otp", async (req, res) => {
 
         }
 
+        const user = await user_collection.User.findById(
+    req.session.pendingUser
+);
+
+if (!user) {
+    return res.redirect("/login");
+}
+
+req.logIn(user, (err) => {
+
+    if (err) {
+        return next(err);
+    }
+
+    delete req.session.pendingUser;
+
+    req.session.save(() => {
         return res.redirect("/home");
+    });
+
+});
 
     }
 

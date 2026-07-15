@@ -14,20 +14,16 @@
 
                     <div class="text-center mb-4">
 
-                        <i class="fas fa-envelope-open-text fa-3x text-success mb-3"></i>
+                        <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
 
-                        <h3>Email Verification</h3>
+                        <h3>Login Verification</h3>
 
                         <p class="text-muted">
-
                             Enter the 6-digit OTP sent to
-
                         </p>
 
                         <h6 class="text-primary">
-
                             <%= email %>
-
                         </h6>
 
                     </div>
@@ -35,9 +31,7 @@
                     <% if(typeof error !== "undefined"){ %>
 
                         <div class="alert alert-danger text-center">
-
                             <%= error %>
-
                         </div>
 
                     <% } %>
@@ -45,9 +39,7 @@
                     <% if(typeof success !== "undefined"){ %>
 
                         <div class="alert alert-success text-center">
-
                             <%= success %>
-
                         </div>
 
                     <% } %>
@@ -65,9 +57,7 @@
                         <div class="form-group">
 
                             <label>
-
-                                Verification Code
-
+                                One-Time Password (OTP)
                             </label>
 
                             <input
@@ -90,7 +80,7 @@
 
                                 autocomplete="one-time-code"
 
-                                placeholder="123456"
+                                placeholder="Enter 6-digit OTP"
 
                                 required
 
@@ -106,7 +96,7 @@
 
                         >
 
-                            Verify Email
+                            Verify & Login
 
                         </button>
 
@@ -140,9 +130,7 @@
 
                         >
 
-                            Resend OTP
-
-                            (
+                            Resend OTP (
 
                             <span id="timer">
 
@@ -189,7 +177,6 @@ const otpInput = document.getElementById("otp");
 otpInput.focus();
 
 // Allow only numbers
-
 otpInput.addEventListener("input", function(){
 
     this.value = this.value.replace(/\D/g,'');
