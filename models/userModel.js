@@ -127,15 +127,42 @@ const userSchema = new mongoose.Schema(
         lowercase: true,
         trim: true
     },
+phoneNumber: {
 
-    phoneNumber: {
-        type: String,
-        trim: true,
-        unique: true,
-        sparse: true,
-        match: /^[6-9]\d{9}$/,
-        default: ""
-    },
+    type: String,
+
+    trim: true,
+
+    unique: true,
+
+    sparse: true,
+
+    default: "",
+
+    validate: {
+
+        validator: function (value) {
+
+            if (!value) {
+
+                return true;
+
+            }
+
+            // Accept international E.164 format
+            // Example: +919597723127
+
+            return /^\+[1-9]\d{8,14}$/.test(value);
+
+        },
+
+        message: props =>
+
+            `Phone number is invalid (${props.value}).`
+
+    }
+
+},
 
     googleId: {
         type: String,
@@ -304,9 +331,6 @@ userSchema.plugin(passportLocalMongoose);
 // Indexes
 // ===========================================
 
-userSchema.index({ username: 1 });
-userSchema.index({ phoneNumber: 1 });
-userSchema.index({ googleId: 1 });
 userSchema.index({ societyName: 1 });
 userSchema.index({ validation: 1 });
 
