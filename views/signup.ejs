@@ -1,90 +1,331 @@
 <!-- Member signup form -->
 <%- include('partials/headerForm') %>
 
-  <body>
-    <div class="container">
-      <div class="row">
-        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
-          <div class="card card-signin my-5">
-            <div class="card-body">
-              <h5 class="card-title text-center">Sign-up</h5>
-              <form class="form-signin" action="/signup" method="POST">
-                <div class="form-label-group">
-                  <input name="firstName" type="text" id="inputFirstName" class="form-control" placeholder="First name " required autofocus>
-                  <label for="inputFirstName">First name</label>
-                </div>
-                <div class="form-label-group">
-                  <input name="lastName" type="text" id="inputLastName" class="form-control" placeholder="Last name " required >
-                  <label for="inputLastName">Last name</label>
-                </div>
-                <div class="form-label-group">
-                  <input name="phoneNumber" type="text" id="inputPhoneNumber" class="form-control" placeholder="Phone number" required>
-                  <label for="inputPhoneNumber">Phone number</label>
-                </div>
-                <div class="form-label-group">
-                  <input name="societyName" list="societyList" id="inputSocietyName" class="form-control" placeholder="Society name" autocomplete="off" required>
-                  <datalist id="societyList">
-                    <% societies.forEach(society => { %>
-                      <option value="<%= society.societyName %>">
-                    <% }) %>
-                  </datalist>
-                  <label for="inputSocietyName">Society name</label>
-                </div>
-                <div class="form-label-group">
-                  <input name="flatNumber" type="text" id="inputFlatNumber" class="form-control" placeholder="Flat number" required>
-                  <label for="inputFlatNumber">Flat number</label>
-                </div>
-                <div class="form-label-group">
-                  <input name="username" type="email" id="email" class="form-control" placeholder="Email" required>
-                  <label for="email">Email</label>
-                </div>
-                <div class="form-label-group">
-                  <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
-                  <label for="inputPassword">Password</label>
-                </div>
-                <button class="btn btn-lg btn-dark btn-block text-uppercase"
-                type="submit"
-                style="font-size:15px;">
-                Sign up
-                </button>
+<body>
 
-                <div class="text-center my-3">
-                <strong>OR</strong>
-                </div>
+<div class="container">
 
-                <a href="/auth/google"
-                class="btn btn-lg btn-light btn-block"
-                style="
-                border:1px solid #dadce0;
-                background:#fff;
-                color:#3c4043;
-                font-size:15px;
-                font-weight:600;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                gap:10px;
-              ">
+<div class="row">
 
-              <img
-              src="https://developers.google.com/identity/images/g-logo.png"
-              width="20"
-              height="20"
-              alt="Google Logo">
+<div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
 
-             Continue with Google
-            </a>
+<div class="card card-signin my-5">
 
-            <hr class="my-4">
-                <h6 class="card-text text-center">Already have an account? </h6></b>
-                <a href="/login" class="btn  btn-danger btn-block text-uppercase" type="submit" style="font-size:15px;">sign-in</a>
-                <a href="/" class="btn  btn-secondary btn-block text-uppercase">Home</a>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </body>
-  
+<div class="card-body">
+
+<h5 class="card-title text-center">
+
+Sign-up
+
+</h5>
+
+<form
+id="signupForm"
+class="form-signin"
+action="/signup"
+method="POST">
+
+<div class="form-label-group">
+
+<input
+name="firstName"
+type="text"
+id="inputFirstName"
+class="form-control"
+placeholder="First name"
+required
+autofocus>
+
+<label for="inputFirstName">
+
+First name
+
+</label>
+
+</div>
+
+<div class="form-label-group">
+
+<input
+name="lastName"
+type="text"
+id="inputLastName"
+class="form-control"
+placeholder="Last name"
+required>
+
+<label for="inputLastName">
+
+Last name
+
+</label>
+
+</div>
+
+<!-- Phone -->
+
+<div class="form-group">
+
+<label>
+
+Phone Number
+
+</label>
+
+<input
+id="phone"
+type="tel"
+class="form-control"
+autocomplete="tel"
+required>
+
+<input
+type="hidden"
+id="phoneNumber"
+name="phoneNumber">
+
+<small class="text-muted">
+
+Select your country and enter your mobile number.
+
+</small>
+
+</div>
+
+<div class="form-label-group">
+
+<input
+name="societyName"
+list="societyList"
+id="inputSocietyName"
+class="form-control"
+placeholder="Society name"
+autocomplete="off"
+required>
+
+<datalist id="societyList">
+
+<% societies.forEach(society=>{ %>
+
+<option value="<%= society.societyName %>">
+
+<% }) %>
+
+</datalist>
+
+<label for="inputSocietyName">
+
+Society name
+
+</label>
+
+</div>
+
+<div class="form-label-group">
+
+<input
+name="flatNumber"
+type="text"
+id="inputFlatNumber"
+class="form-control"
+placeholder="Flat Number"
+required>
+
+<label for="inputFlatNumber">
+
+Flat Number
+
+</label>
+
+</div>
+
+<div class="form-label-group">
+
+<input
+name="username"
+type="email"
+id="email"
+class="form-control"
+placeholder="Email"
+required>
+
+<label for="email">
+
+Email
+
+</label>
+
+</div>
+
+<div class="form-label-group">
+
+<input
+name="password"
+type="password"
+id="inputPassword"
+class="form-control"
+placeholder="Password"
+required>
+
+<label for="inputPassword">
+
+Password
+
+</label>
+
+</div>
+
+<button
+class="btn btn-lg btn-dark btn-block text-uppercase"
+type="submit">
+
+Sign Up
+
+</button>
+
+<div class="text-center my-3">
+
+<strong>
+
+OR
+
+</strong>
+
+</div>
+
+<a
+href="/auth/google"
+class="btn btn-lg btn-light btn-block"
+style="border:1px solid #dadce0;background:#fff;color:#3c4043;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;">
+
+<img
+src="https://developers.google.com/identity/images/g-logo.png"
+width="20"
+height="20">
+
+Continue with Google
+
+</a>
+
+<hr>
+
+<h6 class="text-center">
+
+Already have an account?
+
+</h6>
+
+<a
+href="/login"
+class="btn btn-danger btn-block">
+
+Sign In
+
+</a>
+
+<a
+href="/"
+class="btn btn-secondary btn-block">
+
+Home
+
+</a>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- International Phone Input -->
+
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/intlTelInput.min.js"></script>
+
+<script>
+
+const phoneInput = document.querySelector("#phone");
+
+const hiddenInput = document.querySelector("#phoneNumber");
+
+const iti = window.intlTelInput(phoneInput,{
+
+initialCountry:"in",
+
+preferredCountries:[
+"in",
+"us",
+"gb",
+"ae",
+"sg",
+"my",
+"lk"
+],
+
+separateDialCode:true,
+
+autoPlaceholder:"polite",
+
+formatOnDisplay:true,
+
+strictMode:true,
+
+loadUtils:()=>
+import("https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js")
+
+});
+
+document
+.getElementById("signupForm")
+.addEventListener("submit",function(e){
+
+e.preventDefault();
+
+if(phoneInput.value.trim()===""){
+
+alert("Please enter your phone number.");
+
+return;
+
+}
+
+if(!iti.isValidNumber()){
+
+alert("Please enter a valid phone number.");
+
+return;
+
+}
+
+hiddenInput.value=iti.getNumber();
+
+this.submit();
+
+});
+
+</script>
+
+<style>
+
+.iti{
+
+width:100%;
+
+}
+
+.iti input{
+
+width:100%!important;
+
+}
+
+</style>
+
+</body>
+
 </html>

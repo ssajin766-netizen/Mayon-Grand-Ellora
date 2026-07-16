@@ -106,7 +106,7 @@ router.post("/signup", async (req, res) => {
 
                     lastName: req.body.lastName,
 
-                    phoneNumber: req.body.phoneNumber,
+                    phoneNumber: req.body.phoneNumber.trim(),
 
                     isEmailVerified: false,
 
@@ -234,7 +234,7 @@ router.post("/register", async (req, res) => {
 
                 lastName: req.body.lastName,
 
-                phoneNumber: req.body.phoneNumber
+                phoneNumber: req.body.phoneNumber.trim(),
 
             },
 
@@ -703,7 +703,7 @@ router.post("/newRequest", async (req, res) => {
 
 user.firstName = req.body.firstName;
 user.lastName = req.body.lastName;
-user.phoneNumber = req.body.phoneNumber;
+user.phoneNumber = req.body.phoneNumber.trim();
 user.societyName = req.body.societyName;
 user.flatNumber = req.body.flatNumber;
 user.validation = "applied";
