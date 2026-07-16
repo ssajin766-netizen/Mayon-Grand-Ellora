@@ -25,6 +25,7 @@ ROUTES
 */
 
 const authRoutes = require("./routes/authRoutes");
+const phoneRoutes = require("./routes/phoneRoutes");
 const residentRoutes = require("./routes/residentRoutes");
 const billRoutes = require("./routes/billRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
@@ -306,6 +307,8 @@ APPLICATION ROUTES
 */
 
 app.use("/", authRoutes);
+
+app.use("/",phoneRoutes);
 
 app.use("/", residentRoutes);
 

@@ -168,6 +168,114 @@ router.get(
 
 /*
 --------------------------------------------------
+CHANGE PASSWORD PAGE
+--------------------------------------------------
+*/
+
+router.get(
+    "/changePassword",
+    isLoggedIn,
+    isApproved,
+    (req, res) => {
+
+        res.render("changePassword");
+
+    }
+);
+
+/*
+--------------------------------------------------
+LOGIN HISTORY PAGE
+--------------------------------------------------
+*/
+
+router.get(
+    "/loginHistory",
+    isLoggedIn,
+    isApproved,
+    async (req, res) => {
+
+        try {
+
+            const resident = await User.findById(req.user.id).lean();
+
+            if (!resident) {
+
+                return res.status(404).render("failure", {
+
+                    message: "User not found.",
+
+                    href: "/profile"
+
+                });
+
+            }
+
+            res.render("loginHistory", {
+
+                resident,
+
+                success: req.flash("success"),
+
+                error: req.flash("error")
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error("LOGIN HISTORY ERROR:", err);
+
+            res.status(500).render("failure", {
+
+                message: "Unable to load login history.",
+
+                href: "/profile"
+
+            });
+
+        }
+
+    }
+);
+
+/*
+--------------------------------------------------
+SECURITY PAGE
+--------------------------------------------------
+*/
+
+router.get(
+    "/security",
+    isLoggedIn,
+    isApproved,
+    async (req,res)=>{
+
+        try{
+
+            const resident = await User.findById(req.user.id).lean();
+
+            res.render("security",{
+                resident
+            });
+
+        }
+
+        catch(err){
+
+            console.error(err);
+
+            res.redirect("/profile");
+
+        }
+
+    }
+);
+
+
+/*
+--------------------------------------------------
 UPDATE PROFILE
 --------------------------------------------------
 */
@@ -330,6 +438,136 @@ router.post(
 
 /*
 --------------------------------------------------
+UPDATE PASSWORD
+--------------------------------------------------
+*/
+
+router.post(
+    "/changePassword",
+    isLoggedIn,
+    async (req, res) => {
+
+        try {
+
+            const {
+
+                currentPassword,
+
+                newPassword,
+
+                confirmPassword
+
+            } = req.body;
+
+            if (newPassword !== confirmPassword) {
+
+                req.flash("error", "Passwords do not match.");
+
+                return res.redirect("/changePassword");
+
+            }
+
+            const user = await User.findById(req.user.id);
+
+            await user.changePassword(
+
+                currentPassword,
+
+                newPassword
+
+            );
+
+            await user.save();
+
+            req.flash(
+
+                "success",
+
+                "Password updated successfully."
+
+            );
+
+            res.redirect("/security");
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            req.flash(
+
+                "error",
+
+                "Current password is incorrect."
+
+            );
+
+            res.redirect("/changePassword");
+
+        }
+
+    }
+);
+
+/*
+--------------------------------------------------
+CLEAR LOGIN HISTORY
+--------------------------------------------------
+*/
+
+router.post(
+    "/clearLoginHistory",
+    isLoggedIn,
+    async(req,res)=>{
+
+        try{
+
+            await User.findByIdAndUpdate(
+
+                req.user.id,
+
+                {
+
+                    loginHistory:[]
+
+                }
+
+            );
+
+            req.flash(
+
+                "success",
+
+                "Login history cleared."
+
+            );
+
+            res.redirect("/loginHistory");
+
+        }
+
+        catch(err){
+
+            console.error(err);
+
+            req.flash(
+
+                "error",
+
+                "Unable to clear login history."
+
+            );
+
+            res.redirect("/loginHistory");
+
+        }
+
+    }
+);
+
+/*
+--------------------------------------------------
 Toggle Two Factor
 --------------------------------------------------
 */
@@ -383,6 +621,38 @@ router.post(
 
     }
 
+);
+
+/*
+--------------------------------------------------
+LOGOUT FROM ALL DEVICES
+--------------------------------------------------
+*/
+
+router.post(
+    "/logoutAll",
+    isLoggedIn,
+    (req,res)=>{
+
+        req.logout((err)=>{
+
+            if(err){
+
+                return res.redirect("/security");
+
+            }
+
+            req.session.destroy(()=>{
+
+                res.clearCookie("connect.sid");
+
+                res.redirect("/login");
+
+            });
+
+        });
+
+    }
 );
 
 module.exports = router;

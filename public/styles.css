@@ -400,25 +400,193 @@ tfoot td {
 
 }
 
-.card {
-    border-radius: 18px;
+/* ==========================================================
+   PROFILE DASHBOARD
+========================================================== */
+
+.profile-header{
+    background:linear-gradient(135deg,#0d6efd,#6f42c1);
+    color:#fff;
+    border-radius:25px;
 }
 
-.card-header {
-    border-radius: 18px 18px 0 0 !important;
+.profile-header h2{
+    font-weight:700;
 }
 
-.form-control,
-.form-select {
-    border-radius: 10px;
-    min-height: 46px;
+.profile-header p{
+    margin-bottom:6px;
+    opacity:.95;
 }
 
-.badge {
-    font-size: 0.9rem;
+.profile-avatar{
+    width:120px;
+    height:120px;
+    object-fit:cover;
+    border-radius:50%;
+    border:5px solid #fff;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
 }
 
-.btn {
-    border-radius: 10px;
-    font-weight: 600;
+/* Cards */
+
+.profile-card{
+    border:none;
+    border-radius:20px;
+    overflow:hidden;
+    background:#fff;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+    transition:.3s;
+}
+
+.profile-card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 15px 35px rgba(0,0,0,.15);
+}
+
+.profile-card .card-header{
+    background:#fff;
+    border-bottom:1px solid #eee;
+    padding:20px 25px;
+}
+
+.profile-card .card-body{
+    padding:25px;
+}
+
+/* Information rows */
+
+.info-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 0;
+    border-bottom:1px solid #ececec;
+}
+
+.info-row:last-child{
+    border-bottom:none;
+}
+
+.info-label{
+    font-weight:600;
+    color:#444;
+}
+
+.info-value{
+    color:#666;
+    font-weight:500;
+    text-align:right;
+}
+
+/* Quick Actions */
+
+.quick-card{
+    border:none;
+    border-radius:20px;
+    background:#fff;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.quick-card .btn{
+    margin:8px 0;
+    border-radius:12px;
+    padding:15px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.quick-card .btn:hover{
+    transform:translateY(-3px);
+}
+
+/* Dashboard Statistics */
+
+.stat-card{
+    border:none;
+    border-radius:18px;
+    color:#fff;
+    text-align:center;
+    padding:25px;
+    transition:.3s;
+}
+
+.stat-card:hover{
+    transform:translateY(-6px);
+}
+
+.stat-card i{
+    font-size:36px;
+    margin-bottom:15px;
+}
+
+.stat-card h3{
+    font-size:30px;
+    margin-bottom:5px;
+    font-weight:700;
+}
+
+.stat-card p{
+    margin:0;
+}
+
+/* Colors */
+
+.bg-primary-gradient{
+    background:linear-gradient(135deg,#0d6efd,#3f8cff);
+}
+
+.bg-success-gradient{
+    background:linear-gradient(135deg,#198754,#4fd17b);
+}
+
+.bg-warning-gradient{
+    background:linear-gradient(135deg,#ffc107,#ff9800);
+}
+
+.bg-danger-gradient{
+    background:linear-gradient(135deg,#dc3545,#ff6b6b);
+}
+
+/* Profile Buttons */
+
+.profile-buttons .btn{
+    border-radius:12px;
+    margin-left:10px;
+}
+
+/* Responsive */
+
+@media(max-width:992px){
+
+    .profile-avatar{
+        width:90px;
+        height:90px;
+        margin-bottom:20px;
+    }
+
+    .profile-buttons{
+        text-align:center;
+        margin-top:25px;
+    }
+
+}
+
+@media(max-width:768px){
+
+    .info-row{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:8px;
+    }
+
+    .info-value{
+        text-align:left;
+    }
+
+    .profile-buttons .btn{
+        width:100%;
+        margin:8px 0;
+    }
+
 }

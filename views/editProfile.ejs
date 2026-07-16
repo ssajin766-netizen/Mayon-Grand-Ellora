@@ -1,369 +1,86 @@
-<!-- ==========================================================
-     SECURITY SETTINGS
-========================================================== -->
+<!-- Update profile -->
+<%- include('partials/header') %>
 
-<div class="card shadow-lg border-0 rounded-4 mt-5">
-
-    <div class="card-header bg-primary text-white py-3">
-
-        <h4 class="mb-0">
-            <i class="fas fa-shield-alt me-2"></i>
-            Security Settings
-        </h4>
-
-        <small class="opacity-75">
-            Manage your account security and login preferences.
-        </small>
-
-    </div>
-
-    <div class="card-body">
-
-        <div class="row g-4">
-
-            <!-- Email -->
-
-            <div class="col-lg-6">
-
-                <label class="form-label fw-bold">
-
-                    <i class="fas fa-envelope text-primary me-2"></i>
-
-                    Email Address
-
-                </label>
-
-                <input
-                    type="email"
-                    class="form-control bg-light"
-                    value="<%= resident.username %>"
-                    readonly
-                >
-
-            </div>
-
-            <!-- Phone -->
-
-            <div class="col-lg-6">
-
-                <label class="form-label fw-bold">
-
-                    <i class="fas fa-phone text-success me-2"></i>
-
-                    Phone Number
-
-                </label>
-
-                <input
-                    type="text"
-                    class="form-control bg-light"
-                    value="<%= resident.phoneNumber || 'Not Added' %>"
-                    readonly
-                >
-
-            </div>
-
-            <!-- Email Status -->
-
-            <div class="col-lg-6">
-
-                <div class="border rounded-3 p-3 h-100">
-
-                    <h6 class="fw-bold">
-
-                        <i class="fas fa-at text-primary me-2"></i>
-
-                        Email Verification
-
-                    </h6>
-
-                    <% if(resident.isEmailVerified){ %>
-
-                        <span class="badge bg-success px-3 py-2">
-
-                            <i class="fas fa-check-circle me-1"></i>
-
-                            Verified
-
-                        </span>
-
-                    <% }else{ %>
-
-                        <span class="badge bg-danger px-3 py-2">
-
-                            <i class="fas fa-times-circle me-1"></i>
-
-                            Not Verified
-
-                        </span>
-
-                    <% } %>
-
+<div class="container center">
+  <div class="row">
+    <div class="col-sm-12 col-md-9 col-lg-10 center" style="max-width: 600px;float: initial;">
+      <div class="card card-profile my-6">
+        <div class="card-body" style="padding:5%; margin:5% 0; padding-top:3%;">
+          <h2 style="background-color:rgb(51, 51, 51); padding:8px; color:white; text-align:center; border-radius:1rem; font-size: 20px;">
+            Edit Profile
+          </h2>
+          <form class="form-edit" action="/editProfile" method="POST">
+            <div class=row style="margin: 1%;">
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4%"> <b> First name :</b></div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4px;">
+                <input name="firstName" type="text" id="inputFirstName" class="form-control" value="<%= resident.firstName %>" required autofocus>
+              </div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Last name :</b></div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4px ">
+                <input name="lastName" type="text" id="inputLastName" class="form-control" value="<%= resident.lastName %>" required>
+              </div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Phone number :</b></div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4px ">
+                <input name="phoneNumber" type="text" id="inputPhoneNumber" class="form-control" value="<%= resident.phoneNumber %>" required> 
+              </div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Flat number :</b></div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:6px ">
+                <input name="flatNumber" type="text" id="inputFlatNumber" class="form-control" value="<%= resident.flatNumber %>"  required>
+              </div>
+              <!-- Doesn't update email & password -->
+              <!-- <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Email :</b></div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:6px ">
+                <input name="email" type="email" id="inputEmail" class="form-control" value="<%= resident.username %>" required>
+              </div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Password :</b></div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4px ">
+                <input name="Password" type="password" id="inputPassword" class="form-control" value="password" required>
+              </div>
+              <div class="col-sm-12 col-lg-12">
+                <div class="custom-control custom-checkbox" style="margin-top:7px;">
+                  <input type="checkbox" class="custom-control-input" id="check"
+                      onclick="myFunction()">
+                  <label class="custom-control-label" for="check" style="color: gray; ">Show Password</label>
                 </div>
-
+              </div>
+              <script>
+                function myFunction() {
+                  const x = document.getElementById("inputPassword");
+                  if (x.type === "password") {
+                      x.type = "text";
+                  } else {
+                      x.type = "password";
+                  }
+                }
+              </script> -->
+              <% if(resident.isAdmin){ %>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Society address :</b></div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4px ">
+                <input name="address" type="text" id="societyAddress" class="form-control" value="<%= society.societyAddress.address %>" required>
+              </div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> City :</b></div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4px ">
+                <input name="city" type="text" id="city" class="form-control" value="<%= society.societyAddress.city %>" required>
+              </div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> District :</b></div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4px ">
+                <input name="district" type="text" id="district" class="form-control" value="<%= society.societyAddress.district %>" required>
+              </div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Postal code :</b></div>
+              <div class="col-sm-12 col-lg-12" style=" margin-top:4px ">
+                <input name="postalCode" type="text" id="postalCode" class="form-control" value="<%= society.societyAddress.postalCode %>" required>
+              </div>
+              <% } %>
             </div>
-
-            <!-- Phone Status -->
-
-            <div class="col-lg-6">
-
-                <div class="border rounded-3 p-3 h-100">
-
-                    <h6 class="fw-bold">
-
-                        <i class="fas fa-mobile-alt text-success me-2"></i>
-
-                        Phone Verification
-
-                    </h6>
-
-                    <% if(resident.isPhoneVerified){ %>
-
-                        <span class="badge bg-success px-3 py-2">
-
-                            <i class="fas fa-check-circle me-1"></i>
-
-                            Verified
-
-                        </span>
-
-                    <% }else{ %>
-
-                        <span class="badge bg-warning text-dark px-3 py-2">
-
-                            <i class="fas fa-exclamation-circle me-1"></i>
-
-                            Not Verified
-
-                        </span>
-
-                    <% } %>
-
-                </div>
-
+            <div style=" margin-top: 4%;">
+              <button type="submit" class="btn btn-primary btn-md  float-right" style="margin: 10px;">Save</button>
+              <a href="/profile" class="btn btn-danger btn-md float-right" style="margin: 10px;">Cancel</a>
             </div>
-
-            <!-- Login Method -->
-
-            <div class="col-lg-6">
-
-                <label class="form-label fw-bold">
-
-                    <i class="fas fa-sign-in-alt text-info me-2"></i>
-
-                    Preferred Login
-
-                </label>
-
-                <select
-                    class="form-select"
-                    name="loginType"
-                >
-
-                    <option
-                        value="password"
-                        <%= resident.loginType==="password" ? "selected" : "" %>>
-
-                        Email & Password
-
-                    </option>
-
-                    <option
-                        value="google"
-                        <%= resident.loginType==="google" ? "selected" : "" %>>
-
-                        Google Sign-In
-
-                    </option>
-
-                    <option
-                        value="phone"
-                        <%= resident.loginType==="phone" ? "selected" : "" %>>
-
-                        Phone OTP
-
-                    </option>
-
-                </select>
-
-                <small class="text-muted">
-
-                    Select your preferred login method.
-
-                </small>
-
-            </div>
-
-            <!-- 2FA -->
-
-            <div class="col-lg-6">
-
-                <label class="form-label fw-bold">
-
-                    <i class="fas fa-lock text-danger me-2"></i>
-
-                    Two-Step Verification
-
-                </label>
-
-                <div class="form-check form-switch fs-5 mt-2">
-
-                    <input
-
-                        class="form-check-input"
-
-                        type="checkbox"
-
-                        id="twoFactor"
-
-                        name="twoFactorEnabled"
-
-                        <%= resident.twoFactorEnabled ? "checked" : "" %>
-
-                    >
-
-                    <label
-                        class="form-check-label"
-                        for="twoFactor">
-
-                        Enable Email OTP
-
-                    </label>
-
-                </div>
-
-                <small class="text-muted">
-
-                    Receive an OTP every time you login.
-
-                </small>
-
-            </div>
-
-            <!-- Last Login -->
-
-            <div class="col-lg-6">
-
-                <label class="form-label fw-bold">
-
-                    <i class="fas fa-clock text-secondary me-2"></i>
-
-                    Last Login
-
-                </label>
-
-                <input
-                    class="form-control bg-light"
-                    value="<%= resident.lastLogin ? resident.lastLogin.toLocaleString() : 'Never Logged In' %>"
-                    readonly
-                >
-
-            </div>
-
-            <!-- Login History -->
-
-            <div class="col-lg-6">
-
-                <label class="form-label fw-bold">
-
-                    <i class="fas fa-history text-primary me-2"></i>
-
-                    Login Records
-
-                </label>
-
-                <input
-                    class="form-control bg-light"
-                    value="<%= resident.loginHistory.length %> Login(s)"
-                    readonly
-                >
-
-            </div>
-
-            <!-- Failed Login -->
-
-            <div class="col-lg-6">
-
-                <label class="form-label fw-bold">
-
-                    <i class="fas fa-user-times text-danger me-2"></i>
-
-                    Failed Login Attempts
-
-                </label>
-
-                <input
-                    class="form-control bg-light"
-                    value="<%= resident.failedLoginAttempts || 0 %>"
-                    readonly
-                >
-
-            </div>
-
-            <!-- Account Status -->
-
-            <div class="col-lg-6">
-
-                <label class="form-label fw-bold">
-
-                    <i class="fas fa-user-shield text-success me-2"></i>
-
-                    Account Status
-
-                </label>
-
-                <% if(resident.accountLockedUntil && resident.accountLockedUntil > new Date()){ %>
-
-                    <div class="alert alert-danger mb-0">
-
-                        <i class="fas fa-lock me-2"></i>
-
-                        Account Locked
-
-                    </div>
-
-                <% } else { %>
-
-                    <div class="alert alert-success mb-0">
-
-                        <i class="fas fa-check-circle me-2"></i>
-
-                        Active
-
-                    </div>
-
-                <% } %>
-
-            </div>
-
-            <!-- Buttons -->
-
-            <div class="col-12 text-end mt-4">
-
-                <a
-                    href="/profile"
-                    class="btn btn-secondary me-2">
-
-                    <i class="fas fa-arrow-left"></i>
-
-                    Back
-
-                </a>
-
-                <button
-                    type="submit"
-                    class="btn btn-primary px-5">
-
-                    <i class="fas fa-save me-2"></i>
-
-                    Save Changes
-
-                </button>
-
-            </div>
-
+          </form>
         </div>
-
+      </div>
     </div>
-
+  </div>
 </div>
+
+<%- include('partials/footer') %>

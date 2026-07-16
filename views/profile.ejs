@@ -1,335 +1,282 @@
-<!-- Personal + Society information -->
 <%- include('partials/header') %>
 
-<div class="container mt-4">
+<div class="container py-5">
 
-    <div class="text-center mb-4">
+    <div class="row mb-4">
 
-        <a
-            href="/editProfile"
-            class="btn btn-danger px-4"
-            style="border-radius:30px;"
-        >
+        <div class="col-lg-12">
 
-            <i class="fas fa-user-edit"></i>
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
 
-            Edit Profile
+                <div class="card-body bg-primary text-white p-5">
 
-        </a>
+                    <div class="row align-items-center">
+
+                        <div class="col-lg-2 text-center">
+
+                            <img
+                                src="/images/profile.png"
+                                class="rounded-circle border border-4 border-white"
+                                width="120"
+                                height="120">
+
+                        </div>
+
+                        <div class="col-lg-6">
+
+                            <h2 class="fw-bold mb-2">
+
+                                <%= resident.firstName %>
+
+                                <%= resident.lastName %>
+
+                            </h2>
+
+                            <p class="mb-2">
+
+                                <i class="fas fa-envelope me-2"></i>
+
+                                <%= resident.username %>
+
+                            </p>
+
+                            <p class="mb-0">
+
+                                <i class="fas fa-home me-2"></i>
+
+                                Flat
+
+                                <%= resident.flatNumber %>
+
+                            </p>
+
+                        </div>
+
+                        <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+
+                            <a
+                                href="/editProfile"
+                                class="btn btn-light me-2">
+
+                                <i class="fas fa-user-edit me-2"></i>
+
+                                Edit Profile
+
+                            </a>
+
+                            <a
+                                href="/security"
+                                class="btn btn-danger">
+
+                                <i class="fas fa-user-shield me-2"></i>
+
+                                Security
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
-    <div class="card shadow border-0">
+    <div class="row g-4">
+    
+    <!-- ==========================================================
+     PERSONAL INFORMATION
+========================================================== -->
 
-        <div class="card-body p-5">
+<div class="col-lg-6">
 
-            <h2 class="font-weight-bold">
+    <div class="card shadow-lg border-0 rounded-4 h-100">
 
-                My Profile
+        <div class="card-header bg-white border-0 pt-4">
 
-            </h2>
+            <h4 class="fw-bold text-primary">
 
-            <hr>
-
-            <!-- Personal Information -->
-
-            <h5 class="text-danger mb-4">
+                <i class="fas fa-user-circle me-2"></i>
 
                 Personal Information
 
-            </h5>
+            </h4>
 
-            <table class="table table-borderless">
+            <small class="text-muted">
 
-                <tr>
+                Your personal account details.
 
-                    <th width="35%">Name</th>
+            </small>
 
-                    <td>
+        </div>
 
-                        <%= resident.firstName %>
+        <div class="card-body">
 
-                        <%= resident.lastName %>
+            <!-- Name -->
 
-                    </td>
+            <div class="d-flex justify-content-between py-3 border-bottom">
 
-                </tr>
+                <div>
 
-                <tr>
+                    <i class="fas fa-user text-primary me-2"></i>
 
-                    <th>Email</th>
+                    <strong>Full Name</strong>
 
-                    <td>
+                </div>
 
-                        <%= resident.username %>
+                <span class="text-secondary">
 
-                    </td>
+                    <%= resident.firstName %>
 
-                </tr>
+                    <%= resident.lastName %>
 
-                <tr>
+                </span>
 
-                    <th>Phone</th>
+            </div>
 
-                    <td>
+            <!-- Email -->
 
-                        <%= resident.phoneNumber || "-" %>
+            <div class="d-flex justify-content-between py-3 border-bottom">
 
-                    </td>
+                <div>
 
-                </tr>
+                    <i class="fas fa-envelope text-danger me-2"></i>
 
-                <tr>
+                    <strong>Email</strong>
 
-                    <th>Flat Number</th>
+                </div>
 
-                    <td>
+                <span class="text-secondary">
 
-                        <%= resident.flatNumber %>
+                    <%= resident.username %>
 
-                    </td>
+                </span>
 
-                </tr>
+            </div>
 
-            </table>
+            <!-- Phone -->
 
-            <hr>
+            <div class="d-flex justify-content-between py-3 border-bottom">
 
-            <!-- Security -->
+                <div>
 
-            <h5 class="text-danger mb-4">
+                    <i class="fas fa-phone text-success me-2"></i>
 
-                Security
+                    <strong>Phone</strong>
 
-            </h5>
+                </div>
 
-            <table class="table table-borderless">
+                <span class="text-secondary">
 
-                <tr>
+                    <%= resident.phoneNumber || "Not Added" %>
 
-                    <th width="35%">
+                </span>
 
-                        Email Verified
+            </div>
 
-                    </th>
+            <!-- Flat -->
 
-                    <td>
+            <div class="d-flex justify-content-between py-3 border-bottom">
 
-                        <% if(resident.isEmailVerified){ %>
+                <div>
 
-                            <span class="badge badge-success">
+                    <i class="fas fa-home text-warning me-2"></i>
 
-                                Verified
+                    <strong>Flat Number</strong>
 
-                            </span>
+                </div>
 
-                        <% } else { %>
+                <span class="text-secondary">
 
-                            <span class="badge badge-danger">
+                    <%= resident.flatNumber %>
 
-                                Not Verified
+                </span>
 
-                            </span>
+            </div>
 
-                        <% } %>
+            <!-- Account Type -->
 
-                    </td>
+            <div class="d-flex justify-content-between py-3 border-bottom">
 
-                </tr>
+                <div>
 
-                <tr>
+                    <i class="fas fa-user-tag text-info me-2"></i>
 
-                    <th>
+                    <strong>Role</strong>
 
-                        Phone Verified
+                </div>
 
-                    </th>
+                <span>
 
-                    <td>
+                    <% if(resident.isAdmin){ %>
 
-                        <% if(resident.isPhoneVerified){ %>
+                        <span class="badge bg-danger">
 
-                            <span class="badge badge-success">
+                            Administrator
 
-                                Verified
+                        </span>
 
-                            </span>
+                    <% } else { %>
 
-                        <% } else { %>
+                        <span class="badge bg-primary">
 
-                            <span class="badge badge-warning">
+                            Resident
 
-                                Pending
+                        </span>
 
-                            </span>
+                    <% } %>
 
-                        <% } %>
+                </span>
 
-                    </td>
+            </div>
 
-                </tr>
+            <!-- Status -->
 
-                <tr>
+            <div class="d-flex justify-content-between py-3">
 
-                    <th>
+                <div>
 
-                        Login Method
+                    <i class="fas fa-check-circle text-success me-2"></i>
 
-                    </th>
+                    <strong>Approval Status</strong>
 
-                    <td>
+                </div>
 
-                        <%= resident.loginType %>
+                <span>
 
-                    </td>
+                    <% if(resident.validation==="approved"){ %>
 
-                </tr>
+                        <span class="badge bg-success">
 
-                <tr>
+                            Approved
 
-                    <th>
+                        </span>
 
-                        Two-Step Verification
+                    <% } else if(resident.validation==="applied"){ %>
 
-                    </th>
+                        <span class="badge bg-warning text-dark">
 
-                    <td>
+                            Pending
 
-                        <% if(resident.twoFactorEnabled){ %>
+                        </span>
 
-                            <span class="badge badge-success">
+                    <% } else { %>
 
-                                Enabled
+                        <span class="badge bg-danger">
 
-                            </span>
+                            Rejected
 
-                        <% } else { %>
+                        </span>
 
-                            <span class="badge badge-secondary">
+                    <% } %>
 
-                                Disabled
+                </span>
 
-                            </span>
-
-                        <% } %>
-
-                    </td>
-
-                </tr>
-
-                <tr>
-
-                    <th>
-
-                        Last Login
-
-                    </th>
-
-                    <td>
-
-                        <%= resident.lastLogin
-                            ? resident.lastLogin.toLocaleString()
-                            : "Never" %>
-
-                    </td>
-
-                </tr>
-
-            </table>
-
-            <hr>
-
-            <!-- Society -->
-
-            <h5 class="text-danger mb-4">
-
-                Society Information
-
-            </h5>
-
-            <table class="table table-borderless">
-
-                <tr>
-
-                    <th width="35%">
-
-                        Society Name
-
-                    </th>
-
-                    <td>
-
-                        <%= society.societyName %>
-
-                    </td>
-
-                </tr>
-
-                <tr>
-
-                    <th>
-
-                        Address
-
-                    </th>
-
-                    <td>
-
-                        <%= society.societyAddress.address %>
-
-                    </td>
-
-                </tr>
-
-                <tr>
-
-                    <th>
-
-                        City
-
-                    </th>
-
-                    <td>
-
-                        <%= society.societyAddress.city %>
-
-                    </td>
-
-                </tr>
-
-                <tr>
-
-                    <th>
-
-                        District
-
-                    </th>
-
-                    <td>
-
-                        <%= society.societyAddress.district %>
-
-                    </td>
-
-                </tr>
-
-                <tr>
-
-                    <th>
-
-                        Postal Code
-
-                    </th>
-
-                    <td>
-
-                        <%= society.societyAddress.postalCode %>
-
-                    </td>
-
-                </tr>
-
-            </table>
+            </div>
 
         </div>
 
@@ -337,4 +284,274 @@
 
 </div>
 
-<%- include('partials/footer') %>
+<!-- ==========================================================
+     SOCIETY INFORMATION
+========================================================== -->
+
+<div class="col-lg-6">
+
+    <div class="card shadow-lg border-0 rounded-4 h-100">
+
+        <div class="card-header bg-white border-0 pt-4">
+
+            <h4 class="fw-bold text-success">
+
+                <i class="fas fa-building me-2"></i>
+
+                Society Information
+
+            </h4>
+
+            <small class="text-muted">
+
+                Details about your apartment society.
+
+            </small>
+
+        </div>
+
+        <div class="card-body">
+
+            <!-- Society Name -->
+
+            <div class="d-flex justify-content-between py-3 border-bottom">
+
+                <div>
+
+                    <i class="fas fa-city text-success me-2"></i>
+
+                    <strong>Society Name</strong>
+
+                </div>
+
+                <span class="text-secondary">
+
+                    <%= society.societyName %>
+
+                </span>
+
+            </div>
+
+            <!-- Address -->
+
+            <div class="py-3 border-bottom">
+
+                <div class="mb-2">
+
+                    <i class="fas fa-map-marker-alt text-danger me-2"></i>
+
+                    <strong>Address</strong>
+
+                </div>
+
+                <div class="text-secondary ms-4">
+
+                    <%= society.societyAddress.address %>
+
+                </div>
+
+            </div>
+
+            <!-- City -->
+
+            <div class="d-flex justify-content-between py-3 border-bottom">
+
+                <div>
+
+                    <i class="fas fa-map text-primary me-2"></i>
+
+                    <strong>City</strong>
+
+                </div>
+
+                <span class="text-secondary">
+
+                    <%= society.societyAddress.city %>
+
+                </span>
+
+            </div>
+
+            <!-- District -->
+
+            <div class="d-flex justify-content-between py-3 border-bottom">
+
+                <div>
+
+                    <i class="fas fa-location-arrow text-warning me-2"></i>
+
+                    <strong>District</strong>
+
+                </div>
+
+                <span class="text-secondary">
+
+                    <%= society.societyAddress.district %>
+
+                </span>
+
+            </div>
+
+            <!-- Postal Code -->
+
+            <div class="d-flex justify-content-between py-3 border-bottom">
+
+                <div>
+
+                    <i class="fas fa-mail-bulk text-info me-2"></i>
+
+                    <strong>Postal Code</strong>
+
+                </div>
+
+                <span class="text-secondary">
+
+                    <%= society.societyAddress.postalCode %>
+
+                </span>
+
+            </div>
+
+            <!-- Society Status -->
+
+            <div class="d-flex justify-content-between py-3 border-bottom">
+
+                <div>
+
+                    <i class="fas fa-check-circle text-success me-2"></i>
+
+                    <strong>Status</strong>
+
+                </div>
+
+                <span class="badge bg-success">
+
+                    Active
+
+                </span>
+
+            </div>
+
+            <!-- Membership -->
+
+            <div class="d-flex justify-content-between py-3">
+
+                <div>
+
+                    <i class="fas fa-users text-primary me-2"></i>
+
+                    <strong>Membership</strong>
+
+                </div>
+
+                <span class="badge bg-primary">
+
+                    Resident
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+<!-- ==========================================================
+     QUICK ACTIONS
+========================================================== -->
+
+<div class="row mt-5">
+
+    <div class="col-lg-12">
+
+        <div class="card shadow-lg border-0 rounded-4">
+
+            <div class="card-body">
+
+                <h4 class="fw-bold mb-4">
+
+                    <i class="fas fa-bolt text-warning me-2"></i>
+
+                    Quick Actions
+
+                </h4>
+
+                <div class="row text-center">
+
+                    <div class="col-md-3 mb-3">
+
+                        <a
+                            href="/editProfile"
+                            class="btn btn-primary w-100 py-3">
+
+                            <i class="fas fa-user-edit fa-2x mb-2"></i>
+
+                            <br>
+
+                            Edit Profile
+
+                        </a>
+
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+
+                        <a
+                            href="/security"
+                            class="btn btn-danger w-100 py-3">
+
+                            <i class="fas fa-user-shield fa-2x mb-2"></i>
+
+                            <br>
+
+                            Security
+
+                        </a>
+
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+
+                        <a
+                            href="/changePassword"
+                            class="btn btn-warning w-100 py-3">
+
+                            <i class="fas fa-key fa-2x mb-2"></i>
+
+                            <br>
+
+                            Change Password
+
+                        </a>
+
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+
+                        <a
+                            href="/loginHistory"
+                            class="btn btn-info text-white w-100 py-3">
+
+                            <i class="fas fa-history fa-2x mb-2"></i>
+
+                            <br>
+
+                            Login History
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
