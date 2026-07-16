@@ -5,9 +5,44 @@ const generateOTP = require("../utils/otpGenerator");
 const sendOTP = require("../utils/sendOTP");
 
 /*
-=========================================
-Send Signup OTP
-=========================================
+==================================================
+HELPER
+==================================================
+*/
+
+async function createOTP(email, purpose) {
+
+    await OTP.deleteMany({
+        email: email.toLowerCase(),
+        purpose
+    });
+
+    const otp = generateOTP();
+
+    await OTP.create({
+
+        email: email.toLowerCase(),
+
+        otp,
+
+        purpose,
+
+        isUsed: false,
+
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+
+    });
+
+    await sendOTP(email, otp);
+
+    return true;
+
+}
+
+/*
+==================================================
+SEND SIGNUP OTP
+==================================================
 */
 
 exports.sendSignupOTP = async (email) => {
@@ -15,35 +50,31 @@ exports.sendSignupOTP = async (email) => {
     try {
 
         const user = await User.findOne({
+
             username: email.toLowerCase()
+
         });
 
         if (!user) {
-            throw new Error("User not found");
+
+            throw new Error("User not found.");
+
         }
 
-        await OTP.deleteMany({
-            email: email.toLowerCase(),
-            purpose: "email_verification"
-        });
+        return await createOTP(
 
-        const otp = generateOTP();
+            email,
 
-        await OTP.create({
-            email: email.toLowerCase(),
-            otp,
-            purpose: "email_verification",
-            isUsed: false,
-            expiresAt: new Date(Date.now() + 10 * 60 * 1000)
-        });
+            "email_verification"
 
-        await sendOTP(email, otp);
+        );
 
-        return true;
+    }
 
-    } catch (err) {
+    catch (err) {
 
         console.error(err);
+
         throw err;
 
     }
@@ -51,9 +82,9 @@ exports.sendSignupOTP = async (email) => {
 };
 
 /*
-=========================================
-Send Login OTP
-=========================================
+==================================================
+SEND LOGIN OTP
+==================================================
 */
 
 exports.sendLoginOTP = async (email) => {
@@ -61,35 +92,31 @@ exports.sendLoginOTP = async (email) => {
     try {
 
         const user = await User.findOne({
+
             username: email.toLowerCase()
+
         });
 
         if (!user) {
-            throw new Error("User not found");
+
+            throw new Error("User not found.");
+
         }
 
-        await OTP.deleteMany({
-            email: email.toLowerCase(),
-            purpose: "login"
-        });
+        return await createOTP(
 
-        const otp = generateOTP();
+            email,
 
-        await OTP.create({
-            email: email.toLowerCase(),
-            otp,
-            purpose: "login",
-            isUsed: false,
-            expiresAt: new Date(Date.now() + 10 * 60 * 1000)
-        });
+            "login"
 
-        await sendOTP(email, otp);
+        );
 
-        return true;
+    }
 
-    } catch (err) {
+    catch (err) {
 
         console.error(err);
+
         throw err;
 
     }
@@ -97,24 +124,37 @@ exports.sendLoginOTP = async (email) => {
 };
 
 /*
-=========================================
-Verify OTP
-=========================================
+==================================================
+VERIFY OTP
+==================================================
 */
 
-exports.verifyOTP = async (email, otp, purpose) => {
+exports.verifyOTP = async (
+
+    email,
+
+    otp,
+
+    purpose
+
+) => {
 
     try {
 
         const user = await User.findOne({
+
             username: email.toLowerCase()
+
         });
 
         if (!user) {
 
             return {
+
                 success: false,
+
                 message: "User not found."
+
             };
 
         }
@@ -146,7 +186,9 @@ exports.verifyOTP = async (email, otp, purpose) => {
         if (otpDoc.expiresAt < new Date()) {
 
             await OTP.deleteOne({
+
                 _id: otpDoc._id
+
             });
 
             return {
@@ -171,13 +213,49 @@ exports.verifyOTP = async (email, otp, purpose) => {
 
         });
 
+        /*
+        ---------------------------------------
+        VERIFY EMAIL
+        ---------------------------------------
+        */
+
         if (purpose === "email_verification") {
 
             user.isEmailVerified = true;
 
-            await user.save();
+        }
+
+        /*
+        ---------------------------------------
+        LOGIN HISTORY
+        ---------------------------------------
+        */
+
+        if (purpose === "login") {
+
+            user.lastLogin = new Date();
+
+            user.loginType = "password";
+
+            user.loginHistory.push({
+
+                loginTime: new Date(),
+
+                loginMethod: "OTP",
+
+                status: "Success"
+
+            });
+
+            if (user.loginHistory.length > 20) {
+
+                user.loginHistory.shift();
+
+            }
 
         }
+
+        await user.save();
 
         return {
 
@@ -206,40 +284,24 @@ exports.verifyOTP = async (email, otp, purpose) => {
 };
 
 /*
-=========================================
-Resend Signup OTP
-=========================================
+==================================================
+RESEND SIGNUP OTP
+==================================================
 */
 
 exports.resendSignupOTP = async (email) => {
-
-    await OTP.deleteMany({
-
-        email: email.toLowerCase(),
-
-        purpose: "email_verification"
-
-    });
 
     return exports.sendSignupOTP(email);
 
 };
 
 /*
-=========================================
-Resend Login OTP
-=========================================
+==================================================
+RESEND LOGIN OTP
+==================================================
 */
 
 exports.resendLoginOTP = async (email) => {
-
-    await OTP.deleteMany({
-
-        email: email.toLowerCase(),
-
-        purpose: "login"
-
-    });
 
     return exports.sendLoginOTP(email);
 

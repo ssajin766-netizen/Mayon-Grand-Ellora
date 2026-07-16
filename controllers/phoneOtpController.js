@@ -13,13 +13,17 @@ PHONE LOGIN PAGE
 
 exports.loginPhonePage = (req, res) => {
 
-    res.render("loginPhone");
+    res.render("loginPhone", {
+
+        hideNavbar: true
+
+    });
 
 };
 
 /*
 --------------------------------------------------
-SEND OTP
+SEND PHONE OTP
 --------------------------------------------------
 */
 
@@ -27,19 +31,16 @@ exports.sendOTP = async (req, res) => {
 
     try {
 
-        let phoneNumber = req.body.phoneNumber.trim();
+        const phoneNumber = req.body.phoneNumber.trim();
 
         if (!phoneNumber) {
 
-            req.flash("error", "Phone number is required.");
+            req.flash(
+                "error",
+                "Phone number is required."
+            );
 
             return res.redirect("/loginPhone");
-
-        }
-
-        if (!phoneNumber.startsWith("+")) {
-
-            phoneNumber = "+91" + phoneNumber;
 
         }
 
@@ -49,28 +50,25 @@ exports.sendOTP = async (req, res) => {
 
         req.session.phoneNumber = phoneNumber;
 
-        req.flash("success", "OTP sent successfully.");
+        req.flash(
+            "success",
+            "OTP sent successfully."
+        );
 
-        // IMPORTANT: Save session before redirecting
         req.session.save((err) => {
 
             if (err) {
 
-                console.error("SESSION SAVE ERROR:", err);
+                console.error(err);
 
                 req.flash(
                     "error",
-                    "Unable to create login session."
+                    "Unable to create session."
                 );
 
                 return res.redirect("/loginPhone");
 
             }
-
-            console.log(
-                "SESSION PHONE SAVED:",
-                req.session.phoneNumber
-            );
 
             return res.redirect("/verifyPhoneOtp");
 
@@ -87,7 +85,7 @@ exports.sendOTP = async (req, res) => {
             err.message
         );
 
-        res.redirect("/loginPhone");
+        return res.redirect("/loginPhone");
 
     }
 
@@ -95,32 +93,29 @@ exports.sendOTP = async (req, res) => {
 
 /*
 --------------------------------------------------
-VERIFY PAGE
+VERIFY OTP PAGE
 --------------------------------------------------
 */
 
 exports.verifyPhonePage = (req, res) => {
 
-    console.log(
-        "VERIFY PAGE SESSION:",
-        req.session.phoneNumber
-    );
-
     if (!req.session.phoneNumber) {
-
-        console.log("Phone number missing in session.");
 
         return res.redirect("/loginPhone");
 
     }
 
-    res.render("verifyPhoneOtp");
+    res.render("verifyPhoneOtp", {
+
+        hideNavbar: true
+
+    });
 
 };
 
 /*
 --------------------------------------------------
-VERIFY OTP
+VERIFY PHONE OTP
 --------------------------------------------------
 */
 
@@ -130,7 +125,7 @@ exports.verifyOTP = async (req, res) => {
 
         const phoneNumber = req.session.phoneNumber;
 
-        const otp = req.body.otp;
+        const otp = req.body.otp.trim();
 
         if (!phoneNumber) {
 
@@ -146,11 +141,16 @@ exports.verifyOTP = async (req, res) => {
 
         );
 
+        console.log(result);
+
         if (result.status !== "approved") {
 
             req.flash(
+
                 "error",
+
                 "Invalid OTP."
+
             );
 
             return res.redirect("/verifyPhoneOtp");
@@ -158,9 +158,9 @@ exports.verifyOTP = async (req, res) => {
         }
 
         /*
-        ---------------------------------------
+        ==========================================
         FIND USER
-        ---------------------------------------
+        ==========================================
         */
 
         let user = await User.findOne({
@@ -170,14 +170,14 @@ exports.verifyOTP = async (req, res) => {
         });
 
         /*
-        ---------------------------------------
-        CREATE USER
-        ---------------------------------------
+        ==========================================
+        CREATE USER LIKE GOOGLE LOGIN
+        ==========================================
         */
 
         if (!user) {
 
-            const randomEmail =
+            const username =
 
                 phoneNumber.replace("+", "") +
 
@@ -185,7 +185,7 @@ exports.verifyOTP = async (req, res) => {
 
             user = new User({
 
-                username: randomEmail,
+                username,
 
                 phoneNumber,
 
@@ -226,9 +226,9 @@ exports.verifyOTP = async (req, res) => {
         }
 
         /*
-        ---------------------------------------
-        UPDATE LOGIN
-        ---------------------------------------
+        ==========================================
+        UPDATE LOGIN DETAILS
+        ==========================================
         */
 
         user.lastLogin = new Date();
@@ -237,7 +237,9 @@ exports.verifyOTP = async (req, res) => {
 
         user.isPhoneVerified = true;
 
-        user.loginHistory.push({
+        user.lastLoginIp = req.ip;
+
+        user.loginHistory.unshift({
 
             loginTime: new Date(),
 
@@ -257,16 +259,18 @@ exports.verifyOTP = async (req, res) => {
 
         if (user.loginHistory.length > 20) {
 
-            user.loginHistory.shift();
+            user.loginHistory =
+
+                user.loginHistory.slice(0, 20);
 
         }
 
         await user.save();
 
         /*
-        ---------------------------------------
+        ==========================================
         LOGIN USER
-        ---------------------------------------
+        ==========================================
         */
 
         req.login(user, (err) => {
@@ -284,8 +288,11 @@ exports.verifyOTP = async (req, res) => {
             req.session.save(() => {
 
                 req.flash(
+
                     "success",
+
                     "Logged in successfully."
+
                 );
 
                 return res.redirect("/home");
@@ -301,11 +308,14 @@ exports.verifyOTP = async (req, res) => {
         console.error(err);
 
         req.flash(
+
             "error",
+
             "OTP verification failed."
+
         );
 
-        res.redirect("/verifyPhoneOtp");
+        return res.redirect("/verifyPhoneOtp");
 
     }
 

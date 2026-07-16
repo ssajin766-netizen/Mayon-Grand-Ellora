@@ -48,7 +48,7 @@
 
                     <% } %>
 
-                    <form action="/phone/send" method="POST">
+                    <form id="phoneLoginForm" action="/phone/send" method="POST">
 
                         <div class="mb-4">
 
@@ -58,37 +58,35 @@
 
                             </label>
 
-                            <div class="input-group">
+                            <!-- Visible Phone Input -->
 
-                                <span class="input-group-text">
+                            <input
 
-                                    +91
+                                id="phone"
 
-                                </span>
+                                type="tel"
 
-                                <input
+                                class="form-control"
 
-                                    type="tel"
+                                required
 
-                                    name="phoneNumber"
+                            >
 
-                                    class="form-control"
+                            <!-- Hidden Input Submitted to Server -->
 
-                                    placeholder="9876543210"
+                            <input
 
-                                    pattern="[0-9]{10}"
+                                type="hidden"
 
-                                    maxlength="10"
+                                id="phoneNumber"
 
-                                    required
+                                name="phoneNumber"
 
-                                >
-
-                            </div>
+                            >
 
                             <small class="text-muted">
 
-                                Enter your registered mobile number.
+                                Select your country and enter your mobile number.
 
                             </small>
 
@@ -113,7 +111,9 @@
                     <div class="text-center">
 
                         <a
+
                             href="/login"
+
                             class="btn btn-outline-secondary">
 
                             <i class="fas fa-arrow-left me-2"></i>
@@ -133,5 +133,90 @@
     </div>
 
 </div>
+
+<!-- International Phone Input -->
+
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/intlTelInput.min.js"></script>
+
+<script>
+
+const input = document.querySelector("#phone");
+
+const iti = window.intlTelInput(input, {
+
+    initialCountry: "in",
+
+    preferredCountries: [
+
+        "in",
+
+        "us",
+
+        "gb",
+
+        "ae",
+
+        "sg",
+
+        "my",
+
+        "lk"
+
+    ],
+
+    separateDialCode: true,
+
+    autoPlaceholder: "aggressive",
+
+    nationalMode: false,
+
+    formatOnDisplay: true,
+
+    utilsScript:
+
+    "https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js"
+
+});
+
+document
+.getElementById("phoneLoginForm")
+.addEventListener("submit", function(e){
+
+    if(!iti.isValidNumber()){
+
+        e.preventDefault();
+
+        alert("Please enter a valid mobile number.");
+
+        return;
+
+    }
+
+    document.getElementById("phoneNumber").value =
+        iti.getNumber();
+
+});
+
+</script>
+
+<style>
+
+.iti{
+
+    width:100%;
+
+}
+
+.iti input{
+
+    width:100% !important;
+
+    height:46px;
+
+    font-size:16px;
+
+}
+
+</style>
 
 <%- include("partials/footer") %>
