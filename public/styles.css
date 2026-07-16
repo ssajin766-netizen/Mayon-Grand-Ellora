@@ -590,3 +590,38 @@ tfoot td {
     }
 
 }
+
+/* ==========================================================
+   International Phone Input
+========================================================== */
+
+.iti {
+    width: 100%;
+}
+
+.iti--allow-dropdown,
+.iti--separate-dial-code {
+    width: 100%;
+}
+
+.iti input {
+    width: 100% !important;
+    height: 48px;
+    border-radius: 12px;
+    padding-left: 90px !important;
+    font-size: 16px;
+}
+
+.iti__flag-container {
+    z-index: 9999;
+}
+
+.iti__selected-country {
+    padding: 0 12px;
+}
+
+.iti__country-list {
+    z-index: 99999 !important;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.15);
+}
