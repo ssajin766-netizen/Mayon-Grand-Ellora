@@ -4,21 +4,21 @@
 
     <div class="row justify-content-center">
 
-        <div class="col-lg-5">
+        <div class="col-md-6 col-lg-5">
 
-            <div class="card shadow-lg border-0 rounded-4">
+            <div class="panel panel-default shadow">
 
-                <div class="card-header bg-success text-white text-center py-4">
+                <div class="panel-heading text-center bg-success text-white">
 
-                    <h2 class="mb-0">
+                    <h2>
 
-                        <i class="fas fa-mobile-alt me-2"></i>
+                        <i class="fas fa-mobile-alt"></i>
 
                         Phone Login
 
                     </h2>
 
-                    <p class="mb-0 mt-2">
+                    <p>
 
                         Login securely using your mobile number
 
@@ -26,7 +26,7 @@
 
                 </div>
 
-                <div class="card-body p-5">
+                <div class="panel-body">
 
                     <% if(success && success.length){ %>
 
@@ -48,41 +48,30 @@
 
                     <% } %>
 
-                    <form id="phoneLoginForm" action="/phone/send" method="POST">
+                    <form
+                        id="phoneLoginForm"
+                        action="/phone/send"
+                        method="POST">
 
-                        <div class="mb-4">
+                        <div class="form-group">
 
-                            <label class="form-label fw-bold">
+                            <label>
 
                                 Mobile Number
 
                             </label>
 
-                            <!-- Visible Phone Input -->
-
                             <input
-
                                 id="phone"
-
                                 type="tel"
-
                                 class="form-control"
-
-                                required
-
-                            >
-
-                            <!-- Hidden Input Submitted to Server -->
+                                autocomplete="tel"
+                                required>
 
                             <input
-
                                 type="hidden"
-
                                 id="phoneNumber"
-
-                                name="phoneNumber"
-
-                            >
+                                name="phoneNumber">
 
                             <small class="text-muted">
 
@@ -93,12 +82,10 @@
                         </div>
 
                         <button
-
                             type="submit"
+                            class="btn btn-success btn-lg btn-block">
 
-                            class="btn btn-success w-100 btn-lg">
-
-                            <i class="fas fa-paper-plane me-2"></i>
+                            <i class="fas fa-paper-plane"></i>
 
                             Send OTP
 
@@ -106,17 +93,15 @@
 
                     </form>
 
-                    <hr class="my-4">
+                    <hr>
 
                     <div class="text-center">
 
                         <a
-
                             href="/login"
+                            class="btn btn-default">
 
-                            class="btn btn-outline-secondary">
-
-                            <i class="fas fa-arrow-left me-2"></i>
+                            <i class="fas fa-arrow-left"></i>
 
                             Back to Login
 
@@ -134,15 +119,15 @@
 
 </div>
 
-<!-- International Phone Input -->
-
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/intlTelInput.min.js"></script>
 
 <script>
 
-const input = document.querySelector("#phone");
+const phoneInput = document.querySelector("#phone");
 
-const iti = window.intlTelInput(input, {
+const hiddenInput = document.querySelector("#phoneNumber");
+
+const iti = window.intlTelInput(phoneInput, {
 
     initialCountry: "in",
 
@@ -166,15 +151,14 @@ const iti = window.intlTelInput(input, {
 
     separateDialCode: true,
 
-    autoPlaceholder: "aggressive",
-
-    nationalMode: false,
+    autoPlaceholder: "polite",
 
     formatOnDisplay: true,
 
-    utilsScript:
+    strictMode: true,
 
-    "https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js"
+    loadUtils: () =>
+        import("https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js")
 
 });
 
@@ -182,24 +166,51 @@ document
 .getElementById("phoneLoginForm")
 .addEventListener("submit", function(e){
 
-    if(!iti.isValidNumber()){
+    e.preventDefault();
 
-        e.preventDefault();
+    if(phoneInput.value.trim()===""){
 
-        alert("Please enter a valid mobile number.");
+        alert("Please enter your mobile number.");
+
+        phoneInput.focus();
 
         return;
 
     }
 
-    document.getElementById("phoneNumber").value =
-        iti.getNumber();
+    if(!iti.isValidNumber()){
+
+        alert("Please enter a valid mobile number.");
+
+        phoneInput.focus();
+
+        return;
+
+    }
+
+    hiddenInput.value = iti.getNumber();
+
+    console.log(hiddenInput.value);
+
+    this.submit();
 
 });
 
 </script>
 
 <style>
+
+.panel{
+
+    border-radius:15px;
+
+}
+
+.panel-heading{
+
+    border-radius:15px 15px 0 0;
+
+}
 
 .iti{
 

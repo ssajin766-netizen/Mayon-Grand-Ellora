@@ -31,7 +31,7 @@ exports.sendOTP = async (req, res) => {
 
     try {
 
-        const phoneNumber = req.body.phoneNumber.trim();
+        let phoneNumber = (req.body.phoneNumber || "").trim();
 
         if (!phoneNumber) {
 
@@ -44,6 +44,24 @@ exports.sendOTP = async (req, res) => {
 
         }
 
+        // Remove spaces
+
+        phoneNumber = phoneNumber.replace(/\s+/g, "");
+
+        // Validate E.164 format
+
+        if (!/^\+[1-9]\d{8,14}$/.test(phoneNumber)) {
+
+            req.flash(
+                "error",
+                "Please enter a valid mobile number."
+            );
+
+            return res.redirect("/loginPhone");
+
+        }
+
+        console.log("================================");
         console.log("PHONE :", phoneNumber);
 
         await sendVerification(phoneNumber);
@@ -63,7 +81,7 @@ exports.sendOTP = async (req, res) => {
 
                 req.flash(
                     "error",
-                    "Unable to create session."
+                    "Unable to create login session."
                 );
 
                 return res.redirect("/loginPhone");
@@ -81,8 +99,13 @@ exports.sendOTP = async (req, res) => {
         console.error(err);
 
         req.flash(
+
             "error",
-            err.message
+
+            err.message ||
+
+            "Unable to send OTP."
+
         );
 
         return res.redirect("/loginPhone");
@@ -125,13 +148,35 @@ exports.verifyOTP = async (req, res) => {
 
         const phoneNumber = req.session.phoneNumber;
 
-        const otp = req.body.otp.trim();
+        const otp = (req.body.otp || "").trim();
 
         if (!phoneNumber) {
+
+            req.flash(
+                "error",
+                "Session expired."
+            );
 
             return res.redirect("/loginPhone");
 
         }
+
+        if (!/^\d{4,8}$/.test(otp)) {
+
+            req.flash(
+                "error",
+                "Invalid OTP."
+            );
+
+            return res.redirect("/verifyPhoneOtp");
+
+        }
+
+        /*
+        ------------------------------------------
+        VERIFY OTP FROM TWILIO
+        ------------------------------------------
+        */
 
         const result = await checkVerification(
 
@@ -141,16 +186,15 @@ exports.verifyOTP = async (req, res) => {
 
         );
 
-        console.log(result);
+        console.log("================================");
+        console.log("VERIFY STATUS:", result.status);
+        console.log("================================");
 
         if (result.status !== "approved") {
 
             req.flash(
-
                 "error",
-
                 "Invalid OTP."
-
             );
 
             return res.redirect("/verifyPhoneOtp");
@@ -158,9 +202,9 @@ exports.verifyOTP = async (req, res) => {
         }
 
         /*
-        ==========================================
+        ------------------------------------------
         FIND USER
-        ==========================================
+        ------------------------------------------
         */
 
         let user = await User.findOne({
@@ -170,9 +214,9 @@ exports.verifyOTP = async (req, res) => {
         });
 
         /*
-        ==========================================
-        CREATE USER LIKE GOOGLE LOGIN
-        ==========================================
+        ------------------------------------------
+        CREATE USER
+        ------------------------------------------
         */
 
         if (!user) {
@@ -211,6 +255,8 @@ exports.verifyOTP = async (req, res) => {
 
                 lastLogin: new Date(),
 
+                lastLoginIp: req.ip,
+
                 loginHistory: []
 
             });
@@ -226,20 +272,40 @@ exports.verifyOTP = async (req, res) => {
         }
 
         /*
-        ==========================================
+        ------------------------------------------
+        ACCOUNT STATUS
+        ------------------------------------------
+        */
+
+        if (user.validation === "rejected") {
+
+            req.flash(
+
+                "error",
+
+                "Your account has been rejected."
+
+            );
+
+            return res.redirect("/login");
+
+        }
+
+        /*
+        ------------------------------------------
         UPDATE LOGIN DETAILS
-        ==========================================
+        ------------------------------------------
         */
 
         user.lastLogin = new Date();
+
+        user.lastLoginIp = req.ip;
 
         user.loginType = "phone";
 
         user.isPhoneVerified = true;
 
-        user.lastLoginIp = req.ip;
-
-        user.loginHistory.unshift({
+        await user.addLoginHistory({
 
             loginTime: new Date(),
 
@@ -257,20 +323,18 @@ exports.verifyOTP = async (req, res) => {
 
         });
 
-        if (user.loginHistory.length > 20) {
-
-            user.loginHistory =
-
-                user.loginHistory.slice(0, 20);
-
-        }
+        /*
+        ------------------------------------------
+        SAVE USER
+        ------------------------------------------
+        */
 
         await user.save();
 
         /*
-        ==========================================
+        ------------------------------------------
         LOGIN USER
-        ==========================================
+        ------------------------------------------
         */
 
         req.login(user, (err) => {
@@ -278,6 +342,14 @@ exports.verifyOTP = async (req, res) => {
             if (err) {
 
                 console.error(err);
+
+                req.flash(
+
+                    "error",
+
+                    "Login failed."
+
+                );
 
                 return res.redirect("/login");
 

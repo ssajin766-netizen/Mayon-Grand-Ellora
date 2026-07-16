@@ -353,15 +353,15 @@ userSchema.set("toJSON", {
 // Helper
 // ===========================================
 
-userSchema.methods.addLoginHistory = async function (data) {
+userSchema.methods.addLoginHistory = function (data) {
 
     this.loginHistory.unshift(data);
 
     if (this.loginHistory.length > 20) {
-        this.loginHistory = this.loginHistory.slice(0, 20);
-    }
 
-    await this.save();
+        this.loginHistory = this.loginHistory.slice(0, 20);
+
+    }
 
 };
 
