@@ -251,9 +251,13 @@ router.get(
 
             const resident = await User.findById(req.user.id).lean();
 
-            res.render("security",{
-                resident
-            });
+            resident.loginHistory = resident.loginHistory || [];
+
+            res.render("security", {
+            resident,
+            success: req.flash("success"),
+            error: req.flash("error")
+       });
 
         }
 

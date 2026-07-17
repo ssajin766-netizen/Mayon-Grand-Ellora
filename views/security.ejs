@@ -604,13 +604,16 @@
 
                             </td>
 
-                            <td>
+                        <td>
 
-                                <%= resident.loginHistory.length
-                                    ? resident.loginHistory[resident.loginHistory.length-1].browser || "Unknown"
-                                    : "Unknown" %>
+                            <%= resident.loginHistory &&
+                            resident.loginHistory.length > 0
+                            ? (resident.loginHistory[
+                            resident.loginHistory.length - 1
+                            ].browser || "Unknown")
+                            : "Unknown" %>
 
-                            </td>
+                        </td>
 
                         </tr>
 
@@ -621,14 +624,16 @@
                                 Device
 
                             </td>
+                        <td>
 
-                            <td>
+                            <%= resident.loginHistory &&
+                            resident.loginHistory.length > 0
+                            ? (resident.loginHistory[
+                            resident.loginHistory.length - 1
+                            ].device || "Unknown")
+                            : "Unknown" %>
 
-                                <%= resident.loginHistory.length
-                                    ? resident.loginHistory[resident.loginHistory.length-1].device || "Unknown"
-                                    : "Unknown" %>
-
-                            </td>
+                        </td>
 
                         </tr>
 
