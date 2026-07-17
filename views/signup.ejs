@@ -1,191 +1,170 @@
 <%- include('partials/headerForm') %>
 
-<body>
+<body style="background:#f5f7fb;">
 
-<div class="container">
+<div class="container py-5">
 
     <div class="row justify-content-center">
 
-        <div class="col-lg-6 col-md-8 col-sm-10">
+        <div class="col-lg-6 col-md-8">
 
-            <div class="card card-signin shadow-lg">
+            <div class="card shadow border-0 rounded">
 
-                <div class="card-body">
+                <div class="card-body p-4">
 
                     <div class="text-center mb-4">
 
-                        <div class="signup-icon">
+                        <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
 
-                            <i class="fas fa-user-plus"></i>
-
-                        </div>
-
-                        <h2 class="mt-3">
-
-                            Create Account
-
-                        </h2>
+                        <h2>Create Account</h2>
 
                         <p class="text-muted">
-
                             Join Mayon Grand Ellora
-
                         </p>
 
                     </div>
 
-                    <form
-                    id="signupForm"
-                    action="/signup"
-                    method="POST">
+                    <form id="signupForm"
+                          action="/signup"
+                          method="POST">
 
-                        <div class="form-label-group">
+                        <!-- First Name -->
 
-                            <input
-                            name="firstName"
-                            type="text"
-                            class="form-control"
-                            placeholder="First Name"
-                            required>
+                        <div class="form-group">
 
-                            <label>
-
+                            <label for="firstName">
                                 First Name
-
                             </label>
+
+                            <input
+                                id="firstName"
+                                name="firstName"
+                                type="text"
+                                class="form-control"
+                                required>
 
                         </div>
 
-                        <div class="form-label-group">
+                        <!-- Last Name -->
 
-                            <input
-                            name="lastName"
-                            type="text"
-                            class="form-control"
-                            placeholder="Last Name"
-                            required>
+                        <div class="form-group">
 
-                            <label>
-
+                            <label for="lastName">
                                 Last Name
-
                             </label>
+
+                            <input
+                                id="lastName"
+                                name="lastName"
+                                type="text"
+                                class="form-control"
+                                required>
 
                         </div>
 
-                        <!-- PHONE -->
+                        <!-- Phone -->
 
-                        <div class="form-group mb-4">
+                        <div class="form-group">
 
-                            <label>
-
-                                <i class="fas fa-phone text-success"></i>
-
+                            <label for="phone">
                                 Mobile Number
-
                             </label>
 
                             <input
-                            id="phone"
-                            type="tel"
-                            class="form-control"
-                            autocomplete="tel"
-                            required>
+                                id="phone"
+                                type="tel"
+                                class="form-control"
+                                autocomplete="tel"
+                                required>
 
                             <input
-                            type="hidden"
-                            id="phoneNumber"
-                            name="phoneNumber">
-
-                            <small class="text-muted">
-
-                                Select your country and enter your mobile number.
-
-                            </small>
+                                type="hidden"
+                                id="phoneNumber"
+                                name="phoneNumber">
 
                         </div>
 
-                        <div class="form-label-group">
+                        <!-- Society -->
+
+                        <div class="form-group">
+
+                            <label for="societyName">
+                                Society Name
+                            </label>
 
                             <input
-                            name="societyName"
-                            list="societyList"
-                            class="form-control"
-                            placeholder="Society Name"
-                            required>
+                                id="societyName"
+                                name="societyName"
+                                list="societyList"
+                                class="form-control"
+                                autocomplete="off"
+                                required>
 
                             <datalist id="societyList">
 
-                                <% societies.forEach(society=>{ %>
+                                <% societies.forEach(function(society){ %>
 
-                                <option value="<%= society.societyName %>">
+                                    <option value="<%= society.societyName %>">
 
                                 <% }) %>
 
                             </datalist>
 
-                            <label>
-
-                                Society Name
-
-                            </label>
-
                         </div>
 
-                        <div class="form-label-group">
+                        <!-- Flat -->
 
-                            <input
-                            name="flatNumber"
-                            type="text"
-                            class="form-control"
-                            placeholder="Flat Number"
-                            required>
+                        <div class="form-group">
 
-                            <label>
-
+                            <label for="flatNumber">
                                 Flat Number
-
                             </label>
+
+                            <input
+                                id="flatNumber"
+                                name="flatNumber"
+                                type="text"
+                                class="form-control"
+                                required>
 
                         </div>
 
-                        <div class="form-label-group">
+                        <!-- Email -->
 
-                            <input
-                            name="username"
-                            type="email"
-                            class="form-control"
-                            placeholder="Email"
-                            required>
+                        <div class="form-group">
 
-                            <label>
-
+                            <label for="email">
                                 Email Address
-
                             </label>
+
+                            <input
+                                id="email"
+                                name="username"
+                                type="email"
+                                class="form-control"
+                                required>
 
                         </div>
 
-                        <div class="form-label-group">
+                        <!-- Password -->
+
+                        <div class="form-group">
+
+                            <label for="password">
+                                Password
+                            </label>
 
                             <input
-                            name="password"
-                            type="password"
-                            class="form-control"
-                            placeholder="Password"
-                            required>
-
-                            <label>
-
-                                Password
-
-                            </label>
+                                id="password"
+                                name="password"
+                                type="password"
+                                class="form-control"
+                                required>
 
                         </div>
 
                         <button
-                        class="btn btn-success btn-lg btn-block mt-4"
-                        type="submit">
+                            class="btn btn-success btn-block btn-lg mt-4">
 
                             <i class="fas fa-user-plus"></i>
 
@@ -195,21 +174,18 @@
 
                         <div class="text-center my-4">
 
-                            <strong>
-
-                                OR
-
-                            </strong>
+                            <strong>OR</strong>
 
                         </div>
 
                         <a
-                        href="/auth/google"
-                        class="btn btn-light btn-block google-btn">
+                            href="/auth/google"
+                            class="btn btn-light btn-block"
+                            style="border:1px solid #ddd;display:flex;justify-content:center;align-items:center;gap:10px;">
 
                             <img
-                            src="https://developers.google.com/identity/images/g-logo.png"
-                            width="20">
+                                src="https://developers.google.com/identity/images/g-logo.png"
+                                width="20">
 
                             Continue with Google
 
@@ -218,16 +194,16 @@
                         <hr>
 
                         <a
-                        href="/login"
-                        class="btn btn-outline-primary btn-block">
+                            href="/login"
+                            class="btn btn-outline-primary btn-block">
 
                             Sign In
 
                         </a>
 
                         <a
-                        href="/"
-                        class="btn btn-secondary btn-block mt-2">
+                            href="/"
+                            class="btn btn-secondary btn-block mt-2">
 
                             Home
 
@@ -245,17 +221,11 @@
 
 </div>
 
-<!-- jQuery (Required) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Intl Tel Input -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/intlTelInput.min.js"></script>
 
 <script>
 
 const phoneInput = document.querySelector("#phone");
-
-const hiddenPhone = document.querySelector("#phoneNumber");
 
 const iti = window.intlTelInput(phoneInput,{
 
@@ -281,21 +251,21 @@ const iti = window.intlTelInput(phoneInput,{
 
 });
 
-$("#signupForm").on("submit",function(e){
+document
+.getElementById("signupForm")
+.addEventListener("submit",function(e){
 
     e.preventDefault();
 
     const phone = iti.getNumber();
 
-    if(!iti.isValidNumber()){
+    if(!phone.startsWith("+")){
 
         alert("Please enter a valid phone number.");
 
         return;
 
     }
-
-    hiddenPhone.val = phone;
 
     document.getElementById("phoneNumber").value = phone;
 
@@ -313,47 +283,23 @@ body{
 
 }
 
-.card-signin{
-
-    border:none;
+.card{
 
     border-radius:18px;
 
-    margin:40px auto;
+}
+
+.form-control{
+
+    height:46px;
+
+    border-radius:10px;
 
 }
 
-.card-body{
+.btn{
 
-    padding:40px;
-
-}
-
-.signup-icon{
-
-    width:70px;
-
-    height:70px;
-
-    margin:auto;
-
-    border-radius:50%;
-
-    background:#e9f8ee;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-}
-
-.signup-icon i{
-
-    font-size:30px;
-
-    color:#28a745;
+    border-radius:10px;
 
 }
 
@@ -367,25 +313,13 @@ body{
 
     width:100%!important;
 
-    height:48px;
+    height:46px;
 
 }
 
 .iti__country-list{
 
     z-index:999999;
-
-}
-
-.google-btn{
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    gap:10px;
 
 }
 
