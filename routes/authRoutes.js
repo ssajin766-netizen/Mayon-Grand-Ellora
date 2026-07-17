@@ -60,6 +60,12 @@ SIGNUP
 --------------------------------------------------
 */
 
+/*
+--------------------------------------------------
+SIGNUP
+--------------------------------------------------
+*/
+
 router.post("/signup", async (req, res) => {
 
     try {
@@ -90,12 +96,23 @@ router.post("/signup", async (req, res) => {
 
         }
 
+        // Normalize phone number
+        let phoneNumber = (req.body.phoneNumber || "").trim();
+
+        if (/^[6-9]\d{9}$/.test(phoneNumber)) {
+            phoneNumber = "+91" + phoneNumber;
+        }
+
         const user =
             await user_collection.User.register(
 
                 {
 
-                    username: req.body.username,
+                    validation: "applied",
+
+                    isAdmin: false,
+
+                    username: req.body.username.toLowerCase().trim(),
 
                     loginType: "password",
 
@@ -107,7 +124,7 @@ router.post("/signup", async (req, res) => {
 
                     lastName: req.body.lastName,
 
-                    phoneNumber: req.body.phoneNumber.trim(),
+                    phoneNumber: phoneNumber,
 
                     isEmailVerified: false,
 
@@ -123,15 +140,17 @@ router.post("/signup", async (req, res) => {
 
         req.session.pendingUser = user._id;
 
-        await otpController.sendSignupOTP(
-            user.username
-        );
+        await otpController.sendSignupOTP(user.username);
 
         return res.redirect(
-        "/verify-otp?email=" +
-         encodeURIComponent(user.username) +
-        "&purpose=signup"
-      );
+
+            "/verify-otp?email=" +
+
+            encodeURIComponent(user.username) +
+
+            "&purpose=signup"
+
+        );
 
     }
 
@@ -141,19 +160,15 @@ router.post("/signup", async (req, res) => {
 
         return res.render("failure", {
 
-            message:
-                "Sorry, this email address is already registered.",
+            message: err.message,
 
             href: "/signup",
 
-            messageSecondary:
-                "Society not registered?",
+            messageSecondary: "Society not registered?",
 
-            hrefSecondary:
-                "/register",
+            hrefSecondary: "/register",
 
-            buttonSecondary:
-                "Register Society"
+            buttonSecondary: "Register Society"
 
         });
 
@@ -570,7 +585,11 @@ router.post("/verify-otp", async (req, res, next) => {
 
         // Email verified
         user.isEmailVerified = true;
+
+        if (req.body.purpose === "register") {
         user.validation = "approved";
+        }
+
         await user.save();
 
         // ==================================================
@@ -856,6 +875,7 @@ user.phoneNumber = phoneNumber;
 user.societyName = req.body.societyName;
 user.flatNumber = req.body.flatNumber;
 user.validation = "applied";
+
 
 await user.save();
 

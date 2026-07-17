@@ -272,30 +272,58 @@ app.get("/home", (req, res) => {
     console.log("=================================");
 
     if (!req.isAuthenticated()) {
-        console.log("Redirecting to /login");
         return res.redirect("/login");
     }
 
+    // -------------------------------------------------
+    // Google / Phone users must complete profile first
+    // -------------------------------------------------
+    if (
+        req.user.societyName === "Pending" ||
+        req.user.flatNumber === "Pending"
+    ) {
+        return res.redirect("/newRequest");
+    }
+
+    // -------------------------------------------------
+    // Approved User
+    // -------------------------------------------------
     if (req.user.validation === "approved") {
-        console.log("Rendering home.ejs");
+
         return res.render("home");
+
     }
 
+    // -------------------------------------------------
+    // Waiting for Approval
+    // -------------------------------------------------
     if (req.user.validation === "applied") {
-        console.log("Rendering homeStandby (Pending)");
+
         return res.render("homeStandby", {
+
             icon: "fa-user-clock",
+
             title: "Account Pending",
-            content: "Your account is waiting for administrator approval."
+
+            content:
+                "Your account is waiting for administrator approval."
+
         });
+
     }
 
-    console.log("Rendering homeStandby (Declined)");
-
+    // -------------------------------------------------
+    // Rejected
+    // -------------------------------------------------
     return res.render("homeStandby", {
+
         icon: "fa-user-lock",
+
         title: "Account Declined",
-        content: "Please contact the society administrator."
+
+        content:
+            "Please contact the society administrator."
+
     });
 
 });
