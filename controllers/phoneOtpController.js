@@ -201,17 +201,35 @@ exports.verifyOTP = async (req, res) => {
 
         }
 
-        /*
-        ------------------------------------------
-        FIND USER
-        ------------------------------------------
-        */
+/*
+------------------------------------------
+FIND USER
+------------------------------------------
+*/
 
-        let user = await User.findOne({
+let user;
 
-            phoneNumber
+// Password Login → Phone OTP (2FA)
+if (req.session.phoneLoginUser) {
 
-        });
+    user = await User.findById(
+
+        req.session.phoneLoginUser
+
+    );
+
+}
+
+// Normal Phone Login
+else {
+
+    user = await User.findOne({
+
+        phoneNumber
+
+    });
+
+}
 
         /*
         ------------------------------------------
@@ -355,7 +373,9 @@ exports.verifyOTP = async (req, res) => {
 
             }
 
-            delete req.session.phoneNumber;
+           delete req.session.phoneNumber;
+           delete req.session.phoneLoginUser;
+           delete req.session.pendingUser;
 
             req.session.save(() => {
 

@@ -60,11 +60,6 @@ router.get(
     }
 );
 
-/*
---------------------------------------------------
-EDIT PROFILE
---------------------------------------------------
-*/
 
 /*
 --------------------------------------------------
@@ -568,16 +563,67 @@ router.post(
 
 /*
 --------------------------------------------------
-Toggle Two Factor
+UPDATE TWO FACTOR SETTINGS
 --------------------------------------------------
 */
 
 router.post(
-    "/profile/two-factor",
+    "/security/two-factor",
     isLoggedIn,
     async (req, res) => {
 
         try {
+
+            const method = req.body.twoFactorMethod;
+
+            let update = {};
+
+            if (method === "disabled") {
+
+                update = {
+
+                    twoFactorEnabled: false,
+
+                    twoFactorMethod: "email"
+
+                };
+
+            }
+
+            else if (method === "email") {
+
+                update = {
+
+                    twoFactorEnabled: true,
+
+                    twoFactorMethod: "email"
+
+                };
+
+            }
+
+            else if (method === "phone") {
+
+                update = {
+
+                    twoFactorEnabled: true,
+
+                    twoFactorMethod: "phone"
+
+                };
+
+            }
+
+            else {
+
+                req.flash(
+                    "error",
+                    "Invalid verification method."
+                );
+
+                return res.redirect("/security");
+
+            }
 
             await User.findByIdAndUpdate(
 
@@ -585,25 +631,21 @@ router.post(
 
                 {
 
-                    $set: {
-
-                        twoFactorEnabled:
-                            req.body.enabled === "true"
-
-                    }
+                    $set: update
 
                 }
 
             );
 
-            res.json({
+            req.flash(
 
-                success: true,
+                "success",
 
-                enabled:
-                    req.body.enabled === "true"
+                "Two-Step Verification updated successfully."
 
-            });
+            );
+
+            return res.redirect("/security");
 
         }
 
@@ -611,11 +653,15 @@ router.post(
 
             console.error(err);
 
-            res.status(500).json({
+            req.flash(
 
-                success: false
+                "error",
 
-            });
+                "Unable to update security settings."
+
+            );
+
+            return res.redirect("/security");
 
         }
 

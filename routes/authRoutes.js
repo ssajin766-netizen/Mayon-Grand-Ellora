@@ -299,23 +299,34 @@ LOGIN
 
 router.post("/login", (req, res, next) => {
 
-    passport.authenticate("local", (err, user) => {
+    passport.authenticate("local", async (err, user) => {
 
         if (err) {
+
             return next(err);
+
         }
 
         if (!user) {
+
             return res.redirect("/loginFailure");
+
         }
 
-        // 2FA Disabled → Login directly
+        /*
+        ==========================================
+        2FA DISABLED
+        ==========================================
+        */
+
         if (!user.twoFactorEnabled) {
 
             return req.logIn(user, (err) => {
 
                 if (err) {
+
                     return next(err);
+
                 }
 
                 return res.redirect("/home");
@@ -324,49 +335,107 @@ router.post("/login", (req, res, next) => {
 
         }
 
-        // 2FA Enabled → Send Login OTP
+        /*
+        ==========================================
+        2FA ENABLED
+        ==========================================
+        */
 
         req.session.pendingUser = user._id;
 
-        req.session.save(async (err) => {
+        try {
 
-            if (err) {
-                return next(err);
-            }
+            /*
+            ==========================================
+            EMAIL OTP
+            ==========================================
+            */
 
-            try {
+            if (user.twoFactorMethod === "email") {
 
-           await otpController.sendLoginOTP(user.username);
+                await otpController.sendLoginOTP(
 
-           return res.redirect(
-           "/verify-otp?email=" +
-           encodeURIComponent(user.username) +
-           "&purpose=login"
-        );
+                    user.username
 
-            }
+                );
 
-            catch (e) {
+                return res.redirect(
 
-                console.error(e);
+                    "/verify-otp?email=" +
 
-                return res.render("failure", {
+                    encodeURIComponent(user.username) +
 
-                    message: "Unable to send OTP.",
+                    "&purpose=login"
 
-                    href: "/login",
-
-                    messageSecondary: "Try Again",
-
-                    hrefSecondary: "/login",
-
-                    buttonSecondary: "Login"
-
-                });
+                );
 
             }
 
-        });
+            /*
+            ==========================================
+            PHONE OTP
+            ==========================================
+            */
+
+            if (user.twoFactorMethod === "phone") {
+
+                req.session.phoneLoginUser = user._id;
+
+                await otpController.sendPhoneLoginOTP(
+
+                    user.phoneNumber
+
+                );
+
+                return res.redirect(
+
+                    "/verify-phone-otp"
+
+                );
+
+            }
+
+            /*
+            ==========================================
+            FALLBACK
+            ==========================================
+            */
+
+            return req.logIn(user, (err) => {
+
+                if (err) {
+
+                    return next(err);
+
+                }
+
+                return res.redirect("/home");
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            return res.render("failure", {
+
+                message:
+
+                    "Unable to send verification code.",
+
+                href: "/login",
+
+                messageSecondary: "Try Again",
+
+                hrefSecondary: "/login",
+
+                buttonSecondary: "Login"
+
+            });
+
+        }
 
     })(req, res, next);
 
