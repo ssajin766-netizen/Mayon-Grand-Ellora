@@ -7,6 +7,7 @@ const user_collection = require("../models/userModel");
 const society_collection = require("../models/societyModel");
 
 const otpController = require("../controllers/otpController");
+const forgotPasswordController = require("../controllers/forgotPasswordController");
 
 /*
 --------------------------------------------------
@@ -611,6 +612,42 @@ router.post("/resend-otp", async (req, res) => {
     }
 
 });
+
+/*
+=========================================
+FORGOT PASSWORD
+=========================================
+*/
+
+router.get(
+    "/forgot-password",
+    forgotPasswordController.forgotPasswordPage
+);
+
+router.post(
+    "/forgot-password",
+    forgotPasswordController.sendResetOTP
+);
+
+router.get(
+    "/verify-reset-otp",
+    forgotPasswordController.verifyResetOtpPage
+);
+
+router.post(
+    "/verify-reset-otp",
+    forgotPasswordController.verifyResetOTP
+);
+
+router.get(
+    "/reset-password",
+    forgotPasswordController.resetPasswordPage
+);
+
+router.post(
+    "/reset-password",
+    forgotPasswordController.resetPassword
+);
 
 
 router.get("/loginFailure", (req, res) => {
