@@ -1,46 +1,54 @@
 <%- include('partials/headerForm') %>
 
-<body class="bg-light">
+<body style="background:#f4f7fb;">
 
-<div class="container">
+<div class="container py-5">
 
     <div class="row justify-content-center">
 
         <div class="col-lg-5 col-md-7">
 
-            <div class="card shadow-lg border-0 mt-5">
+            <div class="card border-0 shadow-lg otp-card">
 
-                <div class="card-body p-5">
+                <!-- Header -->
 
-                    <div class="text-center mb-4">
+                <div class="card-header otp-header text-center">
 
-                        <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
+                    <div class="otp-icon">
 
-                        <h3>
-
-                            <%= purpose === "signup"
-                                ? "Email Verification"
-                                : "Login Verification" %>
-
-                        </h3>
-
-                        <p class="text-muted">
-
-                            Enter the 6-digit OTP sent to
-
-                        </p>
-
-                        <h6 class="text-primary">
-
-                            <%= email %>
-
-                        </h6>
+                        <i class="fas fa-shield-alt"></i>
 
                     </div>
 
+                    <h2 class="mt-3 mb-2">
+
+                        <%= purpose === "signup"
+                            ? "Email Verification"
+                            : "Login Verification" %>
+
+                    </h2>
+
+                    <p class="mb-0">
+
+                        We've sent a verification code to
+
+                    </p>
+
+                    <strong>
+
+                        <%= email %>
+
+                    </strong>
+
+                </div>
+
+                <!-- Body -->
+
+                <div class="card-body p-4">
+
                     <% if(typeof error !== "undefined"){ %>
 
-                        <div class="alert alert-danger text-center">
+                        <div class="alert alert-danger">
 
                             <%= error %>
 
@@ -50,7 +58,7 @@
 
                     <% if(typeof success !== "undefined"){ %>
 
-                        <div class="alert alert-success text-center">
+                        <div class="alert alert-success">
 
                             <%= success %>
 
@@ -58,27 +66,23 @@
 
                     <% } %>
 
-                    <!-- Verify OTP -->
-
                     <form action="/verify-otp" method="POST">
 
                         <input
                             type="hidden"
                             name="email"
-                            value="<%= email %>"
-                        >
+                            value="<%= email %>">
 
                         <input
                             type="hidden"
                             name="purpose"
-                            value="<%= purpose %>"
-                        >
+                            value="<%= purpose %>">
 
                         <div class="form-group">
 
                             <label>
 
-                                One-Time Password (OTP)
+                                One-Time Password
 
                             </label>
 
@@ -88,7 +92,7 @@
 
                                 type="text"
 
-                                class="form-control text-center"
+                                class="form-control otp-input"
 
                                 name="otp"
 
@@ -102,21 +106,23 @@
 
                                 autocomplete="one-time-code"
 
-                                placeholder="Enter 6-digit OTP"
+                                placeholder="● ● ● ● ● ●"
 
-                                required
+                                required>
 
-                            >
+                            <small class="text-muted">
+
+                                Enter the 6-digit verification code.
+
+                            </small>
 
                         </div>
 
                         <button
-
                             type="submit"
+                            class="btn btn-success btn-lg btn-block mt-4">
 
-                            class="btn btn-success btn-block mt-4"
-
-                        >
+                            <i class="fas fa-check-circle mr-2"></i>
 
                             <%= purpose === "signup"
                                 ? "Verify Email"
@@ -126,23 +132,23 @@
 
                     </form>
 
-                    <hr>
+                    <div class="divider">
 
-                    <!-- Resend OTP -->
+                        <span>OR</span>
+
+                    </div>
 
                     <form action="/resend-otp" method="POST">
 
                         <input
                             type="hidden"
                             name="email"
-                            value="<%= email %>"
-                        >
+                            value="<%= email %>">
 
                         <input
                             type="hidden"
                             name="purpose"
-                            value="<%= purpose %>"
-                        >
+                            value="<%= purpose %>">
 
                         <button
 
@@ -152,9 +158,9 @@
 
                             class="btn btn-outline-primary btn-block"
 
-                            disabled
+                            disabled>
 
-                        >
+                            <i class="fas fa-redo-alt mr-2"></i>
 
                             Resend OTP (
 
@@ -170,21 +176,17 @@
 
                     </form>
 
-                    <div class="text-center mt-4">
+                    <a
 
-                        <a
+                        href="/login"
 
-                            href="/login"
+                        class="btn btn-outline-secondary btn-block mt-3">
 
-                            class="btn btn-secondary"
+                        <i class="fas fa-arrow-left mr-2"></i>
 
-                        >
+                        Back to Login
 
-                            Back to Login
-
-                        </a>
-
-                    </div>
+                    </a>
 
                 </div>
 
@@ -202,37 +204,213 @@ const otpInput = document.getElementById("otp");
 
 otpInput.focus();
 
-otpInput.addEventListener("input", function () {
+otpInput.addEventListener("input",function(){
 
-    this.value = this.value.replace(/\D/g, "");
+    this.value=this.value.replace(/\D/g,"");
 
 });
 
-let seconds = 60;
+let seconds=60;
 
-const timer = document.getElementById("timer");
+const timer=document.getElementById("timer");
 
-const resendBtn = document.getElementById("resendBtn");
+const resendBtn=document.getElementById("resendBtn");
 
-const interval = setInterval(function () {
+const interval=setInterval(function(){
 
     seconds--;
 
-    timer.innerText = seconds;
+    timer.innerText=seconds;
 
-    if (seconds <= 0) {
+    if(seconds<=0){
 
         clearInterval(interval);
 
-        resendBtn.disabled = false;
+        resendBtn.disabled=false;
 
-        resendBtn.innerHTML = "Resend OTP";
+        resendBtn.innerHTML='<i class="fas fa-redo-alt mr-2"></i>Resend OTP';
 
     }
 
-}, 1000);
+},1000);
 
 </script>
+
+<style>
+
+body{
+
+    background:#f4f7fb;
+
+}
+
+/* Card */
+
+.otp-card{
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+}
+
+/* Header */
+
+.otp-header{
+
+    background:linear-gradient(135deg,#198754,#43b76e);
+
+    color:#fff;
+
+    padding:35px;
+
+    border:none;
+
+}
+
+.otp-header p{
+
+    opacity:.9;
+
+}
+
+/* Icon */
+
+.otp-icon{
+
+    width:85px;
+
+    height:85px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.18);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.otp-icon i{
+
+    font-size:36px;
+
+}
+
+/* OTP */
+
+.otp-input{
+
+    height:65px;
+
+    font-size:30px;
+
+    text-align:center;
+
+    letter-spacing:12px;
+
+    border-radius:15px;
+
+    font-weight:bold;
+
+}
+
+.otp-input:focus{
+
+    border-color:#198754;
+
+    box-shadow:0 0 0 .2rem rgba(25,135,84,.15);
+
+}
+
+/* Buttons */
+
+.btn{
+
+    height:50px;
+
+    border-radius:12px;
+
+    font-weight:600;
+
+}
+
+.btn-success{
+
+    background:#198754;
+
+    border:none;
+
+}
+
+.btn-success:hover{
+
+    background:#157347;
+
+}
+
+/* Divider */
+
+.divider{
+
+    position:relative;
+
+    text-align:center;
+
+    margin:25px 0;
+
+}
+
+.divider span{
+
+    background:#fff;
+
+    padding:0 15px;
+
+    color:#888;
+
+    position:relative;
+
+    z-index:2;
+
+}
+
+.divider::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:100%;
+
+    height:1px;
+
+    background:#ddd;
+
+    left:0;
+
+    top:50%;
+
+}
+
+@media(max-width:576px){
+
+    .otp-input{
+
+        font-size:24px;
+
+        letter-spacing:8px;
+
+    }
+
+}
+
+</style>
 
 </body>
 
