@@ -201,6 +201,12 @@ exports.verifyOTP = async (
 
         }
 
+        /*
+        ---------------------------------------
+        MARK OTP AS USED
+        ---------------------------------------
+        */
+
         otpDoc.isUsed = true;
 
         await otpDoc.save();
@@ -215,47 +221,61 @@ exports.verifyOTP = async (
 
         /*
         ---------------------------------------
-        VERIFY EMAIL
+        UPDATE USER
         ---------------------------------------
         */
+
+        const update = {};
 
         if (purpose === "email_verification") {
 
-            user.isEmailVerified = true;
+            update.isEmailVerified = true;
 
         }
-
-        /*
-        ---------------------------------------
-        LOGIN HISTORY
-        ---------------------------------------
-        */
 
         if (purpose === "login") {
 
-            user.lastLogin = new Date();
+            update.lastLogin = new Date();
 
-            user.loginType = "password";
+            update.loginType = "password";
 
-            user.loginHistory.push({
+            update.$push = {
 
-                loginTime: new Date(),
+                loginHistory: {
 
-                loginMethod: "OTP",
+                    $each: [
 
-                status: "Success"
+                        {
 
-            });
+                            loginTime: new Date(),
 
-            if (user.loginHistory.length > 20) {
+                            loginMethod: "OTP",
 
-                user.loginHistory.shift();
+                            status: "Success"
 
-            }
+                        }
+
+                    ],
+
+                    $slice: -20
+
+                }
+
+            };
 
         }
 
-        await user.save();
+        await User.updateOne(
+
+            {
+
+                _id: user._id
+
+            },
+
+            update
+
+        );
 
         return {
 
@@ -282,7 +302,6 @@ exports.verifyOTP = async (
     }
 
 };
-
 /*
 ==================================================
 RESEND SIGNUP OTP

@@ -572,9 +572,11 @@ const result = await otpController.verifyOTP(
 
             return res.render("verifyOtp", {
 
-                email: req.body.email,
+            email: req.body.email,
 
-                error: result.message
+            purpose: req.body.purpose,
+
+            error: result.message
 
             });
 
@@ -618,11 +620,13 @@ const result = await otpController.verifyOTP(
 
         return res.render("verifyOtp", {
 
-            email: req.body.email,
+        email: req.body.email,
 
-            error: "Something went wrong."
+        purpose: req.body.purpose,
 
-        });
+        error: "Something went wrong."
+
+       });
 
     }
 
