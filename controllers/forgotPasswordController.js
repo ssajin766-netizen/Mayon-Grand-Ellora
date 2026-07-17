@@ -1,7 +1,7 @@
 const { User } = require("../models/userModel");
 const OTP = require("../models/otpModel");
 
-const generateOTP = require("../utils/generateOTP");
+const generateOTP = require("../utils/otpGenerator");
 const sendOTP = require("../utils/sendOTP");
 
 /*
@@ -21,6 +21,7 @@ exports.forgotPasswordPage = (req, res) => {
     });
 
 };
+
 /*
 ==================================================
 SEND RESET OTP
@@ -35,10 +36,7 @@ exports.sendResetOTP = async (req, res) => {
 
         if (!email) {
 
-            req.flash(
-                "error",
-                "Email is required."
-            );
+            req.flash("error", "Email is required.");
 
             return res.redirect("/forgot-password");
 
@@ -52,17 +50,13 @@ exports.sendResetOTP = async (req, res) => {
 
         if (!user) {
 
-            req.flash(
-                "error",
-                "No account found with this email."
-            );
+            req.flash("error", "No account found with this email.");
 
             return res.redirect("/forgot-password");
 
         }
 
-        const otp = generateOTP();
-
+        // Delete previous reset OTPs
         await OTP.deleteMany({
 
             email,
@@ -71,25 +65,23 @@ exports.sendResetOTP = async (req, res) => {
 
         });
 
+        const otp = generateOTP();
+
         await OTP.create({
 
             email,
 
             otp,
 
-            purpose: "password_reset"
+            purpose: "password_reset",
+
+            isUsed: false,
+
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000)
 
         });
 
-        await sendOTP(
-
-            email,
-
-            otp,
-
-            "password_reset"
-
-        );
+        await sendOTP(email, otp);
 
         req.session.resetEmail = email;
 
@@ -97,7 +89,7 @@ exports.sendResetOTP = async (req, res) => {
 
             "success",
 
-            "OTP sent successfully."
+            "OTP has been sent to your email."
 
         );
 
@@ -122,6 +114,7 @@ exports.sendResetOTP = async (req, res) => {
     }
 
 };
+
 /*
 ==================================================
 VERIFY RESET OTP PAGE
@@ -133,8 +126,11 @@ exports.verifyResetOtpPage = (req, res) => {
     if (!req.session.resetEmail) {
 
         req.flash(
+
             "error",
-            "Session expired. Please try again."
+
+            "Session expired."
+
         );
 
         return res.redirect("/forgot-password");
@@ -153,7 +149,6 @@ exports.verifyResetOtpPage = (req, res) => {
 
 };
 
-
 /*
 ==================================================
 VERIFY RESET OTP
@@ -171,65 +166,83 @@ exports.verifyResetOTP = async (req, res) => {
         if (!email) {
 
             req.flash(
+
                 "error",
+
                 "Session expired."
+
             );
 
             return res.redirect("/forgot-password");
 
         }
 
-        const otpRecord = await OTP.findOne({
+        const otpDoc = await OTP.findOne({
 
             email,
 
             otp,
 
-            purpose: "password_reset"
+            purpose: "password_reset",
+
+            isUsed: false
 
         });
 
-        if (!otpRecord) {
+        if (!otpDoc) {
 
             req.flash(
+
                 "error",
+
                 "Invalid OTP."
+
             );
 
             return res.redirect("/verify-reset-otp");
 
         }
 
-        // Check expiry
-        if (otpRecord.expiresAt < new Date()) {
+        if (otpDoc.expiresAt < new Date()) {
 
             await OTP.deleteOne({
 
-                _id: otpRecord._id
+                _id: otpDoc._id
 
             });
 
             req.flash(
+
                 "error",
-                "OTP has expired."
+
+                "OTP expired."
+
             );
 
             return res.redirect("/forgot-password");
 
         }
 
-        // Delete OTP after successful verification
-        await OTP.deleteOne({
+        otpDoc.isUsed = true;
 
-            _id: otpRecord._id
+        await otpDoc.save();
+
+        await OTP.deleteMany({
+
+            email,
+
+            purpose: "password_reset"
 
         });
 
         req.session.resetVerified = true;
 
         req.flash(
+
             "success",
+
             "OTP verified successfully."
+
         );
 
         return res.redirect("/reset-password");
@@ -241,8 +254,11 @@ exports.verifyResetOTP = async (req, res) => {
         console.error(err);
 
         req.flash(
+
             "error",
-            "OTP verification failed."
+
+            "Verification failed."
+
         );
 
         return res.redirect("/verify-reset-otp");
@@ -250,6 +266,7 @@ exports.verifyResetOTP = async (req, res) => {
     }
 
 };
+
 /*
 ==================================================
 RESET PASSWORD PAGE
@@ -258,11 +275,20 @@ RESET PASSWORD PAGE
 
 exports.resetPasswordPage = (req, res) => {
 
-    if (!req.session.resetEmail || !req.session.resetVerified) {
+    if (
+
+        !req.session.resetEmail ||
+
+        !req.session.resetVerified
+
+    ) {
 
         req.flash(
+
             "error",
+
             "Please verify your OTP first."
+
         );
 
         return res.redirect("/forgot-password");
@@ -281,7 +307,6 @@ exports.resetPasswordPage = (req, res) => {
 
 };
 
-
 /*
 ==================================================
 RESET PASSWORD
@@ -292,13 +317,20 @@ exports.resetPassword = async (req, res) => {
 
     try {
 
-        const email = req.session.resetEmail;
+        if (
 
-        if (!email || !req.session.resetVerified) {
+            !req.session.resetEmail ||
+
+            !req.session.resetVerified
+
+        ) {
 
             req.flash(
+
                 "error",
+
                 "Unauthorized request."
+
             );
 
             return res.redirect("/forgot-password");
@@ -313,11 +345,20 @@ exports.resetPassword = async (req, res) => {
 
         } = req.body;
 
-        if (!password || !confirmPassword) {
+        if (
+
+            !password ||
+
+            !confirmPassword
+
+        ) {
 
             req.flash(
+
                 "error",
+
                 "Please fill all fields."
+
             );
 
             return res.redirect("/reset-password");
@@ -327,8 +368,11 @@ exports.resetPassword = async (req, res) => {
         if (password !== confirmPassword) {
 
             req.flash(
+
                 "error",
+
                 "Passwords do not match."
+
             );
 
             return res.redirect("/reset-password");
@@ -338,8 +382,11 @@ exports.resetPassword = async (req, res) => {
         if (password.length < 6) {
 
             req.flash(
+
                 "error",
+
                 "Password must be at least 6 characters."
+
             );
 
             return res.redirect("/reset-password");
@@ -348,43 +395,48 @@ exports.resetPassword = async (req, res) => {
 
         const user = await User.findOne({
 
-            username: email
+            username: req.session.resetEmail
 
         });
 
         if (!user) {
 
             req.flash(
+
                 "error",
+
                 "User not found."
+
             );
 
             return res.redirect("/forgot-password");
 
         }
 
-        /*
-        ==========================================
-        UPDATE PASSWORD
-        ==========================================
-        */
-
+        // Passport Local Mongoose
         await user.setPassword(password);
 
         await user.save();
 
-        /*
-        ==========================================
-        CLEAR SESSION
-        ==========================================
-        */
+        // Remove any remaining reset OTPs
+        await OTP.deleteMany({
+
+            email: user.username,
+
+            purpose: "password_reset"
+
+        });
 
         delete req.session.resetEmail;
+
         delete req.session.resetVerified;
 
         req.flash(
+
             "success",
+
             "Password updated successfully. Please login."
+
         );
 
         return res.redirect("/login");
@@ -396,8 +448,11 @@ exports.resetPassword = async (req, res) => {
         console.error(err);
 
         req.flash(
+
             "error",
+
             "Unable to reset password."
+
         );
 
         return res.redirect("/reset-password");
