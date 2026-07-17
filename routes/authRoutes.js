@@ -182,47 +182,36 @@ router.get("/register", (req, res) => {
 router.post("/register", async (req, res) => {
 
     if (req.body.adminSecret !== process.env.ADMIN_SECRET) {
-
         return res.status(403).send("Invalid Admin Secret");
-
     }
 
     try {
 
         const existingSociety =
-
-        await society_collection.Society.findOne({
-
-            societyName: req.body.societyName
-
-        });
-
-        if (existingSociety) {
-
-            return res.render("failure", {
-
-                message: "Society already registered",
-
-                href: "/register",
-
-                messageSecondary: "Resident account?",
-
-                hrefSecondary: "/signup",
-
-                buttonSecondary: "Create Account"
-
+            await society_collection.Society.findOne({
+                societyName: req.body.societyName
             });
 
+        if (existingSociety) {
+            return res.render("failure", {
+                message: "Society already registered",
+                href: "/register",
+                messageSecondary: "Resident account?",
+                hrefSecondary: "/signup",
+                buttonSecondary: "Create Account"
+            });
         }
 
-        const user =
+        // Normalize phone number
+        let phoneNumber = (req.body.phoneNumber || "").trim();
 
-        await user_collection.User.register(
+        if (/^[6-9]\d{9}$/.test(phoneNumber)) {
+            phoneNumber = "+91" + phoneNumber;
+        }
 
+        const user = await user_collection.User.register(
             {
-
-                validation: "approved",
-
+                validation: "applied",
                 isAdmin: true,
 
                 username: req.body.username,
@@ -235,29 +224,20 @@ router.post("/register", async (req, res) => {
 
                 lastName: req.body.lastName,
 
-                phoneNumber: req.body.phoneNumber.trim(),
+                phoneNumber: phoneNumber,
 
+                isEmailVerified: false
             },
-
             req.body.password
-
         );
 
-        await new Promise((resolve, reject) => {
+        // Store pending user
+        req.session.pendingUser = user._id;
 
-            req.login(user, err => {
+        // Store society information temporarily
+        req.session.pendingSociety = {
 
-                if (err) return reject(err);
-
-                resolve();
-
-            });
-
-        });
-
-        const society = new society_collection.Society({
-
-            societyName: user.societyName,
+            societyName: req.body.societyName,
 
             societyAddress: {
 
@@ -268,24 +248,27 @@ router.post("/register", async (req, res) => {
                 district: req.body.district,
 
                 postalCode: req.body.postalCode
+            }
 
-            },
+        };
 
-            admin: user.username
+        // Send OTP
+        await otpController.sendSignupOTP(user.username);
 
-        });
+        return res.redirect(
+            "/verify-otp?email=" +
+            encodeURIComponent(user.username) +
+            "&purpose=register"
+        );
 
-        await society.save();
-
-        res.redirect("/home");
-
-    }
-
-    catch (err) {
+    } catch (err) {
 
         console.log(err);
 
-        res.redirect("/register");
+        return res.render("failure", {
+            message: err.message,
+            href: "/register"
+        });
 
     }
 
@@ -556,50 +539,80 @@ router.post("/verify-otp", async (req, res, next) => {
             return res.redirect("/login");
         }
 
-const result = await otpController.verifyOTP(
+        // Determine OTP purpose
+        const otpPurpose =
+            (req.body.purpose === "signup" ||
+             req.body.purpose === "register")
+                ? "email_verification"
+                : "login";
 
-    req.body.email,
-
-    req.body.otp,
-
-    req.body.purpose === "signup"
-        ? "email_verification"
-        : "login"
-
-);
+        const result = await otpController.verifyOTP(
+            req.body.email,
+            req.body.otp,
+            otpPurpose
+        );
 
         if (!result.success) {
-
             return res.render("verifyOtp", {
-
-            email: req.body.email,
-
-            purpose: req.body.purpose,
-
-            error: result.message
-
+                email: req.body.email,
+                purpose: req.body.purpose,
+                error: result.message
             });
-
         }
 
         const user = await user_collection.User.findById(
-
             req.session.pendingUser
-
         );
 
         if (!user) {
-
             return res.redirect("/login");
-
         }
 
+        // Email verified
+        user.isEmailVerified = true;
+        user.validation = "approved";
+        await user.save();
+
+        // ==================================================
+        // REGISTER SOCIETY
+        // ==================================================
+        if (req.body.purpose === "register") {
+
+            const societyData = req.session.pendingSociety;
+
+            if (societyData) {
+
+                const existingSociety =
+                    await society_collection.Society.findOne({
+                        societyName: societyData.societyName
+                    });
+
+                if (!existingSociety) {
+
+                     const society = new society_collection.Society({
+
+                     societyName: societyData.societyName,
+
+                    societyAddress: societyData.societyAddress,
+
+                    admin: user.username
+
+                    });
+
+                    await society.save();
+                }
+
+                delete req.session.pendingSociety;
+            }
+        }
+
+        // ==================================================
+        // LOGIN USER
+        // ==================================================
         req.logIn(user, (err) => {
 
             if (err) {
-
                 return next(err);
-
             }
 
             delete req.session.pendingUser;
@@ -612,21 +625,19 @@ const result = await otpController.verifyOTP(
 
         });
 
-    }
-
-    catch (err) {
+    } catch (err) {
 
         console.error(err);
 
         return res.render("verifyOtp", {
 
-        email: req.body.email,
+            email: req.body.email,
 
-        purpose: req.body.purpose,
+            purpose: req.body.purpose,
 
-        error: "Something went wrong."
+            error: "Something went wrong."
 
-       });
+        });
 
     }
 
@@ -642,17 +653,39 @@ router.post("/resend-otp", async (req, res) => {
 
     try {
 
-        if (req.body.purpose === "signup") {
+        // Signup & Register use Email Verification OTP
+        if (
+            req.body.purpose === "signup" ||
+            req.body.purpose === "register"
+        ) {
 
             await otpController.resendSignupOTP(
                 req.body.email
             );
 
-        } else {
+        }
+
+        // Login uses Login OTP
+        else if (req.body.purpose === "login") {
 
             await otpController.resendLoginOTP(
                 req.body.email
             );
+
+        }
+
+        // Invalid purpose
+        else {
+
+            return res.render("verifyOtp", {
+
+                email: req.body.email,
+
+                purpose: req.body.purpose,
+
+                error: "Invalid OTP request."
+
+            });
 
         }
 
@@ -813,7 +846,13 @@ router.post("/newRequest", async (req, res) => {
 
 user.firstName = req.body.firstName;
 user.lastName = req.body.lastName;
-user.phoneNumber = req.body.phoneNumber.trim();
+let phoneNumber = (req.body.phoneNumber || "").trim();
+
+if (/^[6-9]\d{9}$/.test(phoneNumber)) {
+    phoneNumber = "+91" + phoneNumber;
+}
+
+user.phoneNumber = phoneNumber;
 user.societyName = req.body.societyName;
 user.flatNumber = req.body.flatNumber;
 user.validation = "applied";
