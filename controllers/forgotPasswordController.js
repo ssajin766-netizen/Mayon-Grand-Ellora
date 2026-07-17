@@ -4,6 +4,8 @@ const OTP = require("../models/otpModel");
 const generateOTP = require("../utils/otpGenerator");
 const sendOTP = require("../utils/sendOTP");
 
+const OTP_PURPOSE = "forgot_password";
+
 /*
 ==================================================
 FORGOT PASSWORD PAGE
@@ -56,12 +58,11 @@ exports.sendResetOTP = async (req, res) => {
 
         }
 
-        // Delete previous reset OTPs
         await OTP.deleteMany({
 
             email,
 
-            purpose: "password_reset"
+            purpose: OTP_PURPOSE
 
         });
 
@@ -73,7 +74,7 @@ exports.sendResetOTP = async (req, res) => {
 
             otp,
 
-            purpose: "password_reset",
+            purpose: OTP_PURPOSE,
 
             isUsed: false,
 
@@ -81,7 +82,9 @@ exports.sendResetOTP = async (req, res) => {
 
         });
 
-        await sendOTP(email, otp);
+        // If sendOTP only takes (email, otp),
+        // remove the third argument.
+        await sendOTP(email, otp, OTP_PURPOSE);
 
         req.session.resetEmail = email;
 
@@ -89,7 +92,7 @@ exports.sendResetOTP = async (req, res) => {
 
             "success",
 
-            "OTP has been sent to your email."
+            "OTP has been sent to your registered email."
 
         );
 
@@ -129,7 +132,7 @@ exports.verifyResetOtpPage = (req, res) => {
 
             "error",
 
-            "Session expired."
+            "Session expired. Please try again."
 
         );
 
@@ -183,7 +186,7 @@ exports.verifyResetOTP = async (req, res) => {
 
             otp,
 
-            purpose: "password_reset",
+            purpose: OTP_PURPOSE,
 
             isUsed: false
 
@@ -215,7 +218,7 @@ exports.verifyResetOTP = async (req, res) => {
 
                 "error",
 
-                "OTP expired."
+                "OTP has expired."
 
             );
 
@@ -231,7 +234,7 @@ exports.verifyResetOTP = async (req, res) => {
 
             email,
 
-            purpose: "password_reset"
+            purpose: OTP_PURPOSE
 
         });
 
@@ -257,7 +260,7 @@ exports.verifyResetOTP = async (req, res) => {
 
             "error",
 
-            "Verification failed."
+            "OTP verification failed."
 
         );
 
@@ -345,13 +348,7 @@ exports.resetPassword = async (req, res) => {
 
         } = req.body;
 
-        if (
-
-            !password ||
-
-            !confirmPassword
-
-        ) {
+        if (!password || !confirmPassword) {
 
             req.flash(
 
@@ -413,17 +410,15 @@ exports.resetPassword = async (req, res) => {
 
         }
 
-        // Passport Local Mongoose
         await user.setPassword(password);
 
         await user.save();
 
-        // Remove any remaining reset OTPs
         await OTP.deleteMany({
 
             email: user.username,
 
-            purpose: "password_reset"
+            purpose: OTP_PURPOSE
 
         });
 
