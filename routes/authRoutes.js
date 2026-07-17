@@ -554,84 +554,150 @@ router.post("/verify-otp", async (req, res, next) => {
             return res.redirect("/login");
         }
 
-        // Determine OTP purpose
         const otpPurpose =
-            (req.body.purpose === "signup" ||
-             req.body.purpose === "register")
+            (
+                req.body.purpose === "signup" ||
+                req.body.purpose === "register"
+            )
                 ? "email_verification"
                 : "login";
 
         const result = await otpController.verifyOTP(
+
             req.body.email,
+
             req.body.otp,
+
             otpPurpose
+
         );
 
         if (!result.success) {
+
             return res.render("verifyOtp", {
+
                 email: req.body.email,
+
                 purpose: req.body.purpose,
+
                 error: result.message
+
             });
+
         }
 
-        const user = await user_collection.User.findById(
-            req.session.pendingUser
-        );
+        const user =
+            await user_collection.User.findById(
+
+                req.session.pendingUser
+
+            );
 
         if (!user) {
+
             return res.redirect("/login");
+
         }
 
-        // Email verified
+        /*
+        ------------------------------------------
+        VERIFY EMAIL
+        ------------------------------------------
+        */
+
         user.isEmailVerified = true;
 
+        // Only approve Society Admin
         if (req.body.purpose === "register") {
-        user.validation = "approved";
+
+            user.validation = "approved";
+
         }
 
         await user.save();
 
-        // ==================================================
-        // REGISTER SOCIETY
-        // ==================================================
+        /*
+        ------------------------------------------
+        CREATE SOCIETY
+        ------------------------------------------
+        */
+
         if (req.body.purpose === "register") {
 
-            const societyData = req.session.pendingSociety;
+            const societyData =
+                req.session.pendingSociety;
 
             if (societyData) {
 
                 const existingSociety =
                     await society_collection.Society.findOne({
-                        societyName: societyData.societyName
+
+                        societyName:
+                            societyData.societyName
+
                     });
 
                 if (!existingSociety) {
 
-                     const society = new society_collection.Society({
+                    await new society_collection.Society({
 
-                     societyName: societyData.societyName,
+                        societyName:
+                            societyData.societyName,
 
-                    societyAddress: societyData.societyAddress,
+                        societyAddress:
+                            societyData.societyAddress,
 
-                    admin: user.username
+                        admin: user.username
 
-                    });
+                    }).save();
 
-                    await society.save();
                 }
 
                 delete req.session.pendingSociety;
+
             }
+
         }
 
-        // ==================================================
-        // LOGIN USER
-        // ==================================================
+        /*
+        ==================================================
+        RESIDENT SIGNUP
+        Don't login automatically
+        ==================================================
+        */
+
+        if (req.body.purpose === "signup") {
+
+            delete req.session.pendingUser;
+
+            return req.session.save(() => {
+
+                req.flash(
+
+                    "success",
+
+                    "Account created successfully. Please login after administrator approval."
+
+                );
+
+                return res.redirect("/login");
+
+            });
+
+        }
+
+        /*
+        ==================================================
+        LOGIN + ADMIN REGISTER
+        ==================================================
+        */
+
         req.logIn(user, (err) => {
 
             if (err) {
+
                 return next(err);
+
             }
 
             delete req.session.pendingUser;
@@ -644,7 +710,9 @@ router.post("/verify-otp", async (req, res, next) => {
 
         });
 
-    } catch (err) {
+    }
+
+    catch (err) {
 
         console.error(err);
 
