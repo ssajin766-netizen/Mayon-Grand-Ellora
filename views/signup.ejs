@@ -1,4 +1,3 @@
-<!-- Member signup form -->
 <%- include('partials/headerForm') %>
 
 <body>
@@ -36,21 +35,20 @@
                     </div>
 
                     <form
-                        id="signupForm"
-                        action="/signup"
-                        method="POST">
+                    id="signupForm"
+                    action="/signup"
+                    method="POST">
 
                         <div class="form-label-group">
 
                             <input
-                                name="firstName"
-                                type="text"
-                                id="inputFirstName"
-                                class="form-control"
-                                placeholder="First Name"
-                                required>
+                            name="firstName"
+                            type="text"
+                            class="form-control"
+                            placeholder="First Name"
+                            required>
 
-                            <label for="inputFirstName">
+                            <label>
 
                                 First Name
 
@@ -61,14 +59,13 @@
                         <div class="form-label-group">
 
                             <input
-                                name="lastName"
-                                type="text"
-                                id="inputLastName"
-                                class="form-control"
-                                placeholder="Last Name"
-                                required>
+                            name="lastName"
+                            type="text"
+                            class="form-control"
+                            placeholder="Last Name"
+                            required>
 
-                            <label for="inputLastName">
+                            <label>
 
                                 Last Name
 
@@ -80,25 +77,25 @@
 
                         <div class="form-group mb-4">
 
-                            <label class="fw-bold">
+                            <label>
 
-                                <i class="fas fa-phone-alt text-success"></i>
+                                <i class="fas fa-phone text-success"></i>
 
                                 Mobile Number
 
                             </label>
 
                             <input
-                                id="phone"
-                                type="tel"
-                                class="form-control"
-                                autocomplete="tel"
-                                required>
+                            id="phone"
+                            type="tel"
+                            class="form-control"
+                            autocomplete="tel"
+                            required>
 
                             <input
-                                type="hidden"
-                                id="phoneNumber"
-                                name="phoneNumber">
+                            type="hidden"
+                            id="phoneNumber"
+                            name="phoneNumber">
 
                             <small class="text-muted">
 
@@ -111,13 +108,11 @@
                         <div class="form-label-group">
 
                             <input
-                                name="societyName"
-                                list="societyList"
-                                id="inputSocietyName"
-                                class="form-control"
-                                placeholder="Society Name"
-                                autocomplete="off"
-                                required>
+                            name="societyName"
+                            list="societyList"
+                            class="form-control"
+                            placeholder="Society Name"
+                            required>
 
                             <datalist id="societyList">
 
@@ -129,7 +124,7 @@
 
                             </datalist>
 
-                            <label for="inputSocietyName">
+                            <label>
 
                                 Society Name
 
@@ -140,14 +135,13 @@
                         <div class="form-label-group">
 
                             <input
-                                name="flatNumber"
-                                type="text"
-                                id="inputFlatNumber"
-                                class="form-control"
-                                placeholder="Flat Number"
-                                required>
+                            name="flatNumber"
+                            type="text"
+                            class="form-control"
+                            placeholder="Flat Number"
+                            required>
 
-                            <label for="inputFlatNumber">
+                            <label>
 
                                 Flat Number
 
@@ -158,14 +152,13 @@
                         <div class="form-label-group">
 
                             <input
-                                name="username"
-                                type="email"
-                                id="email"
-                                class="form-control"
-                                placeholder="Email"
-                                required>
+                            name="username"
+                            type="email"
+                            class="form-control"
+                            placeholder="Email"
+                            required>
 
-                            <label for="email">
+                            <label>
 
                                 Email Address
 
@@ -176,14 +169,13 @@
                         <div class="form-label-group">
 
                             <input
-                                name="password"
-                                type="password"
-                                id="inputPassword"
-                                class="form-control"
-                                placeholder="Password"
-                                required>
+                            name="password"
+                            type="password"
+                            class="form-control"
+                            placeholder="Password"
+                            required>
 
-                            <label for="inputPassword">
+                            <label>
 
                                 Password
 
@@ -192,10 +184,10 @@
                         </div>
 
                         <button
-                            class="btn btn-success btn-lg btn-block mt-4"
-                            type="submit">
+                        class="btn btn-success btn-lg btn-block mt-4"
+                        type="submit">
 
-                            <i class="fas fa-user-plus me-2"></i>
+                            <i class="fas fa-user-plus"></i>
 
                             Create Account
 
@@ -212,13 +204,12 @@
                         </div>
 
                         <a
-                            href="/auth/google"
-                            class="btn btn-light btn-block google-btn">
+                        href="/auth/google"
+                        class="btn btn-light btn-block google-btn">
 
                             <img
-                                src="https://developers.google.com/identity/images/g-logo.png"
-                                width="20"
-                                height="20">
+                            src="https://developers.google.com/identity/images/g-logo.png"
+                            width="20">
 
                             Continue with Google
 
@@ -226,23 +217,17 @@
 
                         <hr>
 
-                        <p class="text-center">
-
-                            Already have an account?
-
-                        </p>
-
                         <a
-                            href="/login"
-                            class="btn btn-outline-primary btn-block">
+                        href="/login"
+                        class="btn btn-outline-primary btn-block">
 
                             Sign In
 
                         </a>
 
                         <a
-                            href="/"
-                            class="btn btn-secondary btn-block mt-2">
+                        href="/"
+                        class="btn btn-secondary btn-block mt-2">
 
                             Home
 
@@ -260,7 +245,11 @@
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/intlTelInput.min.js"></script>
+<!-- jQuery (Required) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Intl Tel Input -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/intlTelInput.min.js"></script>
 
 <script>
 
@@ -288,38 +277,27 @@ const iti = window.intlTelInput(phoneInput,{
 
     autoPlaceholder:"aggressive",
 
-    formatOnDisplay:true,
-
-    utilsScript:
-    "https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js"
+    utilsScript:"https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/utils.js"
 
 });
 
-document
-.getElementById("signupForm")
-.addEventListener("submit",function(e){
+$("#signupForm").on("submit",function(e){
 
     e.preventDefault();
 
-    if(phoneInput.value.trim()===""){
-
-        alert("Please enter your phone number.");
-
-        return;
-
-    }
+    const phone = iti.getNumber();
 
     if(!iti.isValidNumber()){
 
         alert("Please enter a valid phone number.");
 
-        phoneInput.focus();
-
         return;
 
     }
 
-    hiddenPhone.value = iti.getNumber();
+    hiddenPhone.val = phone;
+
+    document.getElementById("phoneNumber").value = phone;
 
     this.submit();
 
@@ -337,11 +315,11 @@ body{
 
 .card-signin{
 
-    margin:40px auto;
-
     border:none;
 
     border-radius:18px;
+
+    margin:40px auto;
 
 }
 
@@ -357,41 +335,25 @@ body{
 
     height:70px;
 
-    background:#e9f8ee;
+    margin:auto;
 
     border-radius:50%;
 
-    display:flex;
+    background:#e9f8ee;
 
-    align-items:center;
+    display:flex;
 
     justify-content:center;
 
-    margin:auto;
+    align-items:center;
 
 }
 
 .signup-icon i{
 
+    font-size:30px;
+
     color:#28a745;
-
-    font-size:32px;
-
-}
-
-.form-control{
-
-    height:48px;
-
-    border-radius:12px;
-
-}
-
-.form-control:focus{
-
-    border-color:#28a745;
-
-    box-shadow:0 0 0 .2rem rgba(40,167,69,.15);
 
 }
 
@@ -409,11 +371,9 @@ body{
 
 }
 
-.btn{
+.iti__country-list{
 
-    border-radius:12px;
-
-    height:48px;
+    z-index:999999;
 
 }
 
@@ -426,8 +386,6 @@ body{
     align-items:center;
 
     gap:10px;
-
-    border:1px solid #ddd;
 
 }
 
