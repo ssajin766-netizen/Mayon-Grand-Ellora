@@ -625,3 +625,41 @@ tfoot td {
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,.15);
 }
+
+.profile-photo-wrapper{
+    width:170px;
+    height:170px;
+    margin:auto;
+    position:relative;
+    cursor:pointer;
+}
+
+.profile-photo{
+    width:170px;
+    height:170px;
+    border-radius:50%;
+    object-fit:cover;
+    border:5px solid #fff;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+    transition:.3s;
+}
+
+.profile-photo-wrapper:hover .profile-photo{
+    transform:scale(1.03);
+}
+
+.camera-overlay{
+    position:absolute;
+    right:8px;
+    bottom:8px;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:#0d6efd;
+    color:#fff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:18px;
+    box-shadow:0 5px 15px rgba(0,0,0,.3);
+}
