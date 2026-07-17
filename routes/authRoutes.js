@@ -775,36 +775,20 @@ router.post(
 );
 
 
-router.get("/loginFailure", (req, res) => {
-
-    res.render("failure", {
-
-        message: "Sorry, entered password was incorrect, Please double-check.",
-
-        href: "/login",
-
-        messageSecondary: "Account not created?",
-
-        hrefSecondary: "/signup",
-
-        buttonSecondary: "Create Account"
-
-    });
-
-});
-
 router.get("/newRequest", async (req, res) => {
 
     if (!req.isAuthenticated()) {
-
         return res.redirect("/login");
-
     }
 
-    if (req.user.validation === "approved") {
-
+    // Admin should never access this page
+    if (req.user.isAdmin) {
         return res.redirect("/home");
+    }
 
+    // Approved residents don't need this page
+    if (req.user.validation === "approved") {
+        return res.redirect("/home");
     }
 
     try {
@@ -835,9 +819,16 @@ router.post("/newRequest", async (req, res) => {
 
     try {
 
-        const foundSociety =
+        if (!req.isAuthenticated()) {
+            return res.redirect("/login");
+        }
 
-        await society_collection.Society.findOne({
+        // Admin should never submit a resident request
+        if (req.user.isAdmin) {
+            return res.redirect("/home");
+        }
+
+        const foundSociety = await society_collection.Society.findOne({
 
             societyName: req.body.societyName
 
@@ -861,25 +852,31 @@ router.post("/newRequest", async (req, res) => {
 
         }
 
-  const user = await user_collection.User.findById(req.user.id);
+        const user = await user_collection.User.findById(req.user.id);
 
-user.firstName = req.body.firstName;
-user.lastName = req.body.lastName;
-let phoneNumber = (req.body.phoneNumber || "").trim();
+        if (!user) {
+            return res.redirect("/login");
+        }
 
-if (/^[6-9]\d{9}$/.test(phoneNumber)) {
-    phoneNumber = "+91" + phoneNumber;
-}
+        user.firstName = req.body.firstName;
+        user.lastName = req.body.lastName;
 
-user.phoneNumber = phoneNumber;
-user.societyName = req.body.societyName;
-user.flatNumber = req.body.flatNumber;
-user.validation = "applied";
+        let phoneNumber = (req.body.phoneNumber || "").trim();
 
+        if (/^[6-9]\d{9}$/.test(phoneNumber)) {
+            phoneNumber = "+91" + phoneNumber;
+        }
 
-await user.save();
+        user.phoneNumber = phoneNumber;
+        user.societyName = req.body.societyName;
+        user.flatNumber = req.body.flatNumber;
 
-        res.redirect("/home");
+        // Residents require approval
+        user.validation = "applied";
+
+        await user.save();
+
+        return res.redirect("/home");
 
     }
 
@@ -887,7 +884,7 @@ await user.save();
 
         console.log(err);
 
-        res.redirect("/newRequest");
+        return res.redirect("/newRequest");
 
     }
 

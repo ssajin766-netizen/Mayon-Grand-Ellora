@@ -264,20 +264,20 @@ HOME
 
 app.get("/home", (req, res) => {
 
-    console.log("=================================");
-    console.log("HOME ROUTE");
-    console.log("Authenticated:", req.isAuthenticated());
-    console.log("User:", req.user);
-    console.log("Session:", req.sessionID);
-    console.log("=================================");
-
     if (!req.isAuthenticated()) {
         return res.redirect("/login");
     }
 
-    // -------------------------------------------------
-    // Google / Phone users must complete profile first
-    // -------------------------------------------------
+    // ==========================================
+    // ADMIN
+    // ==========================================
+    if (req.user.isAdmin) {
+        return res.render("home");
+    }
+
+    // ==========================================
+    // Google / Phone users must complete profile
+    // ==========================================
     if (
         req.user.societyName === "Pending" ||
         req.user.flatNumber === "Pending"
@@ -285,45 +285,31 @@ app.get("/home", (req, res) => {
         return res.redirect("/newRequest");
     }
 
-    // -------------------------------------------------
-    // Approved User
-    // -------------------------------------------------
+    // ==========================================
+    // Resident Approved
+    // ==========================================
     if (req.user.validation === "approved") {
-
         return res.render("home");
-
     }
 
-    // -------------------------------------------------
-    // Waiting for Approval
-    // -------------------------------------------------
+    // ==========================================
+    // Waiting Approval
+    // ==========================================
     if (req.user.validation === "applied") {
-
         return res.render("homeStandby", {
-
             icon: "fa-user-clock",
-
             title: "Account Pending",
-
-            content:
-                "Your account is waiting for administrator approval."
-
+            content: "Your account is waiting for administrator approval."
         });
-
     }
 
-    // -------------------------------------------------
+    // ==========================================
     // Rejected
-    // -------------------------------------------------
+    // ==========================================
     return res.render("homeStandby", {
-
         icon: "fa-user-lock",
-
         title: "Account Declined",
-
-        content:
-            "Please contact the society administrator."
-
+        content: "Please contact the society administrator."
     });
 
 });
