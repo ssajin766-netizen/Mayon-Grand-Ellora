@@ -210,34 +210,43 @@ phoneNumber: {
         default: null
     },
 
-    // ===========================================
-    // Login
-    // ===========================================
+// ===========================================
+// Login
+// ===========================================
 
-    loginType: {
-        type: String,
-        enum: [
-            "password",
-            "google",
-            "phone"
-        ],
-        default: "password"
-    },
+loginType: {
+    type: String,
+    enum: [
+        "password",
+        "google",
+        "phone"
+    ],
+    default: "password"
+},
 
-    twoFactorEnabled: {
-        type: Boolean,
-        default: false
-    },
+twoFactorEnabled: {
+    type: Boolean,
+    default: false
+},
 
-    rememberToken: {
-        type: String,
-        default: ""
-    },
+twoFactorMethod: {
+    type: String,
+    enum: [
+        "email",
+        "phone"
+    ],
+    default: "email"
+},
 
-    rememberTokenExpires: {
-        type: Date,
-        default: null
-    },
+rememberToken: {
+    type: String,
+    default: ""
+},
+
+rememberTokenExpires: {
+    type: Date,
+    default: null
+},
 
     // ===========================================
     // Login Activity
