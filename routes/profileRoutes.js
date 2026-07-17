@@ -161,17 +161,45 @@ router.post(
 
             }
 
-            /*
-            ==========================================
-            UPDATE DATABASE
-            ==========================================
-            */
+/*
+==========================================
+UPDATE DATABASE
+==========================================
+*/
 
-            user.profileImage =
+await User.updateOne(
+
+    {
+
+        _id: req.user._id
+
+    },
+
+    {
+
+        $set: {
+
+            profileImage:
+
                 "/uploads/profiles/" +
-                newFileName;
 
-            await user.save();
+                newFileName
+
+        }
+
+    }
+
+);
+
+/*
+==========================================
+UPDATE LOCAL OBJECT
+==========================================
+*/
+
+user.profileImage =
+    "/uploads/profiles/" +
+    newFileName;
 
             /*
             ==========================================
