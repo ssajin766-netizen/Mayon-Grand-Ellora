@@ -135,6 +135,7 @@
 
 const phoneInput = document.querySelector("#phone");
 const hiddenInput = document.querySelector("#phoneNumber");
+const form = document.getElementById("phoneLoginForm");
 
 const iti = window.intlTelInput(phoneInput,{
 
@@ -158,13 +159,12 @@ const iti = window.intlTelInput(phoneInput,{
 
     formatOnDisplay:true,
 
-    utilsScript:"https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js"
+    loadUtils:()=>
+        import("https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js")
 
 });
 
-document
-.getElementById("phoneLoginForm")
-.addEventListener("submit",function(e){
+form.addEventListener("submit",function(e){
 
     e.preventDefault();
 
@@ -178,17 +178,15 @@ document
 
     }
 
-    if(!iti.isValidNumber()){
+    hiddenInput.value = iti.getNumber();
 
-        alert("Please enter a valid mobile number.");
+    console.log("Phone:",hiddenInput.value);
 
-        phoneInput.focus();
+    const btn=this.querySelector("button");
 
-        return;
+    btn.disabled=true;
 
-    }
-
-    hiddenInput.value=iti.getNumber();
+    btn.innerHTML='<span class="spinner-border spinner-border-sm mr-2"></span>Sending OTP...';
 
     this.submit();
 
