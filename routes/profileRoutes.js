@@ -1,6 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
+const path = require("path");
+const fs = require("fs");
+const sharp = require("sharp");
+
+const upload = require("../middleware/uploadProfile");
+
 const { User } = require("../models/userModel");
 const { Society } = require("../models/societyModel");
 
@@ -8,7 +14,6 @@ const {
     isLoggedIn,
     isApproved
 } = require("../middleware/auth");
-
 /*
 --------------------------------------------------
 PROFILE
@@ -58,6 +63,199 @@ router.get(
 
         }
     }
+);
+
+/*
+==================================================
+UPLOAD PROFILE IMAGE
+==================================================
+*/
+
+router.post(
+    "/profile/upload",
+    isLoggedIn,
+    upload.single("profileImage"),
+    async (req, res) => {
+
+        try {
+
+            if (!req.file) {
+
+                req.flash(
+                    "error",
+                    "Please select an image."
+                );
+
+                return res.redirect("/profile");
+
+            }
+
+            const user = await User.findById(req.user.id);
+
+            if (!user) {
+
+                // Remove uploaded temp file
+                if (fs.existsSync(req.file.path)) {
+
+                    fs.unlinkSync(req.file.path);
+
+                }
+
+                req.flash(
+                    "error",
+                    "User not found."
+                );
+
+                return res.redirect("/profile");
+
+            }
+
+            /*
+            ==========================================
+            STORE OLD IMAGE
+            ==========================================
+            */
+
+            const oldProfileImage = user.profileImage;
+
+            /*
+            ==========================================
+            RESIZE & COMPRESS IMAGE
+            ==========================================
+            */
+
+            const newFileName =
+                Date.now() + ".webp";
+
+            const outputPath = path.join(
+                __dirname,
+                "../public/uploads/profiles",
+                newFileName
+            );
+
+            await sharp(req.file.path)
+
+                .resize(512, 512, {
+
+                    fit: "cover"
+
+                })
+
+                .webp({
+
+                    quality: 85
+
+                })
+
+                .toFile(outputPath);
+
+            /*
+            ==========================================
+            DELETE TEMP MULTER FILE
+            ==========================================
+            */
+
+            if (fs.existsSync(req.file.path)) {
+
+                fs.unlinkSync(req.file.path);
+
+            }
+
+            /*
+            ==========================================
+            UPDATE DATABASE
+            ==========================================
+            */
+
+            user.profileImage =
+                "/uploads/profiles/" +
+                newFileName;
+
+            await user.save();
+
+            /*
+            ==========================================
+            DELETE OLD PROFILE IMAGE
+            ==========================================
+            */
+
+            if (
+
+                oldProfileImage &&
+
+                oldProfileImage !== "/images/default-avatar.png"
+
+            ) {
+
+                const oldImagePath = path.join(
+
+                    __dirname,
+
+                    "../public",
+
+                    oldProfileImage
+
+                );
+
+                if (fs.existsSync(oldImagePath)) {
+
+                    fs.unlinkSync(oldImagePath);
+
+                }
+
+            }
+
+            /*
+            ==========================================
+            SUCCESS
+            ==========================================
+            */
+
+            req.flash(
+
+                "success",
+
+                "Profile picture updated successfully."
+
+            );
+
+            return res.redirect("/profile");
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            // Remove temporary upload if it still exists
+            if (
+
+                req.file &&
+
+                fs.existsSync(req.file.path)
+
+            ) {
+
+                fs.unlinkSync(req.file.path);
+
+            }
+
+            req.flash(
+
+                "error",
+
+                err.message ||
+
+                "Unable to upload profile image."
+
+            );
+
+            return res.redirect("/profile");
+
+        }
+
+    }
+
 );
 
 
