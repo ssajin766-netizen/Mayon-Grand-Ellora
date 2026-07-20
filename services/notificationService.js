@@ -1,53 +1,29 @@
-const {
-    Notification
-} = require("../models/notificationModel");
+const { Notification } = require("../models/notificationModel");
 
-async function createNotification({
+async function createNotification(data) {
 
-    user,
+    try {
 
-    title,
+        console.log("==================================");
+        console.log("createNotification called");
+        console.log(data);
 
-    message,
+        const notification = new Notification(data);
 
-    type = "info",
+        await notification.save();
 
-    icon = "fa-bell",
+        console.log("Notification Saved:", notification._id);
+        console.log("==================================");
 
-    link = "#"
+    } catch (err) {
 
-}){
-
-    try{
-
-        await Notification.create({
-
-            user,
-
-            title,
-
-            message,
-
-            type,
-
-            icon,
-
-            link
-
-        });
-
-    }
-
-    catch(err){
-
-        console.log(err);
+        console.error("Notification Error");
+        console.error(err);
 
     }
 
 }
 
 module.exports = {
-
     createNotification
-
 };

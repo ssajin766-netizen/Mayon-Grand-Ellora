@@ -322,20 +322,33 @@ router.post("/login", (req, res, next) => {
 
         if (!user.twoFactorEnabled) {
 
-            return req.logIn(user, (err) => {
+    return req.logIn(user, async (err) => {
 
-                if (err) {
-
-                    return next(err);
-
-                }
-
-                return res.redirect("/home");
-
-            });
-
+        if (err) {
+            return next(err);
         }
 
+        await createNotification({
+
+            user: user._id,
+
+            title: "Login Successful",
+
+            message: "Welcome back to Mayon Grand Ellora.",
+
+            type: "success",
+
+            icon: "fa-right-to-bracket",
+
+            link: "/profile"
+
+        });
+
+        return res.redirect("/home");
+
+    });
+
+}
         /*
         ==========================================
         2FA ENABLED
@@ -509,11 +522,27 @@ router.get(
 
     }),
 
-    (req, res) => {
+    async (req,res)=>{
 
-        return res.redirect("/home");
+    await createNotification({
 
-    }
+        user: req.user._id,
+
+        title: "Google Login",
+
+        message: "You signed in with Google.",
+
+        type: "success",
+
+        icon: "fa-google",
+
+        link: "/profile"
+
+    });
+
+    return res.redirect("/home");
+
+}
 
 );
 /*
@@ -993,6 +1022,22 @@ router.post("/newRequest", async (req, res) => {
         user.validation = "applied";
 
         await user.save();
+
+        await createNotification({
+
+    user: user._id,
+
+    title: "Request Submitted",
+
+    message: "Your resident approval request has been submitted.",
+
+    type: "info",
+
+    icon: "fa-paper-plane",
+
+    link: "/profile"
+
+});
 
         return res.redirect("/home");
 
