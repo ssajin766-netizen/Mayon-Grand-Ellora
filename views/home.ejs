@@ -1,64 +1,357 @@
-<!-- All features -->
-<%- include('partials/header') %>
+<!-- ==========================================================
+     HOME DASHBOARD
+========================================================== -->
 
-<!-- UI Improvement, add text background -->
-<div class="container home-container">
-  <div class="features">
-    <div class="thumbnail" style="padding: 20px 20px 0;">
-      <div class="row">
-        <div class="col-md-4 zoom" onclick="location.href='/residents'">
-          <div class="thumbnail">
-            <img src="images/members.jpg" alt="residents" style="height: 200px;">
-            <div class="caption">
-              <center><h3>Residents</h3></center>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 zoom" onclick="location.href='/noticeboard'">
-          <div class="thumbnail">
-            <img src="images/notice.jpg" alt="noticeboard" style="height: 200px;">
-            <div class="caption">
-              <center><h3>Noticeboard</h3></center>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 zoom" onclick="location.href='/bill'">
-          <div class="thumbnail">
-            <img src="images/bill.jpg" alt="bill" style="height: 200px;">
-            <div class="caption">
-              <center><h3>Bill</h3></center>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-4 zoom" onclick="location.href='/helpdesk'">
-          <div class="thumbnail">
-          <img src="images/helpdesk.jpg" alt="helpdesk" style="height: 200px;">
-          <div class="caption">
-            <center><h3>Helpdesk</h3></center>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 zoom" onclick="location.href='/contacts'">
-          <div class="thumbnail">
-          <img src="images/contact.jpg" alt="Emergency no's" style="height: 200px;">
-          <div class="caption">
-            <center><h3>Emergency No's</h3></center>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 zoom" onclick="location.href='/profile'">
-          <div class="thumbnail">
-          <img src="images/profile.jpg" alt="profile" style="height: 200px;">
-          <div class="caption">
-            <center><h3>Profile</h3></center>
-            </div>
-          </div>
-        </div>
-      </div>
+<%- include("partials/header") %>
+
+<div class="container py-5">
+
+    <!-- Dashboard Header -->
+
+    <div class="text-center mb-5">
+
+        <h1 class="fw-bold text-dark">
+
+            <i class="fas fa-building text-primary me-2"></i>
+
+            Welcome to Mayon Grand Ellora
+
+        </h1>
+
+        <p class="text-muted fs-5">
+
+            Manage your apartment services quickly and securely.
+
+        </p>
+
     </div>
-  </div>
+
+    <!-- Dashboard Cards -->
+
+    <div class="row g-4">
+
+        <!-- Residents -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <a href="/residents" class="text-decoration-none">
+
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+
+                    <img src="/images/members.jpg"
+                         class="card-img-top dashboard-image"
+                         alt="Residents">
+
+                    <div class="card-body text-center">
+
+                        <div class="dashboard-icon bg-primary">
+
+                            <i class="fas fa-users"></i>
+
+                        </div>
+
+                        <h4 class="fw-bold mt-3">
+
+                            Residents
+
+                        </h4>
+
+                        <p class="text-muted">
+
+                            View all residents and apartment owners.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <!-- Noticeboard -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <a href="/noticeboard" class="text-decoration-none">
+
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+
+                    <img src="/images/notice.jpg"
+                         class="card-img-top dashboard-image"
+                         alt="Noticeboard">
+
+                    <div class="card-body text-center">
+
+                        <div class="dashboard-icon bg-warning">
+
+                            <i class="fas fa-bullhorn"></i>
+
+                        </div>
+
+                        <h4 class="fw-bold mt-3">
+
+                            Noticeboard
+
+                        </h4>
+
+                        <p class="text-muted">
+
+                            Read the latest society announcements.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <!-- Bills -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <a href="/bill" class="text-decoration-none">
+
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+
+                    <img src="/images/bill.jpg"
+                         class="card-img-top dashboard-image"
+                         alt="Bills">
+
+                    <div class="card-body text-center">
+
+                        <div class="dashboard-icon bg-success">
+
+                            <i class="fas fa-file-invoice-dollar"></i>
+
+                        </div>
+
+                        <h4 class="fw-bold mt-3">
+
+                            Maintenance Bills
+
+                        </h4>
+
+                        <p class="text-muted">
+
+                            View and pay monthly maintenance bills.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <!-- Helpdesk -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <a href="/helpdesk" class="text-decoration-none">
+
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+
+                    <img src="/images/helpdesk.jpg"
+                         class="card-img-top dashboard-image"
+                         alt="Helpdesk">
+
+                    <div class="card-body text-center">
+
+                        <div class="dashboard-icon bg-danger">
+
+                            <i class="fas fa-headset"></i>
+
+                        </div>
+
+                        <h4 class="fw-bold mt-3">
+
+                            Helpdesk
+
+                        </h4>
+
+                        <p class="text-muted">
+
+                            Raise and manage maintenance complaints.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <!-- Emergency -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <a href="/contacts" class="text-decoration-none">
+
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+
+                    <img src="/images/contact.jpg"
+                         class="card-img-top dashboard-image"
+                         alt="Emergency">
+
+                    <div class="card-body text-center">
+
+                        <div class="dashboard-icon bg-info">
+
+                            <i class="fas fa-phone-alt"></i>
+
+                        </div>
+
+                        <h4 class="fw-bold mt-3">
+
+                            Emergency
+
+                        </h4>
+
+                        <p class="text-muted">
+
+                            Access important emergency contact numbers.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <!-- Profile -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <a href="/profile" class="text-decoration-none">
+
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+
+                    <img src="/images/profile.jpg"
+                         class="card-img-top dashboard-image"
+                         alt="Profile">
+
+                    <div class="card-body text-center">
+
+                        <div class="dashboard-icon bg-secondary">
+
+                            <i class="fas fa-user-circle"></i>
+
+                        </div>
+
+                        <h4 class="fw-bold mt-3">
+
+                            My Profile
+
+                        </h4>
+
+                        <p class="text-muted">
+
+                            View and update your personal information.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+    </div>
+
 </div>
 
-<%- include('partials/footer') %>
+<style>
+
+/* Dashboard */
+
+.dashboard-card{
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    transition:.35s;
+
+}
+
+.dashboard-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:0 20px 45px rgba(0,0,0,.15)!important;
+
+}
+
+.dashboard-image{
+
+    height:220px;
+
+    object-fit:cover;
+
+}
+
+.dashboard-icon{
+
+    width:70px;
+
+    height:70px;
+
+    border-radius:50%;
+
+    color:#fff;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    margin:-55px auto 20px;
+
+    position:relative;
+
+    font-size:30px;
+
+    border:5px solid #fff;
+
+}
+
+.dashboard-card h4{
+
+    color:#212529;
+
+}
+
+.dashboard-card p{
+
+    font-size:15px;
+
+}
+
+@media(max-width:768px){
+
+    .dashboard-image{
+
+        height:180px;
+
+    }
+
+}
+
+</style>
+
+<%- include("partials/footer") %>

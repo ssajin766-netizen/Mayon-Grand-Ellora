@@ -1,74 +1,177 @@
-<!-- New user applied home page -->
-<!DOCTYPE html>
-<html lang="en">
+<!-- ==========================================================
+     ACCOUNT STATUS
+========================================================== -->
 
-<head>
-  <title>Mayon Grand Ellora</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  <meta name="description" content="Simplify everyday living for your housing society!">
-  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico" />
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-</head>
+<%- include("partials/header") %>
 
-<body>
-  <nav class="navbar navbar-inverse">
-    <div class="container-fluid" id="navbar">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>                        
-        </button>
-        <a class="navbar-brand" href="/home">
-          <img src="images/diversity.png" alt="Mayon Grand Ellora">
-        </a>
-      </div>
-      <div class="collapse navbar-collapse" id="myNavbar">
-        <ul class="nav navbar-nav" id="navlist">
-          <li><a href="#" disabled>Residents</a></li>
-          <li><a href="#" disabled>Noticeboard</a></li>
-          <li><a href="#" disabled>Bill</a></li>
-          <li><a href="#" disabled>Helpdesk</a></li>
-          <li><a href="#" disabled>Emergency</a></li>
-          <li><a href="#" disabled>Profile</a></li>
-        </ul>
-        <ul class="nav navbar-nav navbar-right">
-          <li><a href="/logout">Logout</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+<div class="container py-5">
 
-  <div style="padding:4%; padding-top: 0%; font-family:sans-serif; font-size:14px;">
-    <div class="container container-profile" style="max-width: 500px;">
-      <div class="row">
-        <div class="col">
-          <div class="card card-profile my-5" style="margin-top: 10px;">
-            <div class="card-body" style="padding:3% 8% 3%; text-align: center;">
-              <p><i class="fas fa-5x <%= icon %>"></i></p>
-              <p style="font-size: 15px;"><b><%= title %></b></p>
-              <p><%= content %></p>
+    <div class="row justify-content-center">
+
+        <div class="col-lg-6 col-md-8">
+
+            <div class="card shadow-lg border-0 rounded-4">
+
+                <div class="card-body text-center p-5">
+
+                    <!-- Status Icon -->
+
+                    <div class="status-icon mb-4">
+
+                        <i class="fas <%= icon %>"></i>
+
+                    </div>
+
+                    <!-- Title -->
+
+                    <h2 class="fw-bold mb-3">
+
+                        <%= title %>
+
+                    </h2>
+
+                    <!-- Message -->
+
+                    <p class="text-muted fs-5 mb-4">
+
+                        <%= content %>
+
+                    </p>
+
+                    <% if(title === "Account Pending"){ %>
+
+                        <div class="alert alert-warning rounded-3">
+
+                            <i class="fas fa-clock me-2"></i>
+
+                            Your registration request has been submitted successfully.
+                            Please wait until the society administrator approves your account.
+
+                        </div>
+
+                    <% } %>
+
+                    <% if(title === "Account Declined"){ %>
+
+                        <div class="alert alert-danger rounded-3">
+
+                            <i class="fas fa-circle-xmark me-2"></i>
+
+                            Your request has been declined.
+                            Please contact the society administrator for more information.
+
+                        </div>
+
+                    <% } %>
+
+                    <!-- Buttons -->
+
+                    <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
+
+                        <a
+                            href="/logout"
+                            class="btn btn-outline-danger px-4">
+
+                            <i class="fas fa-sign-out-alt me-2"></i>
+
+                            Logout
+
+                        </a>
+
+                        <a
+                            href="/newRequest"
+                            class="btn btn-primary px-4">
+
+                            <i class="fas fa-file-alt me-2"></i>
+
+                            New Request
+
+                        </a>
+
+                    </div>
+
+                </div>
+
             </div>
-          </div>
-        </div>
-      </div>    
-    </div>
-    <div style="display: flex; justify-content: center ">
-      <col-4>   
-        <a href="/logout" class="btn btn-danger btn-md" style="border-radius:3rem; max-width:180px;">
-          Log Out
-        </a>
-        <a href="/newRequest" class="btn btn-primary btn-md" style="border-radius:3rem; max-width:180px; ">
-          New Request
-        </a>
-      </col-4>
-    </div>
-  </div>
 
-  <%- include('partials/footer') %>
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+
+.status-icon{
+
+    width:120px;
+
+    height:120px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:#eef4ff;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    box-shadow:0 10px 25px rgba(13,110,253,.15);
+
+}
+
+.status-icon i{
+
+    font-size:56px;
+
+    color:#0d6efd;
+
+}
+
+.card{
+
+    border-radius:22px;
+
+}
+
+.alert{
+
+    border:none;
+
+}
+
+.btn{
+
+    min-width:170px;
+
+    border-radius:12px;
+
+    font-weight:600;
+
+}
+
+@media(max-width:768px){
+
+    .status-icon{
+
+        width:100px;
+
+        height:100px;
+
+    }
+
+    .status-icon i{
+
+        font-size:46px;
+
+    }
+
+}
+
+</style>
+
+<%- include("partials/footer") %>

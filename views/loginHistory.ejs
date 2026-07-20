@@ -1,229 +1,281 @@
+<!-- ==========================================================
+     LOGIN HISTORY
+========================================================== -->
+
 <%- include("partials/header") %>
 
 <div class="container py-5">
 
-    <div class="row justify-content-center">
+    <!-- Page Header -->
 
-        <div class="col-lg-12">
+    <div class="text-center mb-5">
 
-            <div class="card shadow-lg border-0 rounded-4">
+        <div class="security-icon mb-3">
 
-                <div class="card-header bg-info text-white py-4">
+            <i class="fas fa-history"></i>
 
-                    <div class="d-flex justify-content-between align-items-center">
+        </div>
 
-                        <h3 class="mb-0">
+        <h2 class="fw-bold">
 
-                            <i class="fas fa-history me-2"></i>
+            Login History
 
-                            Login History
+        </h2>
 
-                        </h3>
+        <p class="text-muted">
 
-                        <a
-                            href="/security"
-                            class="btn btn-light">
+            Review all recent login activity for your account.
 
-                            <i class="fas fa-arrow-left me-2"></i>
+        </p>
 
-                            Back
+    </div>
 
-                        </a>
+    <div class="card border-0 shadow-lg rounded-4">
 
-                    </div>
+        <div class="card-header bg-primary text-white py-3">
 
-                </div>
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
 
-                <div class="card-body">
+                <h4 class="mb-0">
 
-                    <% if(resident.loginHistory && resident.loginHistory.length){ %>
+                    <i class="fas fa-clock me-2"></i>
 
-                    <div class="table-responsive">
+                    Recent Login Activity
 
-                        <table class="table table-hover align-middle">
+                </h4>
 
-                            <thead class="table-dark">
+                <a
+                    href="/security"
+                    class="btn btn-light btn-sm">
 
-                                <tr>
+                    <i class="fas fa-arrow-left me-2"></i>
 
-                                    <th>#</th>
+                    Back
 
-                                    <th>Date & Time</th>
+                </a>
 
-                                    <th>Login Method</th>
+            </div>
 
-                                    <th>IP Address</th>
+        </div>
 
-                                    <th>Browser</th>
+        <div class="card-body">
 
-                                    <th>Device</th>
+            <% if(resident.loginHistory && resident.loginHistory.length){ %>
 
-                                    <th>Location</th>
+            <div class="table-responsive">
 
-                                    <th>Status</th>
+                <table class="table table-hover align-middle">
 
-                                </tr>
+                    <thead class="table-dark">
 
-                            </thead>
+                        <tr>
 
-                            <tbody>
+                            <th>#</th>
 
-                                <% resident.loginHistory.slice().reverse().forEach((login,index)=>{ %>
+                            <th>Date & Time</th>
 
-                                <tr>
+                            <th>Method</th>
 
-                                    <td>
+                            <th>IP Address</th>
 
-                                        <%= index+1 %>
+                            <th>Browser</th>
 
-                                    </td>
+                            <th>Device</th>
 
-                                    <td>
+                            <th>Location</th>
 
-                                        <%= login.loginTime ? new Date(login.loginTime).toLocaleString() : "-" %>
+                            <th>Status</th>
 
-                                    </td>
+                        </tr>
 
-                                    <td>
+                    </thead>
 
-                                        <% if(login.loginMethod==="Google"){ %>
+                    <tbody>
 
-                                            <span class="badge bg-danger">
+                        <% resident.loginHistory.slice().reverse().forEach((login,index)=>{ %>
 
-                                                <i class="fab fa-google me-1"></i>
+                        <tr>
 
-                                                Google
+                            <td>
 
-                                            </span>
+                                <strong><%= index+1 %></strong>
 
-                                        <% } else if(login.loginMethod==="Phone"){ %>
+                            </td>
 
-                                            <span class="badge bg-success">
+                            <td>
 
-                                                <i class="fas fa-mobile-alt me-1"></i>
+                                <%= login.loginTime ? new Date(login.loginTime).toLocaleString() : "-" %>
 
-                                                Phone OTP
+                            </td>
 
-                                            </span>
+                            <td>
 
-                                        <% } else { %>
+                                <% if(login.loginMethod==="Google"){ %>
 
-                                            <span class="badge bg-primary">
+                                    <span class="badge bg-danger">
 
-                                                <i class="fas fa-lock me-1"></i>
+                                        <i class="fab fa-google me-1"></i>
 
-                                                Password
+                                        Google
 
-                                            </span>
+                                    </span>
 
-                                        <% } %>
+                                <% } else if(login.loginMethod==="Phone"){ %>
 
-                                    </td>
+                                    <span class="badge bg-success">
 
-                                    <td>
+                                        <i class="fas fa-mobile-alt me-1"></i>
 
-                                        <%= login.ip || "-" %>
+                                        Phone OTP
 
-                                    </td>
+                                    </span>
 
-                                    <td>
+                                <% } else { %>
 
-                                        <%= login.browser || "-" %>
+                                    <span class="badge bg-primary">
 
-                                    </td>
+                                        <i class="fas fa-lock me-1"></i>
 
-                                    <td>
+                                        Password
 
-                                        <%= login.device || "-" %>
+                                    </span>
 
-                                    </td>
+                                <% } %>
 
-                                    <td>
+                            </td>
 
-                                        <%= login.location || "-" %>
+                            <td>
 
-                                    </td>
+                                <code>
 
-                                    <td>
+                                    <%= login.ip || "-" %>
 
-                                        <% if(login.status==="Success"){ %>
+                                </code>
 
-                                            <span class="badge bg-success">
+                            </td>
 
-                                                Success
+                            <td>
 
-                                            </span>
+                                <%= login.browser || "-" %>
 
-                                        <% } else { %>
+                            </td>
 
-                                            <span class="badge bg-danger">
+                            <td>
 
-                                                Failed
+                                <%= login.device || "-" %>
 
-                                            </span>
+                            </td>
 
-                                        <% } %>
+                            <td>
 
-                                    </td>
+                                <% if(login.location){ %>
 
-                                </tr>
+                                    <i class="fas fa-map-marker-alt text-danger me-1"></i>
 
-                                <% }) %>
+                                    <%= login.location %>
 
-                            </tbody>
+                                <% } else { %>
 
-                        </table>
+                                    -
 
-                    </div>
+                                <% } %>
 
-                    <% } else { %>
+                            </td>
 
-                    <div class="text-center py-5">
+                            <td>
 
-                        <i class="fas fa-history fa-4x text-secondary mb-3"></i>
+                                <% if(login.status==="Success"){ %>
 
-                        <h4>No Login History Found</h4>
+                                    <span class="badge bg-success">
 
-                        <p class="text-muted">
+                                        <i class="fas fa-check-circle me-1"></i>
 
-                            Your login activity will appear here.
+                                        Success
 
-                        </p>
+                                    </span>
 
-                    </div>
+                                <% } else { %>
 
-                    <% } %>
+                                    <span class="badge bg-danger">
 
-                    <hr class="my-4">
+                                        <i class="fas fa-times-circle me-1"></i>
 
-<div class="d-flex justify-content-between">
+                                        Failed
 
-    <a href="/security" class="btn btn-secondary">
+                                    </span>
 
-        <i class="fas fa-arrow-left me-2"></i>
+                                <% } %>
 
-        Back to Security
+                            </td>
 
-    </a>
+                        </tr>
 
-    <form action="/clearLoginHistory" method="POST">
+                        <% }) %>
 
-        <button
-            type="submit"
-            class="btn btn-danger"
-            onclick="return confirm('Are you sure you want to clear your login history?');">
+                    </tbody>
 
-            <i class="fas fa-trash me-2"></i>
+                </table>
 
-            Clear Login History
+            </div>
 
-        </button>
+            <% } else { %>
 
-    </form>
+            <div class="text-center py-5">
 
-</div>
+                <i class="fas fa-history fa-5x text-secondary mb-4"></i>
 
-                </div>
+                <h3>
+
+                    No Login History
+
+                </h3>
+
+                <p class="text-muted">
+
+                    Your recent login activity will appear here.
+
+                </p>
+
+            </div>
+
+            <% } %>
+
+        </div>
+
+        <div class="card-footer bg-light">
+
+            <div class="d-flex justify-content-between flex-wrap gap-3">
+
+                <a
+                    href="/security"
+                    class="btn btn-secondary">
+
+                    <i class="fas fa-arrow-left me-2"></i>
+
+                    Back to Security
+
+                </a>
+
+                <% if(resident.loginHistory && resident.loginHistory.length){ %>
+
+                <form
+                    action="/clearLoginHistory"
+                    method="POST">
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger"
+                        onclick="return confirm('Are you sure you want to clear all login history?');">
+
+                        <i class="fas fa-trash-alt me-2"></i>
+
+                        Clear Login History
+
+                    </button>
+
+                </form>
+
+                <% } %>
 
             </div>
 
@@ -232,5 +284,101 @@
     </div>
 
 </div>
+
+<style>
+
+.security-icon{
+
+    width:90px;
+
+    height:90px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:#eaf4ff;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    box-shadow:0 10px 30px rgba(13,110,253,.15);
+
+}
+
+.security-icon i{
+
+    font-size:38px;
+
+    color:#0d6efd;
+
+}
+
+.table td{
+
+    vertical-align:middle;
+
+}
+
+.table tbody tr:hover{
+
+    background:#f8fbff;
+
+}
+
+.card{
+
+    overflow:hidden;
+
+}
+
+.badge{
+
+    padding:.6em .9em;
+
+    font-size:.8rem;
+
+}
+
+code{
+
+    color:#dc3545;
+
+    font-size:.9rem;
+
+}
+
+@media(max-width:768px){
+
+    .card-header{
+
+        text-align:center;
+
+    }
+
+    .card-header .btn{
+
+        margin-top:15px;
+
+    }
+
+    .card-footer .d-flex{
+
+        flex-direction:column;
+
+    }
+
+    .card-footer .btn{
+
+        width:100%;
+
+    }
+
+}
+
+</style>
 
 <%- include("partials/footer") %>

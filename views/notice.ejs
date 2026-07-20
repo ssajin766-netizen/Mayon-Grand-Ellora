@@ -1,27 +1,245 @@
-<!-- New notice -->
-<%- include('partials/header') %>
+<!-- ==========================================================
+     CREATE NOTICE
+========================================================== -->
 
-<div class="container" style="min-width:80%; margin:auto;">
-  <div class="row col-md-6 col-md-offset-3">
-    <div class="panel panel-primary">
-      <div class="panel-heading text-center">
-        <h4>New Notice</h4>
-      </div>
-      <div class="panel-body">
-        <form action="/notice" method="POST">
-          <div class="form-group">
-            <label for="comment">Subject</label>
-            <input name="subject" class="form-control"  type="text" id="comment" required></input>
-            <br>
-            <label for="comment">Details</label>
-            <textarea name="details" class="form-control"  type="text" rows="7" id="comment" required></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Submit Notice</button>
-          <a href="/noticeboard" class="btn btn-danger">Cancel</a>
-        </form>
-      </div>
+<%- include("partials/header") %>
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8 col-xl-7">
+
+            <div class="card shadow-lg border-0 rounded-4">
+
+                <!-- Header -->
+
+                <div class="card-header bg-primary text-white text-center py-4 border-0">
+
+                    <div class="notice-icon mb-3">
+
+                        <i class="fas fa-bullhorn"></i>
+
+                    </div>
+
+                    <h2 class="fw-bold mb-2">
+
+                        Create Notice
+
+                    </h2>
+
+                    <p class="mb-0 opacity-75">
+
+                        Publish announcements and updates for all residents.
+
+                    </p>
+
+                </div>
+
+                <!-- Body -->
+
+                <div class="card-body p-5">
+
+                    <form action="/notice" method="POST">
+
+                        <!-- Subject -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+
+                                <i class="fas fa-heading text-primary me-2"></i>
+
+                                Notice Subject
+
+                            </label>
+
+                            <input
+
+                                type="text"
+
+                                name="subject"
+
+                                class="form-control form-control-lg"
+
+                                placeholder="Example: Water Supply Maintenance"
+
+                                maxlength="100"
+
+                                required>
+
+                            <small class="text-muted">
+
+                                Maximum 100 characters.
+
+                            </small>
+
+                        </div>
+
+                        <!-- Details -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+
+                                <i class="fas fa-file-alt text-primary me-2"></i>
+
+                                Notice Details
+
+                            </label>
+
+                            <textarea
+
+                                name="details"
+
+                                rows="8"
+
+                                class="form-control"
+
+                                placeholder="Write your notice here..."
+
+                                required></textarea>
+
+                            <small class="text-muted">
+
+                                Include date, time and important instructions if required.
+
+                            </small>
+
+                        </div>
+
+                        <!-- Buttons -->
+
+                        <div class="d-flex justify-content-between flex-wrap gap-3">
+
+                            <a
+
+                                href="/noticeboard"
+
+                                class="btn btn-outline-secondary px-4">
+
+                                <i class="fas fa-arrow-left me-2"></i>
+
+                                Back
+
+                            </a>
+
+                            <button
+
+                                type="submit"
+
+                                class="btn btn-primary px-4">
+
+                                <i class="fas fa-paper-plane me-2"></i>
+
+                                Publish Notice
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
 </div>
 
-<%- include('partials/footer') %>
+<style>
+
+.notice-icon{
+
+    width:90px;
+
+    height:90px;
+
+    background:#ffffff22;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    margin:auto;
+
+}
+
+.notice-icon i{
+
+    font-size:42px;
+
+    color:#fff;
+
+}
+
+.card{
+
+    overflow:hidden;
+
+}
+
+.form-control{
+
+    border-radius:12px;
+
+    min-height:50px;
+
+}
+
+textarea.form-control{
+
+    min-height:180px;
+
+    resize:vertical;
+
+}
+
+.form-control:focus{
+
+    border-color:#0d6efd;
+
+    box-shadow:0 0 0 .2rem rgba(13,110,253,.15);
+
+}
+
+.btn{
+
+    border-radius:12px;
+
+    font-weight:600;
+
+}
+
+@media(max-width:768px){
+
+    .card-body{
+
+        padding:30px 20px;
+
+    }
+
+    .d-flex{
+
+        flex-direction:column;
+
+    }
+
+    .d-flex .btn{
+
+        width:100%;
+
+    }
+
+}
+
+</style>
+
+<%- include("partials/footer") %>

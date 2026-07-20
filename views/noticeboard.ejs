@@ -1,37 +1,209 @@
-<!-- Noticeboard -->
-<%- include('partials/header') %>
+<!-- ==========================================================
+     NOTICEBOARD
+========================================================== -->
 
-<div style="padding:4%; padding-top: 0%; font-family:sans-serif; font-size:14px;">
-  <h2 style="background-color:rgb(51, 51, 51); padding:18px;color:white; text-align: center; border-radius: 1rem; font-size: 20px; max-width: 1000px; margin:auto; margin-bottom: 10px;">
-    Noticeboard
-  </h2>
-  <div class="container container-profile">
+<%- include("partials/header") %>
+
+<div class="container py-4">
+
+    <!-- ==========================================
+         Header
+    =========================================== -->
+
+    <div class="text-center mb-5">
+
+        <h2 class="fw-bold">
+
+            <i class="fas fa-bullhorn text-warning me-2"></i>
+
+            Society Noticeboard
+
+        </h2>
+
+        <p class="text-muted">
+
+            Stay updated with the latest announcements and community news.
+
+        </p>
+
+    </div>
+
+    <!-- ==========================================
+         Create Notice
+    =========================================== -->
+
     <% if(isAdmin){ %>
-      <row>
-        <col-4>
-            <a href="/notice" class="btn btn-primary btn-md text-uppercase center" style="border-radius:3rem; max-width:180px; display: block; margin: auto">
-              Create Notice
-            </a>
-        </col-4>
-      </row>
-      <% } %>
-    <div class="row">
-      <% notices.reverse().forEach(function(notice){ %>
-      <div class="col">
-        <div class="card card-profile my-5" style="margin-top: 10px;">
-          <div class="card-body" style="padding:3% 8% 3%;">
-            <div>
-              <i class="fas fa-paperclip"></i></i> <b><%= notice.subject %></b>
-              <p style="padding-left: 20px; color: grey;">
-                <%= notice.date %> - Published by admin
-              </p>
-              <p style="padding-left: 20px"><%= notice.details %></p>
+
+    <div class="text-center mb-5">
+
+        <a
+            href="/notice"
+            class="btn btn-primary btn-lg rounded-pill shadow-sm px-4">
+
+            <i class="fas fa-plus-circle me-2"></i>
+
+            Create Notice
+
+        </a>
+
+    </div>
+
+    <% } %>
+
+    <!-- ==========================================
+         Notice Cards
+    =========================================== -->
+
+    <div class="row g-4">
+
+        <% notices.slice().reverse().forEach(function(notice){ %>
+
+        <div class="col-lg-6">
+
+            <div class="card notice-card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <!-- Header -->
+
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+
+                        <div>
+
+                            <h4 class="fw-bold mb-1">
+
+                                <i class="fas fa-thumbtack text-danger me-2"></i>
+
+                                <%= notice.subject %>
+
+                            </h4>
+
+                            <small class="text-muted">
+
+                                <i class="far fa-calendar-alt me-1"></i>
+
+                                <%= notice.date %>
+
+                            </small>
+
+                        </div>
+
+                        <span class="badge bg-success">
+
+                            Admin
+
+                        </span>
+
+                    </div>
+
+                    <hr>
+
+                    <!-- Content -->
+
+                    <p class="notice-text">
+
+                        <%= notice.details %>
+
+                    </p>
+
+                </div>
+
             </div>
-          </div>
+
         </div>
-      </div>
-      <% }) %>
-    </div>    
-  </div>
+
+        <% }) %>
+
+    </div>
+
+    <!-- ==========================================
+         Empty State
+    =========================================== -->
+
+    <% if(!notices.length){ %>
+
+    <div class="text-center py-5">
+
+        <i class="fas fa-bullhorn fa-4x text-secondary mb-3"></i>
+
+        <h4>No Notices Available</h4>
+
+        <p class="text-muted">
+
+            There are currently no announcements.
+
+        </p>
+
+    </div>
+
+    <% } %>
+
 </div>
-<%- include('partials/footer') %>
+
+<style>
+
+/* ==========================================
+   Notice Cards
+========================================== */
+
+.notice-card{
+
+    border-radius:20px;
+
+    transition:.35s;
+
+    overflow:hidden;
+
+}
+
+.notice-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 18px 40px rgba(0,0,0,.15)!important;
+
+}
+
+.notice-card .card-body{
+
+    padding:28px;
+
+}
+
+.notice-text{
+
+    color:#495057;
+
+    line-height:1.8;
+
+    white-space:pre-wrap;
+
+}
+
+.notice-card hr{
+
+    margin:18px 0;
+
+}
+
+.badge{
+
+    font-size:13px;
+
+    padding:8px 12px;
+
+}
+
+@media(max-width:768px){
+
+    .notice-card .card-body{
+
+        padding:22px;
+
+    }
+
+}
+
+</style>
+
+<%- include("partials/footer") %>

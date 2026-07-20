@@ -1,73 +1,135 @@
-<%- include('partials/headerForm') %>
+<!-- ==========================================================
+     USER SIGN UP
+========================================================== -->
 
-<body style="background:#f5f7fb;">
+<%- include("partials/headerForm") %>
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/css/intlTelInput.css">
+
+<link
+href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+rel="stylesheet">
 
 <div class="container py-5">
 
     <div class="row justify-content-center">
 
-        <div class="col-lg-6 col-md-8">
+        <div class="col-xl-7 col-lg-8 col-md-10">
 
-            <div class="card shadow border-0 rounded">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
 
-                <div class="card-body p-4">
+                <!-- Header -->
 
-                    <div class="text-center mb-4">
+                <div class="card-header bg-success text-white text-center py-4 border-0">
 
-                        <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
+                    <div class="signup-icon">
 
-                        <h2>Create Account</h2>
-
-                        <p class="text-muted">
-                            Join Mayon Grand Ellora
-                        </p>
+                        <i class="fas fa-user-plus"></i>
 
                     </div>
 
-                    <form id="signupForm"
-                          action="/signup"
-                          method="POST">
+                    <h2 class="fw-bold mt-3">
 
-                        <!-- First Name -->
+                        Create Account
 
-                        <div class="form-group">
+                    </h2>
 
-                            <label for="firstName">
-                                First Name
-                            </label>
+                    <p class="mb-0 opacity-75">
 
-                            <input
-                                id="firstName"
-                                name="firstName"
-                                type="text"
-                                class="form-control"
-                                required>
+                        Join Mayon Grand Ellora Community
 
-                        </div>
+                    </p>
 
-                        <!-- Last Name -->
+                </div>
 
-                        <div class="form-group">
+                <!-- Body -->
 
-                            <label for="lastName">
-                                Last Name
-                            </label>
+                <div class="card-body p-5">
 
-                            <input
-                                id="lastName"
-                                name="lastName"
-                                type="text"
-                                class="form-control"
-                                required>
+                    <% if(success && success.length){ %>
+
+                        <div class="alert alert-success">
+
+                            <i class="fas fa-check-circle me-2"></i>
+
+                            <%= success %>
 
                         </div>
 
-                        <!-- Phone -->
+                    <% } %>
 
-                        <div class="form-group">
+                    <% if(error && error.length){ %>
 
-                            <label for="phone">
+                        <div class="alert alert-danger">
+
+                            <i class="fas fa-times-circle me-2"></i>
+
+                            <%= error %>
+
+                        </div>
+
+                    <% } %>
+
+                    <form
+                        id="signupForm"
+                        action="/signup"
+                        method="POST">
+
+                        <!-- Personal Information -->
+
+                        <h5 class="section-title">
+
+                            Personal Information
+
+                        </h5>
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    First Name
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="firstName"
+                                    name="firstName"
+                                    class="form-control"
+                                    placeholder="Enter first name"
+                                    required>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    Last Name
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="lastName"
+                                    name="lastName"
+                                    class="form-control"
+                                    placeholder="Enter last name"
+                                    required>
+
+                            </div>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
                                 Mobile Number
+
                             </label>
 
                             <input
@@ -84,12 +146,20 @@
 
                         </div>
 
-                        <!-- Society -->
+                        <!-- Society Information -->
 
-                        <div class="form-group">
+                        <h5 class="section-title">
 
-                            <label for="societyName">
+                            Society Information
+
+                        </h5>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
                                 Society Name
+
                             </label>
 
                             <input
@@ -97,6 +167,7 @@
                                 name="societyName"
                                 list="societyList"
                                 class="form-control"
+                                placeholder="Select your society"
                                 autocomplete="off"
                                 required>
 
@@ -112,12 +183,12 @@
 
                         </div>
 
-                        <!-- Flat -->
+                        <div class="mb-4">
 
-                        <div class="form-group">
+                            <label class="form-label">
 
-                            <label for="flatNumber">
                                 Flat Number
+
                             </label>
 
                             <input
@@ -125,16 +196,25 @@
                                 name="flatNumber"
                                 type="text"
                                 class="form-control"
+                                placeholder="Example: A-101"
                                 required>
 
                         </div>
 
-                        <!-- Email -->
+                        <!-- Account -->
 
-                        <div class="form-group">
+                        <h5 class="section-title">
 
-                            <label for="email">
+                            Account Information
+
+                        </h5>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
                                 Email Address
+
                             </label>
 
                             <input
@@ -142,16 +222,17 @@
                                 name="username"
                                 type="email"
                                 class="form-control"
+                                placeholder="Enter your email"
                                 required>
 
                         </div>
 
-                        <!-- Password -->
+                        <div class="mb-4">
 
-                        <div class="form-group">
+                            <label class="form-label">
 
-                            <label for="password">
                                 Password
+
                             </label>
 
                             <input
@@ -159,69 +240,81 @@
                                 name="password"
                                 type="password"
                                 class="form-control"
+                                placeholder="Create a password"
                                 required>
 
                         </div>
 
-                        <button
-                            class="btn btn-success btn-block btn-lg mt-4">
+                        <!-- Register -->
 
-                            <i class="fas fa-user-plus"></i>
+                        <button
+                            id="submitBtn"
+                            type="submit"
+                            class="btn btn-success w-100">
+
+                            <i class="fas fa-user-plus me-2"></i>
 
                             Create Account
 
                         </button>
 
-                        <div class="text-center my-4">
-
-                            <strong>OR</strong>
-
-                        </div>
-
-                        <a
-                            href="/auth/google"
-                            class="btn btn-light btn-block"
-                            style="border:1px solid #ddd;display:flex;justify-content:center;align-items:center;gap:10px;">
-
-                            <img
-                                src="https://developers.google.com/identity/images/g-logo.png"
-                                width="20">
-
-                            Continue with Google
-
-                        </a>
-
-                        <!-- Phone Login -->
-
-                        <a
-                        href="/loginPhone"
-                        class="btn btn-success btn-block mb-3">
-
-                        <i class="fas fa-mobile-alt mr-2"></i>
-
-                      Continue with Phone
-
-                        </a>
-
-                        <hr>
-
-                        <a
-                            href="/login"
-                            class="btn btn-outline-primary btn-block">
-
-                            Sign In
-
-                        </a>
-
-                        <a
-                            href="/"
-                            class="btn btn-secondary btn-block mt-2">
-
-                            Home
-
-                        </a>
-
                     </form>
+
+                    <div class="divider">
+
+                        <span>OR</span>
+
+                    </div>
+
+                    <!-- Google -->
+
+                    <a
+                        href="/auth/google"
+                        class="btn btn-light w-100 google-btn">
+
+                        <img
+                            src="https://developers.google.com/identity/images/g-logo.png"
+                            width="20">
+
+                        Continue with Google
+
+                    </a>
+
+                    <!-- Phone -->
+
+                    <a
+                        href="/loginPhone"
+                        class="btn btn-success w-100 mt-3">
+
+                        <i class="fas fa-mobile-alt me-2"></i>
+
+                        Continue with Phone
+
+                    </a>
+
+                    <hr>
+
+                    <p class="text-center text-muted">
+
+                        Already have an account?
+
+                    </p>
+
+                    <a
+                        href="/login"
+                        class="btn btn-outline-primary w-100">
+
+                        Login
+
+                    </a>
+
+                    <a
+                        href="/"
+                        class="btn btn-outline-secondary w-100 mt-3">
+
+                        Back to Home
+
+                    </a>
 
                 </div>
 
@@ -233,13 +326,16 @@
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.8/build/js/intlTelInput.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/intlTelInput.min.js"></script>
 
 <script>
 
-const phoneInput = document.querySelector("#phone");
+const phoneInput=document.querySelector("#phone");
+const hiddenPhone=document.querySelector("#phoneNumber");
+const form=document.querySelector("#signupForm");
+const submitBtn=document.querySelector("#submitBtn");
 
-const iti = window.intlTelInput(phoneInput,{
+const iti=window.intlTelInput(phoneInput,{
 
     initialCountry:"in",
 
@@ -259,27 +355,35 @@ const iti = window.intlTelInput(phoneInput,{
 
     autoPlaceholder:"aggressive",
 
-    utilsScript:"https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.8/build/js/utils.js"
+    formatOnDisplay:true,
+
+    loadUtils:()=>import(
+"https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js")
 
 });
 
-document
-.getElementById("signupForm")
-.addEventListener("submit",function(e){
+form.addEventListener("submit",function(e){
 
     e.preventDefault();
 
-    const phone = iti.getNumber();
-
-    if(!phone.startsWith("+")){
+    if(!iti.isValidNumber()){
 
         alert("Please enter a valid phone number.");
+
+        phoneInput.focus();
 
         return;
 
     }
 
-    document.getElementById("phoneNumber").value = phone;
+    hiddenPhone.value=iti.getNumber();
+
+    submitBtn.disabled=true;
+
+    submitBtn.innerHTML=`
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        Creating Account...
+    `;
 
     this.submit();
 
@@ -291,27 +395,75 @@ document
 
 body{
 
-    background:#f5f7fb;
+    background:#f4f7fb;
+
+    font-family:'Inter',sans-serif;
+
+}
+
+.signup-icon{
+
+    width:90px;
+
+    height:90px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:#ffffff22;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+.signup-icon i{
+
+    font-size:40px;
+
+    color:#fff;
+
+}
+
+.section-title{
+
+    font-weight:700;
+
+    margin-bottom:20px;
+
+    color:#343a40;
+
+    border-left:5px solid #198754;
+
+    padding-left:12px;
 
 }
 
 .card{
 
-    border-radius:18px;
+    border-radius:24px;
 
 }
 
 .form-control{
 
-    height:46px;
+    min-height:52px;
 
-    border-radius:10px;
+    border-radius:14px;
+
+    border:2px solid #e5e7eb;
 
 }
 
-.btn{
+.form-control:focus{
 
-    border-radius:10px;
+    border-color:#198754;
+
+    box-shadow:0 0 0 .2rem rgba(25,135,84,.15);
 
 }
 
@@ -325,18 +477,96 @@ body{
 
     width:100%!important;
 
-    height:46px;
+    min-height:52px;
+
+    border-radius:14px;
 
 }
 
 .iti__country-list{
 
+    border-radius:12px;
+
     z-index:999999;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+
+}
+
+.btn{
+
+    min-height:50px;
+
+    border-radius:14px;
+
+    font-weight:600;
+
+}
+
+.google-btn{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:10px;
+
+    border:1px solid #dee2e6;
+
+}
+
+.google-btn:hover{
+
+    background:#f8f9fa;
+
+}
+
+.divider{
+
+    display:flex;
+
+    align-items:center;
+
+    margin:30px 0;
+
+}
+
+.divider::before,
+
+.divider::after{
+
+    content:"";
+
+    flex:1;
+
+    height:1px;
+
+    background:#dee2e6;
+
+}
+
+.divider span{
+
+    padding:0 15px;
+
+    color:#6c757d;
+
+    font-weight:600;
+
+}
+
+@media(max-width:768px){
+
+    .card-body{
+
+        padding:30px 22px;
+
+    }
 
 }
 
 </style>
 
-</body>
-
-</html>
+<%- include("partials/footer") %>

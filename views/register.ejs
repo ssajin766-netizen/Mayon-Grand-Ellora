@@ -1,103 +1,481 @@
-<!-- Admin signup form -->
-<%- include('partials/headerForm') %>
+<!-- ==========================================================
+     ADMIN REGISTRATION
+========================================================== -->
 
-  <body>
-    <div class="container">
-      <div class="row">
-        <div class="col-sm-12 col-md-9 col-lg-7 mx-auto">
-          <div class="card card-signin my-5">
-            <div class="card-body">
-              <h4 class="card-title text-center">Admin Registration</h4>
-              <form class="form-signin" action="/register" method="POST">
-                <div class="row">
-                  <div class="col-sm-12 col-lg-6">
-                    <div class="form-label-group">
-                      <input name="firstName" type="text" id="inputFirstName" class="form-control" placeholder="First name " required autofocus>
-                      <label for="inputFirstName">First name</label>
+<%- include("partials/headerForm") %>
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/css/intlTelInput.css">
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-xl-8 col-lg-9">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <!-- Header -->
+
+                <div class="card-header bg-dark text-white text-center py-4 border-0">
+
+                    <div class="register-icon">
+
+                        <i class="fas fa-user-shield"></i>
+
                     </div>
-                  </div>
-                  <div class="col-sm-12 col-lg-6">
-                    <div class="form-label-group">
-                      <input name="lastName" type="text" id="inputLastName" class="form-control" placeholder="Last name " required>
-                      <label for="inputLastName">Last name</label>
-                    </div>
-                  </div>
+
+                    <h2 class="fw-bold mt-3">
+
+                        Admin Registration
+
+                    </h2>
+
+                    <p class="mb-0 opacity-75">
+
+                        Register your society and become its administrator.
+
+                    </p>
+
                 </div>
-                <div class="row">
-                  <div class="col-sm-12 col-lg-6">
-                    <div class="form-label-group">
-                      <input name="phoneNumber" type="text" id="inputPhoneNumber" class="form-control" placeholder="Phone number" required>
-                      <label for="inputPhoneNumber">Phone number</label>
-                    </div>
-                  </div>
-                  <div class="col-sm-12 col-lg-6">
-                    <div class="form-label-group">
-                      <input name="flatNumber" type="text" id="inputFlatNumber" class="form-control" placeholder="Flat number" required>
-                      <label for="inputFlatNumber">Flat number</label>
-                    </div>
-                  </div>
+
+                <!-- Body -->
+
+                <div class="card-body p-5">
+
+                    <% if(success && success.length){ %>
+
+                        <div class="alert alert-success">
+
+                            <%= success %>
+
+                        </div>
+
+                    <% } %>
+
+                    <% if(error && error.length){ %>
+
+                        <div class="alert alert-danger">
+
+                            <%= error %>
+
+                        </div>
+
+                    <% } %>
+
+                    <form action="/register" method="POST">
+
+                        <!-- Personal Information -->
+
+                        <h5 class="section-title">
+
+                            Personal Information
+
+                        </h5>
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    First Name
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="firstName"
+                                    class="form-control"
+                                    required>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    Last Name
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="lastName"
+                                    class="form-control"
+                                    required>
+
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    Mobile Number
+
+                                </label>
+
+                                <input
+                                    id="phone"
+                                    type="tel"
+                                    class="form-control"
+                                    required>
+
+                                <input
+                                    type="hidden"
+                                    name="phoneNumber"
+                                    id="phoneNumber">
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    Flat Number
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="flatNumber"
+                                    class="form-control"
+                                    required>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Society -->
+
+                        <h5 class="section-title mt-4">
+
+                            Society Information
+
+                        </h5>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Society Name
+
+                            </label>
+
+                            <input
+                                type="text"
+                                name="societyName"
+                                class="form-control"
+                                required>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Society Address
+
+                            </label>
+
+                            <input
+                                type="text"
+                                name="address"
+                                class="form-control"
+                                required>
+
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    City
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="city"
+                                    class="form-control"
+                                    required>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    District
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="district"
+                                    class="form-control"
+                                    required>
+
+                            </div>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                Postal Code
+
+                            </label>
+
+                            <input
+                                type="text"
+                                name="postalCode"
+                                class="form-control"
+                                required>
+
+                        </div>
+
+                        <!-- Account -->
+
+                        <h5 class="section-title">
+
+                            Account Information
+
+                        </h5>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Email Address
+
+                            </label>
+
+                            <input
+                                type="email"
+                                name="username"
+                                class="form-control"
+                                required>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Password
+
+                            </label>
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                class="form-control"
+                                required>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                Admin Secret
+
+                            </label>
+
+                            <input
+                                type="password"
+                                name="adminSecret"
+                                class="form-control"
+                                required>
+
+                        </div>
+
+                        <!-- Buttons -->
+
+                        <button
+                            class="btn btn-dark w-100 py-3">
+
+                            <i class="fas fa-user-plus me-2"></i>
+
+                            Register Society
+
+                        </button>
+
+                        <hr>
+
+                        <p class="text-center text-muted">
+
+                            Society already registered?
+
+                        </p>
+
+                        <a
+                            href="/login"
+                            class="btn btn-danger w-100 mb-3">
+
+                            Login
+
+                        </a>
+
+                        <a
+                            href="/"
+                            class="btn btn-outline-secondary w-100">
+
+                            Back to Home
+
+                        </a>
+
+                    </form>
+
                 </div>
-                <div class="form-label-group">
-                  <input name="societyName" type="text" id="inputSocietyName" class="form-control" placeholder="Society name " required>
-                  <label for="inputSocietyName">Society name</label>
-                </div>
-                <div class="form-label-group">
-                  <input name="address" type="text" id="inputSocietyAddress" class="form-control" placeholder="Society address " required>
-                  <label for="inputSocietyAddress">Society address</label>
-                </div>
-                <div class="row">
-                  <div class="col-sm-12 col-lg-6">
-                    <div class="form-label-group">
-                      <input name="city" type="text" id="inputCity" class="form-control" placeholder="City" required>
-                      <label for="inputCity">City</label>
-                    </div>
-                  </div>
-                  <div class="col-sm-12 col-lg-6">
-                    <div class="form-label-group">
-                      <input name="district" type="text" id="inputDistrict" class="form-control" placeholder="District" required>
-                      <label for="inputDistrict">District</label>
-                    </div>
-                  </div>
-                </div>
-                <div class="form-label-group">
-                  <input name="postalCode" type="text" id="inputPostcode" class="form-control" placeholder="Postal code" required>
-                  <label for="inputPostcode">Postal code</label>
-                </div>
-                <div class="form-label-group">
-                  <input name="username" type="email" id="email" class="form-control" placeholder="Email" required>
-                  <label for="email">Email</label>
-                </div>
-                <div class="form-label-group">
-                  <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
-                  <label for="inputPassword">Password</label>
-                </div>
-                <div class="form-label-group">
-               <input
-               name="adminSecret"
-               type="password"
-               id="inputAdminSecret"
-               class="form-control"
-               placeholder="Admin Secret"
-               required>
-               <label for="inputAdminSecret">
-               Admin Secret
-               </label>
-               </div>
-                <button class="btn btn-lg btn-dark btn-block text-uppercase" type="submit" style="font-size:15px;">
-                  Register
-                </button>
-                <hr class="my-4">
-                <h6 class="card-text text-center">Society already registered? </h6></b>
-                <a href="/login" class="btn  btn-danger btn-block text-uppercase" type="submit" style="font-size:15px;">
-                  Sign-in
-                </a>
-                <a href="/" class="btn  btn-secondary btn-block text-uppercase">Home</a>
-              </form>
+
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </body>
 
-</html>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/intlTelInput.min.js"></script>
+
+<script>
+
+const phoneInput=document.querySelector("#phone");
+
+const hidden=document.querySelector("#phoneNumber");
+
+const form=document.querySelector("form");
+
+const iti=window.intlTelInput(phoneInput,{
+
+    initialCountry:"in",
+
+    preferredCountries:["in","us","gb","ae","sg"],
+
+    separateDialCode:true,
+
+    nationalMode:false,
+
+    loadUtils:()=>import("https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js")
+
+});
+
+form.addEventListener("submit",function(){
+
+    hidden.value=iti.getNumber();
+
+});
+
+</script>
+
+<style>
+
+.register-icon{
+
+    width:90px;
+
+    height:90px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:#ffffff22;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+.register-icon i{
+
+    font-size:40px;
+
+    color:#fff;
+
+}
+
+.section-title{
+
+    font-weight:700;
+
+    margin-bottom:20px;
+
+    color:#343a40;
+
+    border-left:5px solid #0d6efd;
+
+    padding-left:12px;
+
+}
+
+.form-control{
+
+    border-radius:12px;
+
+    min-height:50px;
+
+}
+
+.form-control:focus{
+
+    border-color:#0d6efd;
+
+    box-shadow:0 0 0 .2rem rgba(13,110,253,.15);
+
+}
+
+.iti{
+
+    width:100%;
+
+}
+
+.iti input{
+
+    width:100%!important;
+
+    min-height:50px;
+
+}
+
+.btn{
+
+    border-radius:12px;
+
+    font-weight:600;
+
+}
+
+.card{
+
+    border-radius:24px;
+
+}
+
+@media(max-width:768px){
+
+    .card-body{
+
+        padding:30px 20px;
+
+    }
+
+}
+
+</style>
+
+<%- include("partials/footer") %>

@@ -1,111 +1,445 @@
-<%- include('partials/header') %>
+<!-- ==========================================================
+     EMERGENCY CONTACTS
+========================================================== -->
+
+<%- include("partials/header") %>
 
 <%
+
 const emergencyContacts = [
-  { icon: "fa-wrench",       title: "Plumbing Service",   value: contact.plumbingService },
-  { icon: "fa-pills",        title: "Pharmacy",           value: contact.medicineShop },
-  { icon: "fa-user-md",      title: "Doctor",             value: contact.doctor },
-  { icon: "fa-ambulance",    title: "Ambulance",          value: contact.ambulance },
-  { icon: "fa-fire-alt",     title: "Fire Station",       value: contact.fireStation },
-  { icon: "fa-shield-alt",   title: "Police Station",     value: contact.policeStation },
-  { icon: "fa-user-shield",  title: "Guard",              value: contact.guard },
-  { icon: "fa-bolt",         title: "Electrician",        value: contact.electrician },
-  { icon: "fa-hospital",     title: "Hospital",           value: contact.hospital },
-  { icon: "fa-elevator",     title: "Lift Service",       value: contact.liftService },
-  { icon: "fa-tint",         title: "Water Supply",       value: contact.waterSupply },
-  { icon: "fa-shield-alt",   title: "Security Office",    value: contact.securityOffice },
-  { icon: "fa-battery-full", title: "Generator Service",  value: contact.generatorService },
-  { icon: "fa-fire",         title: "Gas Agency",         value: contact.gasAgency },
-  { icon: "fa-bolt",         title: "Electricity Board",  value: contact.electricityBoard },
-  { icon: "fa-tools",        title: "Maintenance Office", value: contact.maintenanceOffice }
+
+{
+
+icon:"fa-wrench",
+
+color:"primary",
+
+title:"Plumbing Service",
+
+value:contact.plumbingService
+
+},
+
+{
+
+icon:"fa-pills",
+
+color:"success",
+
+title:"Pharmacy",
+
+value:contact.medicineShop
+
+},
+
+{
+
+icon:"fa-user-doctor",
+
+color:"info",
+
+title:"Doctor",
+
+value:contact.doctor
+
+},
+
+{
+
+icon:"fa-truck-medical",
+
+color:"danger",
+
+title:"Ambulance",
+
+value:contact.ambulance
+
+},
+
+{
+
+icon:"fa-fire",
+
+color:"danger",
+
+title:"Fire Station",
+
+value:contact.fireStation
+
+},
+
+{
+
+icon:"fa-shield-halved",
+
+color:"dark",
+
+title:"Police Station",
+
+value:contact.policeStation
+
+},
+
+{
+
+icon:"fa-user-shield",
+
+color:"secondary",
+
+title:"Security Guard",
+
+value:contact.guard
+
+},
+
+{
+
+icon:"fa-bolt",
+
+color:"warning",
+
+title:"Electrician",
+
+value:contact.electrician
+
+},
+
+{
+
+icon:"fa-hospital",
+
+color:"danger",
+
+title:"Hospital",
+
+value:contact.hospital
+
+},
+
+{
+
+icon:"fa-elevator",
+
+color:"primary",
+
+title:"Lift Service",
+
+value:contact.liftService
+
+},
+
+{
+
+icon:"fa-droplet",
+
+color:"info",
+
+title:"Water Supply",
+
+value:contact.waterSupply
+
+},
+
+{
+
+icon:"fa-building-shield",
+
+color:"secondary",
+
+title:"Security Office",
+
+value:contact.securityOffice
+
+},
+
+{
+
+icon:"fa-battery-full",
+
+color:"success",
+
+title:"Generator Service",
+
+value:contact.generatorService
+
+},
+
+{
+
+icon:"fa-fire-flame-curved",
+
+color:"warning",
+
+title:"Gas Agency",
+
+value:contact.gasAgency
+
+},
+
+{
+
+icon:"fa-plug-circle-bolt",
+
+color:"warning",
+
+title:"Electricity Board",
+
+value:contact.electricityBoard
+
+},
+
+{
+
+icon:"fa-screwdriver-wrench",
+
+color:"primary",
+
+title:"Maintenance Office",
+
+value:contact.maintenanceOffice
+
+}
+
 ];
+
 %>
 
-<div class="container py-4">
+<div class="container py-5">
 
-    <!-- Header -->
+    <!-- ====================================== -->
+
     <div class="text-center mb-5">
 
-        <img src="/images/logo.png"
-             alt="Society Logo"
-             class="logo-img mb-3">
+        <div class="contact-logo mb-3">
 
-        <h2 class="society-name">
+            <img
+
+                src="/images/diversity.png"
+
+                class="img-fluid"
+
+                width="90">
+
+        </div>
+
+        <h2 class="fw-bold">
+
             <%= society ? society.societyName : "Mayon Grand Ellora" %>
+
         </h2>
 
-        <p class="page-subtitle">
-            Community Management System
+        <p class="text-muted">
+
+            Community Emergency Contacts
+
         </p>
 
-        <h3 class="page-title">
-            <i class="fas fa-phone-alt"></i>
-            Emergency Contacts
-        </h3>
-
         <% if(isAdmin){ %>
-            <a href="/editContacts" class="btn btn-primary">
-                <i class="fas fa-edit"></i>
-                Edit Contacts
-            </a>
+
+        <a
+
+            href="/editContacts"
+
+            class="btn btn-primary rounded-pill px-4">
+
+            <i class="fas fa-pen me-2"></i>
+
+            Edit Contacts
+
+        </a>
+
         <% } %>
 
     </div>
 
-    <!-- Cards -->
-    <div class="contact-wrapper">
+    <!-- ====================================== -->
 
-        <div class="row">
+    <div class="row g-4">
 
-            <% emergencyContacts.forEach(function(item){ %>
+        <% emergencyContacts.forEach(item=>{ %>
 
-            <div class="col-md-6 col-lg-4 mb-4">
+        <div class="col-xl-3 col-lg-4 col-md-6">
 
-                <div class="card emergency-card zoom">
+            <div class="card contact-card border-0 shadow-sm h-100">
 
-                    <div class="card-header emergency-header">
+                <div class="card-body text-center">
 
-                        <i class="fas <%= item.icon %>"></i>
-                        <strong><%= item.title %></strong>
+                    <div class="icon-circle bg-<%= item.color %>">
+
+                        <i
+
+                            class="fas <%= item.icon %>">
+
+                        </i>
+
+                    </div>
+
+                    <h5 class="fw-bold mt-4">
+
+                        <%= item.title %>
+
+                    </h5>
+
+                    <% if(item.value && item.value !== "Not added by admin"){ %>
+
+                    <p class="contact-number">
+
+                        <%= item.value %>
+
+                    </p>
+
+                    <div class="d-grid gap-2">
+
+                        <a
+
+                            href="tel:<%= item.value %>"
+
+                            class="btn btn-success">
+
+                            <i class="fas fa-phone me-2"></i>
+
+                            Call
+
+                        </a>
 
                     </div>
 
-                    <div class="card-body text-center">
+                    <% }else{ %>
 
-                        <% if(item.value && item.value !== "Not added by admin"){ %>
+                    <p class="text-muted mt-3">
 
-                            <a href="tel:<%= item.value %>"
-                               class="btn btn-success btn-sm">
+                        Contact not available
 
-                                <i class="fas fa-phone"></i>
-                                Call Now
+                    </p>
 
-                            </a>
+                    <button
 
-                            <div class="phone-number">
-                                <%= item.value %>
-                            </div>
+                        class="btn btn-secondary"
 
-                        <% } else { %>
+                        disabled>
 
-                            <span class="text-muted">
-                                Not added by admin
-                            </span>
+                        Not Available
 
-                        <% } %>
+                    </button>
 
-                    </div>
+                    <% } %>
 
                 </div>
 
             </div>
 
-            <% }) %>
-
         </div>
+
+        <% }) %>
 
     </div>
 
 </div>
 
-<%- include('partials/footer') %>
+<style>
+
+.contact-card{
+
+border-radius:20px;
+
+transition:.35s;
+
+overflow:hidden;
+
+}
+
+.contact-card:hover{
+
+transform:translateY(-8px);
+
+box-shadow:0 20px 40px rgba(0,0,0,.15)!important;
+
+}
+
+.contact-card .card-body{
+
+padding:35px 25px;
+
+}
+
+.icon-circle{
+
+width:80px;
+
+height:80px;
+
+border-radius:50%;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+margin:auto;
+
+color:#fff;
+
+font-size:32px;
+
+box-shadow:0 10px 20px rgba(0,0,0,.15);
+
+}
+
+.contact-number{
+
+font-size:20px;
+
+font-weight:700;
+
+margin:20px 0;
+
+color:#212529;
+
+word-break:break-word;
+
+}
+
+.contact-logo img{
+
+border-radius:50%;
+
+box-shadow:0 8px 20px rgba(0,0,0,.15);
+
+background:#fff;
+
+padding:10px;
+
+}
+
+.card .btn{
+
+border-radius:50px;
+
+font-weight:600;
+
+}
+
+@media(max-width:768px){
+
+.icon-circle{
+
+width:70px;
+
+height:70px;
+
+font-size:28px;
+
+}
+
+.contact-number{
+
+font-size:18px;
+
+}
+
+}
+
+</style>
+
+<%- include("partials/footer") %>

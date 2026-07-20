@@ -1,45 +1,287 @@
-<!-- Payment successfull -->
-<%- include('partials/header') %>
+<!-- ==========================================================
+     PAYMENT SUCCESS
+========================================================== -->
 
-<div class="container container-profile">
-  <div class="row">
-    <div class="col">
-      <div class="card card-profile my-5">
-        <div id="receipt" class="card-body" style="padding:8%;">
-          <div style="display: flex; justify-content: center">
-            <i style="color:green;" class="fas fa-5x fa-check-circle"></i>
-          </div>
-          <div style="display: flex; justify-content: center">
-            <h1 style="font-weight: bold;">Success</h1>
-          </div>
-          <hr class="my-4" style="height: 3px; background-color:lightgreen; border-color:lightgreen ; border-radius:4px;">
-          <div style="display: flex; justify-content: center">
-            <p style="color: gray;"><span style="font-weight: bold; color: gray;">Receipt </span> #<%= invoice %></p>
-          </div>
-          <div style="padding: 15px;font-size: 15px; font-family: sans-serif; padding-left: 0%">
-            <div style="display: flex; justify-content: space-evenly">
-              <div style="display: flex; flex-direction: column;">
-                <p style="font-weight: bold;">Amount Paid</p>
-                <p>₹<%= amount %></p>
-              </div>
-              <div style="display: flex; flex-direction: column;">
-                <p style="font-weight: bold;">Date Paid</p>
-                <p><%= date %></p>
-              </div>
+<%- include("partials/header") %>
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-7">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <!-- Header -->
+
+                <div class="card-header bg-success text-white text-center py-4 border-0">
+
+                    <div class="success-icon">
+
+                        <i class="fas fa-check"></i>
+
+                    </div>
+
+                    <h2 class="fw-bold mt-3 mb-1">
+
+                        Payment Successful
+
+                    </h2>
+
+                    <p class="mb-0 opacity-75">
+
+                        Thank you! Your maintenance payment has been received successfully.
+
+                    </p>
+
+                </div>
+
+                <!-- Receipt -->
+
+                <div class="card-body p-5" id="receipt">
+
+                    <div class="text-center mb-4">
+
+                        <h5 class="text-muted mb-2">
+
+                            Receipt Number
+
+                        </h5>
+
+                        <h3 class="fw-bold text-success">
+
+                            #<%= invoice %>
+
+                        </h3>
+
+                    </div>
+
+                    <hr>
+
+                    <div class="row text-center">
+
+                        <div class="col-md-4 mb-4">
+
+                            <div class="receipt-box">
+
+                                <i class="fas fa-indian-rupee-sign text-success fa-2x mb-3"></i>
+
+                                <h6 class="text-muted">
+
+                                    Amount Paid
+
+                                </h6>
+
+                                <h4 class="fw-bold">
+
+                                    ₹<%= amount %>
+
+                                </h4>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+
+                            <div class="receipt-box">
+
+                                <i class="fas fa-calendar-check text-primary fa-2x mb-3"></i>
+
+                                <h6 class="text-muted">
+
+                                    Payment Date
+
+                                </h6>
+
+                                <p class="fw-semibold">
+
+                                    <%= date %>
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+
+                            <div class="receipt-box">
+
+                                <i class="fas fa-circle-check text-success fa-2x mb-3"></i>
+
+                                <h6 class="text-muted">
+
+                                    Status
+
+                                </h6>
+
+                                <span class="badge bg-success rounded-pill px-3 py-2">
+
+                                    PAID
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <hr>
+
+                    <div class="alert alert-light border text-center mb-0">
+
+                        <i class="fas fa-shield-alt text-success me-2"></i>
+
+                        Your payment has been securely processed and recorded in the system.
+
+                    </div>
+
+                </div>
+
             </div>
-          </div>
+
+            <!-- Buttons -->
+
+            <div class="d-flex justify-content-center flex-wrap gap-3 mt-4">
+
+                <button
+                    id="download-receipt"
+                    class="btn btn-success px-4">
+
+                    <i class="fas fa-download me-2"></i>
+
+                    Download Receipt
+
+                </button>
+
+                <a
+                    href="/bill#receipt"
+                    class="btn btn-primary px-4">
+
+                    <i class="fas fa-file-invoice me-2"></i>
+
+                    View Receipt
+
+                </a>
+
+                <a
+                    href="/home"
+                    class="btn btn-outline-secondary px-4">
+
+                    <i class="fas fa-home me-2"></i>
+
+                    Back to Home
+
+                </a>
+
+            </div>
+
         </div>
-      </div>
+
     </div>
-  </div>
-  <div style="display: flex; justify-content: center ">
-    <button id="download-receipt" class="btn btn-info btn-md text-uppercase" style="border-radius:3rem; max-width:180px; margin-top: 40px;">
-      Download
-    </button>     
-    <a href="/bill#receipt" class="btn btn-primary btn-md text-uppercase" style="border-radius:3rem; max-width:180px; margin-top: 40px;">
-      View Receipt
-    </a>   
-  </div>
+
 </div>
 
-<%- include('partials/footer') %>
+<style>
+
+.success-icon{
+
+    width:100px;
+
+    height:100px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:#ffffff22;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+.success-icon i{
+
+    font-size:46px;
+
+    color:#fff;
+
+}
+
+.card{
+
+    border-radius:24px;
+
+}
+
+.receipt-box{
+
+    padding:25px;
+
+    border:1px solid #e9ecef;
+
+    border-radius:16px;
+
+    height:100%;
+
+    transition:.3s;
+
+}
+
+.receipt-box:hover{
+
+    transform:translateY(-5px);
+
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+}
+
+.btn{
+
+    min-width:190px;
+
+    min-height:48px;
+
+    border-radius:12px;
+
+    font-weight:600;
+
+}
+
+.badge{
+
+    font-size:14px;
+
+}
+
+@media(max-width:768px){
+
+    .card-body{
+
+        padding:30px 20px;
+
+    }
+
+    .d-flex{
+
+        flex-direction:column;
+
+    }
+
+    .btn{
+
+        width:100%;
+
+    }
+
+}
+
+</style>
+
+<%- include("partials/footer") %>

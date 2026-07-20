@@ -1,85 +1,161 @@
-<!-- Login Page -->
-<%- include('partials/headerForm') %>
+<!-- ==========================================================
+     LOGIN PAGE
+========================================================== -->
+
+<%- include("partials/headerForm") %>
 
 <body class="bg-light">
 
-<div class="container">
+<div class="container py-5">
 
-    <div class="row justify-content-center">
+    <div class="row justify-content-center align-items-center">
 
-        <div class="col-sm-10 col-md-8 col-lg-5">
+        <div class="col-lg-5 col-md-7">
 
-            <div class="card shadow border-0 my-5">
+            <div class="card shadow-lg border-0 rounded-4">
 
                 <div class="card-body p-5">
 
+                    <!-- Logo -->
+
                     <div class="text-center mb-4">
 
-                        <i class="fas fa-user-lock fa-3x text-dark mb-3"></i>
+                        <img
+                            src="/images/diversity.png"
+                            width="90"
+                            class="mb-3 rounded-circle shadow">
 
-                        <h2 class="font-weight-bold">
-                            Login
+                        <h2 class="fw-bold">
+
+                            Welcome Back
+
                         </h2>
 
-                        <p class="text-muted mb-0">
+                        <p class="text-muted">
+
                             Sign in to your Mayon Grand Ellora account
+
                         </p>
 
                     </div>
+
+                    <!-- Flash Messages -->
+
+                    <% if(error && error.length){ %>
+
+                        <div class="alert alert-danger">
+
+                            <%= error %>
+
+                        </div>
+
+                    <% } %>
+
+                    <% if(success && success.length){ %>
+
+                        <div class="alert alert-success">
+
+                            <%= success %>
+
+                        </div>
+
+                    <% } %>
+
+                    <!-- Login Form -->
 
                     <form action="/login" method="POST">
 
                         <!-- Email -->
 
-                        <div class="form-group">
+                        <div class="mb-3">
 
-                            <label>Email Address</label>
+                            <label class="form-label fw-semibold">
 
-                            <input
+                                Email Address
 
-                                type="email"
+                            </label>
 
-                                name="username"
+                            <div class="input-group">
 
-                                class="form-control"
+                                <span class="input-group-text">
 
-                                placeholder="Enter your email"
+                                    <i class="fas fa-envelope"></i>
 
-                                required
+                                </span>
 
-                                autofocus
+                                <input
 
-                            >
+                                    type="email"
+
+                                    name="username"
+
+                                    class="form-control"
+
+                                    placeholder="Enter your email"
+
+                                    required
+
+                                    autofocus>
+
+                            </div>
 
                         </div>
 
                         <!-- Password -->
 
-                        <div class="form-group">
+                        <div class="mb-3">
 
-                            <label>Password</label>
+                            <label class="form-label fw-semibold">
 
-                            <input
+                                Password
 
-                                type="password"
+                            </label>
 
-                                name="password"
+                            <div class="input-group">
 
-                                class="form-control"
+                                <span class="input-group-text">
 
-                                placeholder="Enter your password"
+                                    <i class="fas fa-lock"></i>
 
-                                required
+                                </span>
 
-                            >
+                                <input
+
+                                    type="password"
+
+                                    id="password"
+
+                                    name="password"
+
+                                    class="form-control"
+
+                                    placeholder="Enter your password"
+
+                                    required>
+
+                                <button
+
+                                    class="btn btn-outline-secondary"
+
+                                    type="button"
+
+                                    onclick="togglePassword()">
+
+                                    <i class="fas fa-eye" id="eyeIcon"></i>
+
+                                </button>
+
+                            </div>
 
                         </div>
 
                         <!-- Forgot Password -->
 
-                        <div class="text-right mb-3">
+                        <div class="text-end mb-4">
 
-                            <a href="/forgot-password">
+                            <a
+                                href="/forgot-password"
+                                class="text-decoration-none">
 
                                 Forgot Password?
 
@@ -90,12 +166,10 @@
                         <!-- Login -->
 
                         <button
-
-                            class="btn btn-dark btn-block"
-
                             type="submit"
+                            class="btn btn-dark w-100 py-2">
 
-                        >
+                            <i class="fas fa-sign-in-alt me-2"></i>
 
                             Login
 
@@ -104,7 +178,7 @@
                         <small class="text-muted d-block text-center mt-3">
 
                             If Two-Step Verification is enabled,
-                            you'll be asked to enter an OTP after login.
+                            you'll be asked to verify your OTP after login.
 
                         </small>
 
@@ -113,66 +187,57 @@
                         <!-- Google -->
 
                         <a
-
                             href="/auth/google"
-
-                            class="btn btn-light btn-block"
-
-                            style="border:1px solid #ddd;"
-
-                        >
+                            class="btn btn-light border w-100">
 
                             <img
-
                                 src="https://developers.google.com/identity/images/g-logo.png"
-
                                 width="18"
-
-                            >
+                                class="me-2">
 
                             Continue with Google
 
                         </a>
 
-                        <!-- Future Phone Login -->
+                        <!-- Phone Login -->
 
                         <a
-                        class="btn btn-success btn-block mt-3"
-                        href="/loginPhone">
+                            href="/loginPhone"
+                            class="btn btn-success w-100 mt-3">
 
-                        <i class="fas fa-mobile-alt"></i>
+                            <i class="fas fa-mobile-alt me-2"></i>
 
-                        Login with Phone
+                            Login with Phone
 
                         </a>
 
                         <hr>
 
-                        <div class="text-center">
+                        <!-- Signup -->
+
+                        <div class="text-center mb-3">
 
                             Don't have an account?
 
                         </div>
 
                         <a
-
                             href="/signup"
+                            class="btn btn-danger w-100">
 
-                            class="btn btn-danger btn-block mt-2"
-
-                        >
+                            <i class="fas fa-user-plus me-2"></i>
 
                             Create Account
 
                         </a>
 
+                        <!-- Home -->
+
                         <a
-
                             href="/"
+                            class="btn btn-outline-secondary w-100 mt-3">
 
-                            class="btn btn-secondary btn-block"
-
-                        >
+                            <i class="fas fa-home me-2"></i>
 
                             Back to Home
 
@@ -189,6 +254,36 @@
     </div>
 
 </div>
+
+<script>
+
+function togglePassword(){
+
+    const password = document.getElementById("password");
+
+    const eye = document.getElementById("eyeIcon");
+
+    if(password.type === "password"){
+
+        password.type = "text";
+
+        eye.classList.remove("fa-eye");
+
+        eye.classList.add("fa-eye-slash");
+
+    }else{
+
+        password.type = "password";
+
+        eye.classList.remove("fa-eye-slash");
+
+        eye.classList.add("fa-eye");
+
+    }
+
+}
+
+</script>
 
 </body>
 

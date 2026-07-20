@@ -1,51 +1,439 @@
-<!-- Member edit signup form  -->
-<%- include('partials/header') %>
+<!-- ==========================================================
+     NEW REQUEST
+========================================================== -->
 
-<div class="container center">
-  <div class="row">
-    <div class="col-sm-12 col-md-9 col-lg-10 center" style="max-width: 600px;float: initial;">
-      <div class="card card-profile my-6">
-        <div class="card-body" style="padding:5%; margin:5% 0; padding-top:3%;">
-          <h2 style="background-color:rgb(51, 51, 51); padding:8px; color:white; text-align:center; border-radius:1rem; font-size: 20px;">
-            New Request
-          </h2>
-          <form class="form-edit" action="/newRequest" method="POST">
-            <div class=row style="margin: 1%;">
-              <div class="col-sm-12 col-lg-12" style=" margin-top:4%"> <b> First Name :</b></div>
-              <div class="col-sm-12 col-lg-12" style=" margin-top:4px;">
-                <input name="firstName" type="tel" id="firstName" class="form-control" value="<%= user.firstName %>" autofocus required>
-              </div>
-              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Last Name :</b></div>
-              <div class="col-sm-12 col-lg-12" style=" margin-top:4px ">
-                <input name="lastName" type="tel" id="lastName" class="form-control" value="<%= user.lastName %>" required>
-              </div>
-              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Phone Number :</b></div>
-              <div class="col-sm-12 col-lg-12" style=" margin-top:6px ">
-                <input name="phoneNumber" type="tel" id="phoneNumber" class="form-control" value="<%= user.phoneNumber %>" required>
-              </div>
-              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Society Name :</b></div>
-              <div class="col-sm-12 col-lg-12" style=" margin-top:6px ">
-                <input name="societyName" list="societyList" id="societyName" class="form-control"  value="<%= user.societyName %>" autocomplete="off" required>
-                <datalist id="societyList">
-                  <% societies.forEach(society => { %>
-                    <option value="<%= society.societyName %>">
-                  <% }) %>
-                </datalist>
-              </div>
-              <div class="col-sm-12 col-lg-12" style=" margin-top:4% "> <b> Flat Number :</b></div>
-              <div class="col-sm-12 col-lg-12" style=" margin-top:6px ">
-                <input name="flatNumber" type="tel" id="flatNumber" class="form-control" value="<%= user.flatNumber %>" required>
-              </div>
+<%- include("partials/header") %>
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/css/intlTelInput.css">
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-xl-7 col-lg-8">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <!-- Header -->
+
+                <div class="card-header bg-primary text-white text-center py-4 border-0">
+
+                    <div class="request-icon">
+
+                        <i class="fas fa-file-signature"></i>
+
+                    </div>
+
+                    <h2 class="fw-bold mt-3">
+
+                        New Society Request
+
+                    </h2>
+
+                    <p class="mb-0 opacity-75">
+
+                        Submit your request to join a registered society.
+
+                    </p>
+
+                </div>
+
+                <!-- Body -->
+
+                <div class="card-body p-5">
+
+                    <% if(success && success.length){ %>
+
+                        <div class="alert alert-success">
+
+                            <i class="fas fa-check-circle me-2"></i>
+
+                            <%= success %>
+
+                        </div>
+
+                    <% } %>
+
+                    <% if(error && error.length){ %>
+
+                        <div class="alert alert-danger">
+
+                            <i class="fas fa-times-circle me-2"></i>
+
+                            <%= error %>
+
+                        </div>
+
+                    <% } %>
+
+                    <form
+                        id="requestForm"
+                        action="/newRequest"
+                        method="POST">
+
+                        <!-- Personal Information -->
+
+                        <h5 class="section-title">
+
+                            Personal Information
+
+                        </h5>
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    First Name
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="firstName"
+                                    name="firstName"
+                                    class="form-control"
+                                    value="<%= user.firstName %>"
+                                    required>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    Last Name
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="lastName"
+                                    name="lastName"
+                                    class="form-control"
+                                    value="<%= user.lastName %>"
+                                    required>
+
+                            </div>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                Mobile Number
+
+                            </label>
+
+                            <input
+                                id="phone"
+                                type="tel"
+                                class="form-control"
+                                autocomplete="tel"
+                                value="<%= user.phoneNumber %>"
+                                required>
+
+                            <input
+                                type="hidden"
+                                id="phoneNumber"
+                                name="phoneNumber">
+
+                        </div>
+
+                        <!-- Society -->
+
+                        <h5 class="section-title">
+
+                            Society Details
+
+                        </h5>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Society Name
+
+                            </label>
+
+                            <input
+                                id="societyName"
+                                name="societyName"
+                                list="societyList"
+                                class="form-control"
+                                value="<%= user.societyName %>"
+                                autocomplete="off"
+                                required>
+
+                            <datalist id="societyList">
+
+                                <% societies.forEach(function(society){ %>
+
+                                    <option value="<%= society.societyName %>">
+
+                                <% }) %>
+
+                            </datalist>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                Flat Number
+
+                            </label>
+
+                            <input
+                                type="text"
+                                id="flatNumber"
+                                name="flatNumber"
+                                class="form-control"
+                                value="<%= user.flatNumber %>"
+                                placeholder="Example: A-101"
+                                required>
+
+                        </div>
+
+                        <!-- Buttons -->
+
+                        <div class="d-flex justify-content-between flex-wrap gap-3">
+
+                            <a
+                                href="/home"
+                                class="btn btn-outline-danger">
+
+                                <i class="fas fa-times me-2"></i>
+
+                                Cancel
+
+                            </a>
+
+                            <button
+                                id="submitBtn"
+                                type="submit"
+                                class="btn btn-primary">
+
+                                <i class="fas fa-paper-plane me-2"></i>
+
+                                Submit Request
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
             </div>
-            <div style=" margin-top: 4%;">
-              <button type="submit" class="btn btn-primary btn-md  float-right" style="margin: 10px;">Submit</button>
-              <a href="/home" class="btn btn-danger btn-md float-right" style="margin: 10px;">Cancel</a>
-            </div>
-          </form>
+
         </div>
-      </div>
+
     </div>
-  </div>
+
 </div>
 
-<%- include('partials/footer') %>
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/intlTelInput.min.js"></script>
+
+<script>
+
+const phoneInput=document.querySelector("#phone");
+
+const hiddenPhone=document.querySelector("#phoneNumber");
+
+const form=document.querySelector("#requestForm");
+
+const submitBtn=document.querySelector("#submitBtn");
+
+const iti=window.intlTelInput(phoneInput,{
+
+    initialCountry:"in",
+
+    preferredCountries:[
+        "in",
+        "us",
+        "gb",
+        "ae",
+        "sg",
+        "my",
+        "lk"
+    ],
+
+    separateDialCode:true,
+
+    nationalMode:false,
+
+    autoPlaceholder:"aggressive",
+
+    formatOnDisplay:true,
+
+    loadUtils:()=>import(
+"https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js")
+
+});
+
+form.addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    if(!iti.isValidNumber()){
+
+        alert("Please enter a valid mobile number.");
+
+        phoneInput.focus();
+
+        return;
+
+    }
+
+    hiddenPhone.value=iti.getNumber();
+
+    submitBtn.disabled=true;
+
+    submitBtn.innerHTML=`
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        Submitting...
+    `;
+
+    this.submit();
+
+});
+
+</script>
+
+<style>
+
+.request-icon{
+
+    width:90px;
+
+    height:90px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:#ffffff22;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+.request-icon i{
+
+    font-size:40px;
+
+    color:#fff;
+
+}
+
+.section-title{
+
+    font-weight:700;
+
+    margin-bottom:20px;
+
+    color:#343a40;
+
+    border-left:5px solid #0d6efd;
+
+    padding-left:12px;
+
+}
+
+.card{
+
+    border-radius:24px;
+
+}
+
+.form-control{
+
+    min-height:52px;
+
+    border-radius:14px;
+
+    border:2px solid #e5e7eb;
+
+}
+
+.form-control:focus{
+
+    border-color:#0d6efd;
+
+    box-shadow:0 0 0 .2rem rgba(13,110,253,.15);
+
+}
+
+.iti{
+
+    width:100%;
+
+}
+
+.iti input{
+
+    width:100%!important;
+
+    min-height:52px;
+
+    border-radius:14px;
+
+}
+
+.iti__country-list{
+
+    border-radius:12px;
+
+    z-index:999999;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+
+}
+
+.btn{
+
+    min-height:50px;
+
+    border-radius:14px;
+
+    font-weight:600;
+
+    min-width:160px;
+
+}
+
+@media(max-width:768px){
+
+    .card-body{
+
+        padding:30px 22px;
+
+    }
+
+    .d-flex{
+
+        flex-direction:column-reverse;
+
+    }
+
+    .btn{
+
+        width:100%;
+
+    }
+
+}
+
+</style>
+
+<%- include("partials/footer") %>

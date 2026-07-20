@@ -1,112 +1,150 @@
-<%- include("partials/header") %>
+<!-- ==========================================================
+     PHONE LOGIN
+========================================================== -->
+
+<%- include("partials/headerForm") %>
 
 <link rel="stylesheet"
 href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/css/intlTelInput.css">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+<link
+href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
 rel="stylesheet">
 
-<div class="login-wrapper">
+<div class="container py-5">
 
-    <div class="login-card">
+    <div class="row justify-content-center">
 
-        <div class="text-center mb-4">
+        <div class="col-lg-5 col-md-7">
 
-            <div class="logo-circle">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
 
-                <i class="fab fa-whatsapp"></i>
+                <!-- Header -->
+
+                <div class="card-header bg-success text-white text-center py-4 border-0">
+
+                    <div class="phone-icon">
+
+                        <i class="fas fa-mobile-alt"></i>
+
+                    </div>
+
+                    <h2 class="fw-bold mt-3">
+
+                        Phone Login
+
+                    </h2>
+
+                    <p class="mb-0 opacity-75">
+
+                        Sign in securely using OTP verification.
+
+                    </p>
+
+                </div>
+
+                <!-- Body -->
+
+                <div class="card-body p-5">
+
+                    <% if(success && success.length){ %>
+
+                        <div class="alert alert-success">
+
+                            <%= success %>
+
+                        </div>
+
+                    <% } %>
+
+                    <% if(error && error.length){ %>
+
+                        <div class="alert alert-danger">
+
+                            <%= error %>
+
+                        </div>
+
+                    <% } %>
+
+                    <form
+                        id="phoneLoginForm"
+                        action="/phone/send"
+                        method="POST">
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+
+                                Mobile Number
+
+                            </label>
+
+                            <input
+
+                                id="phone"
+
+                                type="tel"
+
+                                autocomplete="tel"
+
+                                class="form-control"
+
+                                required>
+
+                            <input
+
+                                type="hidden"
+
+                                id="phoneNumber"
+
+                                name="phoneNumber">
+
+                            <small class="text-muted">
+
+                                Select your country code and enter your mobile number.
+
+                            </small>
+
+                        </div>
+
+                        <button
+
+                            id="submitBtn"
+
+                            type="submit"
+
+                            class="btn btn-success w-100">
+
+                            <i class="fas fa-paper-plane me-2"></i>
+
+                            Send OTP
+
+                        </button>
+
+                    </form>
+
+                    <div class="divider">
+
+                        <span>OR</span>
+
+                    </div>
+
+                    <a
+                        href="/login"
+                        class="btn btn-outline-dark w-100">
+
+                        <i class="fas fa-envelope me-2"></i>
+
+                        Continue with Email
+
+                    </a>
+
+                </div>
 
             </div>
-
-            <h2>
-
-                Continue with Phone
-
-            </h2>
-
-            <p>
-
-                Enter your mobile number to receive a secure verification code.
-
-            </p>
 
         </div>
-
-        <% if(success && success.length){ %>
-
-            <div class="alert alert-success">
-
-                <%= success %>
-
-            </div>
-
-        <% } %>
-
-        <% if(error && error.length){ %>
-
-            <div class="alert alert-danger">
-
-                <%= error %>
-
-            </div>
-
-        <% } %>
-
-        <form
-            id="phoneLoginForm"
-            action="/phone/send"
-            method="POST">
-
-            <div class="mb-4">
-
-                <label class="form-label">
-
-                    Mobile Number
-
-                </label>
-
-                <input
-                    id="phone"
-                    type="tel"
-                    autocomplete="tel"
-                    class="form-control"
-                    required>
-
-                <input
-                    type="hidden"
-                    id="phoneNumber"
-                    name="phoneNumber">
-
-            </div>
-
-            <button
-                id="submitBtn"
-                type="submit"
-                class="btn btn-success w-100">
-
-                <i class="fas fa-paper-plane me-2"></i>
-
-                Send OTP
-
-            </button>
-
-        </form>
-
-        <div class="divider">
-
-            <span>OR</span>
-
-        </div>
-
-        <a
-            href="/login"
-            class="btn btn-outline-secondary w-100">
-
-            <i class="fas fa-arrow-left me-2"></i>
-
-            Back to Email Login
-
-        </a>
 
     </div>
 
@@ -116,12 +154,12 @@ rel="stylesheet">
 
 <script>
 
-const phoneInput=document.querySelector("#phone");
-const hiddenInput=document.querySelector("#phoneNumber");
-const form=document.getElementById("phoneLoginForm");
-const btn=document.getElementById("submitBtn");
+const phoneInput = document.querySelector("#phone");
+const hiddenInput = document.querySelector("#phoneNumber");
+const form = document.getElementById("phoneLoginForm");
+const btn = document.getElementById("submitBtn");
 
-const iti=window.intlTelInput(phoneInput,{
+const iti = window.intlTelInput(phoneInput,{
 
     initialCountry:"in",
 
@@ -160,13 +198,13 @@ form.addEventListener("submit",function(e){
 
     }
 
-    hiddenInput.value=iti.getNumber();
+    hiddenInput.value = iti.getNumber();
 
-    btn.disabled=true;
+    btn.disabled = true;
 
-    btn.innerHTML=`
-    <span class="spinner-border spinner-border-sm me-2"></span>
-    Sending OTP...
+    btn.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        Sending OTP...
     `;
 
     this.submit();
@@ -179,47 +217,13 @@ form.addEventListener("submit",function(e){
 
 body{
 
-    background:#f3f5f7;
+    background:#f4f7fb;
 
     font-family:'Inter',sans-serif;
 
 }
 
-.login-wrapper{
-
-    min-height:90vh;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    padding:30px;
-
-}
-
-.login-card{
-
-    width:100%;
-
-    max-width:430px;
-
-    background:#fff;
-
-    border-radius:24px;
-
-    padding:40px;
-
-    box-shadow:
-
-        0 15px 45px rgba(0,0,0,.08);
-
-    animation:fadeUp .45s ease;
-
-}
-
-.logo-circle{
+.phone-icon{
 
     width:90px;
 
@@ -229,63 +233,45 @@ body{
 
     border-radius:50%;
 
-    background:#25D366;
+    background:#ffffff22;
 
     display:flex;
 
-    align-items:center;
-
     justify-content:center;
 
-    color:#fff;
+    align-items:center;
+
+}
+
+.phone-icon i{
 
     font-size:42px;
 
-    box-shadow:
-
-        0 10px 25px rgba(37,211,102,.3);
+    color:#fff;
 
 }
 
-h2{
+.card{
 
-    font-weight:700;
-
-    margin-top:25px;
-
-}
-
-p{
-
-    color:#777;
-
-    margin-bottom:25px;
-
-}
-
-.form-label{
-
-    font-weight:600;
+    border-radius:24px;
 
 }
 
 .form-control{
 
-    height:58px;
+    height:56px;
 
-    border-radius:16px;
+    border-radius:14px;
 
     border:2px solid #e5e7eb;
-
-    font-size:16px;
 
 }
 
 .form-control:focus{
 
-    border-color:#25D366;
+    border-color:#198754;
 
-    box-shadow:0 0 0 .2rem rgba(37,211,102,.15);
+    box-shadow:0 0 0 .2rem rgba(25,135,84,.15);
 
 }
 
@@ -299,31 +285,29 @@ p{
 
     width:100%!important;
 
-    height:58px!important;
+    height:56px!important;
+
+    border-radius:14px;
+
+}
+
+.iti__country-list{
+
+    border-radius:14px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.12);
+
+    z-index:99999;
 
 }
 
 .btn{
 
-    height:56px;
+    height:52px;
 
-    border-radius:16px;
+    border-radius:14px;
 
     font-weight:600;
-
-}
-
-.btn-success{
-
-    background:#25D366;
-
-    border:none;
-
-}
-
-.btn-success:hover{
-
-    background:#1ebe5d;
 
 }
 
@@ -347,7 +331,7 @@ p{
 
     height:1px;
 
-    background:#ddd;
+    background:#dee2e6;
 
 }
 
@@ -355,35 +339,17 @@ p{
 
     padding:0 15px;
 
-    color:#999;
+    color:#6c757d;
+
+    font-size:14px;
 
 }
 
-@keyframes fadeUp{
+@media(max-width:768px){
 
-    from{
+    .card-body{
 
-        opacity:0;
-
-        transform:translateY(25px);
-
-    }
-
-    to{
-
-        opacity:1;
-
-        transform:none;
-
-    }
-
-}
-
-@media(max-width:576px){
-
-    .login-card{
-
-        padding:28px;
+        padding:30px 22px;
 
     }
 
