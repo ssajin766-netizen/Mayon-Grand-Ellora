@@ -7,6 +7,9 @@ const user_collection = require("../models/userModel");
 const society_collection = require("../models/societyModel");
 
 const date = require("../date/date");
+const {
+    createNotification
+} = require("../services/notificationService");
 
 const {
     isLoggedIn,
@@ -293,6 +296,28 @@ try {
         }
 
     );
+
+    /*
+--------------------------------------------------
+NOTIFICATION
+--------------------------------------------------
+*/
+
+await createNotification({
+
+    user: req.user._id,
+
+    title: "Maintenance Charges Updated",
+
+    message: "The maintenance charges have been updated successfully.",
+
+    type: "success",
+
+    icon: "fa-file-invoice-dollar",
+
+    link: "/bill"
+
+});
 
     res.redirect("/bill");
 

@@ -8,6 +8,9 @@ const society_collection = require("../models/societyModel");
 
 const otpController = require("../controllers/otpController");
 const forgotPasswordController = require("../controllers/forgotPasswordController");
+const {
+    createNotification
+} = require("../services/notificationService");
 
 /*
 --------------------------------------------------
@@ -586,12 +589,11 @@ router.post("/verify-otp", async (req, res, next) => {
 
         }
 
-        const user =
-            await user_collection.User.findById(
+        const user = await user_collection.User.findById(
 
-                req.session.pendingUser
+            req.session.pendingUser
 
-            );
+        );
 
         if (!user) {
 
@@ -607,7 +609,6 @@ router.post("/verify-otp", async (req, res, next) => {
 
         user.isEmailVerified = true;
 
-        // Only approve Society Admin
         if (req.body.purpose === "register") {
 
             user.validation = "approved";
@@ -624,16 +625,14 @@ router.post("/verify-otp", async (req, res, next) => {
 
         if (req.body.purpose === "register") {
 
-            const societyData =
-                req.session.pendingSociety;
+            const societyData = req.session.pendingSociety;
 
             if (societyData) {
 
                 const existingSociety =
                     await society_collection.Society.findOne({
 
-                        societyName:
-                            societyData.societyName
+                        societyName: societyData.societyName
 
                     });
 
@@ -641,11 +640,9 @@ router.post("/verify-otp", async (req, res, next) => {
 
                     await new society_collection.Society({
 
-                        societyName:
-                            societyData.societyName,
+                        societyName: societyData.societyName,
 
-                        societyAddress:
-                            societyData.societyAddress,
+                        societyAddress: societyData.societyAddress,
 
                         admin: user.username
 
@@ -657,16 +654,53 @@ router.post("/verify-otp", async (req, res, next) => {
 
             }
 
+            /*
+            ------------------------------------------
+            NOTIFICATION
+            ------------------------------------------
+            */
+
+            await createNotification({
+
+                user: user._id,
+
+                title: "Society Registered",
+
+                message: "Your society has been registered successfully.",
+
+                type: "success",
+
+                icon: "fa-building",
+
+                link: "/profile"
+
+            });
+
         }
 
         /*
         ==================================================
         RESIDENT SIGNUP
-        Don't login automatically
         ==================================================
         */
 
         if (req.body.purpose === "signup") {
+
+            await createNotification({
+
+                user: user._id,
+
+                title: "Account Created",
+
+                message: "Your resident account has been created and is awaiting administrator approval.",
+
+                type: "info",
+
+                icon: "fa-user-plus",
+
+                link: "/login"
+
+            });
 
             delete req.session.pendingUser;
 
@@ -692,7 +726,7 @@ router.post("/verify-otp", async (req, res, next) => {
         ==================================================
         */
 
-        req.logIn(user, (err) => {
+        req.logIn(user, async (err) => {
 
             if (err) {
 
@@ -700,13 +734,29 @@ router.post("/verify-otp", async (req, res, next) => {
 
             }
 
-            delete req.session.pendingUser;
+            await createNotification({
 
-            req.session.save(() => {
+                user: user._id,
 
-                return res.redirect("/home");
+                title: "Login Successful",
+
+                message: "Welcome back to Mayon Grand Ellora.",
+
+                type: "success",
+
+                icon: "fa-right-to-bracket",
+
+                link: "/profile"
 
             });
+
+            delete req.session.pendingUser;
+
+            return req.session.save(() => {
+
+            return res.redirect("/home");
+
+        });
 
         });
 

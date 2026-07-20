@@ -8,6 +8,9 @@ const sendWhatsApp = require("../services/whatsappService");
 
 const WhatsAppLog = require("../models/WhatsAppLog");
 const user_collection = require("../models/userModel");
+const {
+    createNotification
+} = require("../services/notificationService");
 
 const {
     isLoggedIn,
@@ -132,9 +135,47 @@ router.post(
             await user.save();
 
             /*
-            ------------------------------
+            ----------------------------------------
+            Notifications
+            ----------------------------------------
+            */
+
+            await createNotification({
+
+                user: user._id,
+
+                title: "Payment Successful",
+
+                message: `₹${user.makePayment} maintenance payment received successfully.`,
+
+                type: "success",
+
+                icon: "fa-credit-card",
+
+                link: "/bill"
+
+            });
+
+            await createNotification({
+
+                user: user._id,
+
+                title: "Receipt Generated",
+
+                message: `Invoice ${invoice} has been generated successfully.`,
+
+                type: "info",
+
+                icon: "fa-receipt",
+
+                link: "/bill"
+
+            });
+
+            /*
+            ----------------------------------------
             WhatsApp
-            ------------------------------
+            ----------------------------------------
             */
 
             try {
@@ -159,16 +200,18 @@ router.post(
 
                 });
 
-            } catch (err) {
+            }
+
+            catch (err) {
 
                 console.log("WhatsApp Error:", err.message);
 
             }
 
             /*
-            ------------------------------
+            ----------------------------------------
             Email
-            ------------------------------
+            ----------------------------------------
             */
 
             try {
@@ -193,15 +236,15 @@ router.post(
 
                 );
 
-                console.log("Payment email sent.");
+            }
 
-            } catch (err) {
+            catch (err) {
 
                 console.log("Email Error:", err.message);
 
             }
 
-            res.json({
+            return res.json({
 
                 success: true,
 
@@ -209,11 +252,43 @@ router.post(
 
             });
 
-        } catch (err) {
+        }
+
+        catch (err) {
 
             console.error(err);
 
-            res.status(500).json({
+            try {
+
+                if (req.user) {
+
+                    await createNotification({
+
+                        user: req.user._id,
+
+                        title: "Payment Failed",
+
+                        message: "Your maintenance payment could not be completed. Please try again.",
+
+                        type: "error",
+
+                        icon: "fa-circle-xmark",
+
+                        link: "/bill"
+
+                    });
+
+                }
+
+            }
+
+            catch (e) {
+
+                console.log(e);
+
+            }
+
+            return res.status(500).json({
 
                 success: false,
 
@@ -224,8 +299,8 @@ router.post(
         }
 
     }
-);
 
+);
 /*
 --------------------------------------------------
 MANUAL PAYMENT
@@ -281,9 +356,47 @@ router.post(
             await user.save();
 
             /*
-            ------------------------------
+            ----------------------------------------
+            Notifications
+            ----------------------------------------
+            */
+
+            await createNotification({
+
+                user: user._id,
+
+                title: "Payment Recorded",
+
+                message: `₹${user.makePayment} payment has been marked as received.`,
+
+                type: "success",
+
+                icon: "fa-money-check-dollar",
+
+                link: "/bill"
+
+            });
+
+            await createNotification({
+
+                user: user._id,
+
+                title: "Receipt Generated",
+
+                message: `Invoice ${invoice} has been generated successfully.`,
+
+                type: "info",
+
+                icon: "fa-receipt",
+
+                link: "/bill"
+
+            });
+
+            /*
+            ----------------------------------------
             Email
-            ------------------------------
+            ----------------------------------------
             */
 
             try {
@@ -306,23 +419,28 @@ router.post(
 
                 );
 
-            } catch (err) {
+            }
+
+            catch (err) {
 
                 console.log("Email Error:", err.message);
 
             }
 
-            res.redirect("/bill");
+            return res.redirect("/bill");
 
-        } catch (err) {
+        }
+
+        catch (err) {
 
             console.error(err);
 
-            res.redirect("/bill");
+            return res.redirect("/bill");
 
         }
 
     }
+
 );
 
 module.exports = router;

@@ -17,6 +17,7 @@ const db = require("./config/db");
 const visit_collection = require("./models/visitModel");
 const user_collection = require("./models/userModel");
 const society_collection = require("./models/societyModel");
+const { Notification } = require("./models/notificationModel");
 
 /*
 --------------------------------------------------
@@ -33,6 +34,7 @@ const complaintRoutes = require("./routes/complaintRoutes");
 const noticeRoutes = require("./routes/noticeRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const contactRoutes = require("./routes/contactRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 
@@ -148,13 +150,38 @@ GLOBAL VARIABLES
 --------------------------------------------------
 */
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
 
     res.locals.currentUser = req.user || null;
 
     res.locals.success = req.flash("success");
 
     res.locals.error = req.flash("error");
+
+    res.locals.unreadNotifications = 0;
+
+    try {
+
+        if (req.user) {
+
+            res.locals.unreadNotifications =
+                await Notification.countDocuments({
+
+                    user: req.user._id,
+
+                    isRead: false
+
+                });
+
+        }
+
+    }
+
+    catch (err) {
+
+        console.log("Notification Error:", err.message);
+
+    }
 
     next();
 
@@ -337,6 +364,8 @@ app.use("/", noticeRoutes);
 app.use("/", profileRoutes);
 
 app.use("/", contactRoutes);
+
+app.use("/", notificationRoutes);
 
 /*
 --------------------------------------------------

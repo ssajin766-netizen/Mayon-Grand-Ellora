@@ -154,23 +154,67 @@
 
             </ul>
 
-            <ul class="navbar-nav">
+            <ul class="navbar-nav align-items-center">
 
-                <li class="nav-item">
+    <!-- Notifications -->
 
-                    <a
-                        class="nav-link text-danger"
-                        href="/logout">
+    <li class="nav-item me-2">
 
-                        <i class="fas fa-sign-out-alt me-1"></i>
+        <a
+            class="nav-link position-relative"
+            href="/notifications"
+            title="Notifications">
 
-                        Logout
+            <i class="fas fa-bell fa-lg"></i>
 
-                    </a>
+            <% if (unreadNotifications > 0) { %>
 
-                </li>
+               <span
+                 class="notification-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
 
-            </ul>
+                  <%= unreadNotifications %>
+
+                </span>
+
+            <% } %>
+
+        </a>
+
+    </li>
+
+    <!-- Profile -->
+
+    <li class="nav-item">
+
+        <a
+            class="nav-link"
+            href="/profile">
+
+            <i class="fas fa-user-circle me-1"></i>
+
+            Profile
+
+        </a>
+
+    </li>
+
+    <!-- Logout -->
+
+    <li class="nav-item">
+
+        <a
+            class="nav-link text-danger"
+            href="/logout">
+
+            <i class="fas fa-sign-out-alt me-1"></i>
+
+            Logout
+
+        </a>
+
+    </li>
+
+</ul>
 
         </div>
 
