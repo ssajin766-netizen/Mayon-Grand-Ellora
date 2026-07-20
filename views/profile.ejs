@@ -177,10 +177,14 @@
 </div>
 
 <!-- ==========================================================
-     PERSONAL INFORMATION
+     INFORMATION SECTION
 ========================================================== -->
 
-<div class="col-lg-6">
+<div class="row g-4 mt-4">
+
+    <!-- Personal Information -->
+
+    <div class="col-lg-6">
 
     <div class="card shadow-sm border-0 rounded-4 h-100">
 
@@ -522,6 +526,8 @@
 
 </div>
 
+</div>
+
 <!-- ==========================================================
      QUICK ACTIONS
 ========================================================== -->
@@ -660,7 +666,7 @@
 
 <div class="row mt-5">
 
-    <div class="col-lg-3 col-sm-6 mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
 
         <div class="summary-card">
 
@@ -668,17 +674,21 @@
 
             <h2>
 
-                <%= resident.complaints.length %>
+                <%= resident.complaints ? resident.complaints.length : 0 %>
 
             </h2>
 
-            <p>Complaints</p>
+            <p>
+
+                Complaints
+
+            </p>
 
         </div>
 
     </div>
 
-    <div class="col-lg-3 col-sm-6 mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
 
         <div class="summary-card">
 
@@ -686,35 +696,43 @@
 
             <h2>
 
-                ₹<%= resident.makePayment %>
+                ₹<%= resident.makePayment || 0 %>
 
             </h2>
 
-            <p>Maintenance</p>
+            <p>
+
+                Maintenance
+
+            </p>
 
         </div>
 
     </div>
 
-    <div class="col-lg-3 col-sm-6 mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
 
         <div class="summary-card">
 
-            <i class="fas fa-sign-in-alt text-warning fa-2x mb-3"></i>
+            <i class="fas fa-history text-warning fa-2x mb-3"></i>
 
             <h2>
 
-                <%= resident.loginHistory.length %>
+                <%= resident.loginHistory ? resident.loginHistory.length : 0 %>
 
             </h2>
 
-            <p>Logins</p>
+            <p>
+
+                Login History
+
+            </p>
 
         </div>
 
     </div>
 
-    <div class="col-lg-3 col-sm-6 mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
 
         <div class="summary-card">
 
@@ -722,11 +740,15 @@
 
             <h2>
 
-                <%= resident.paymentHistory.length %>
+                <%= resident.paymentHistory ? resident.paymentHistory.length : 0 %>
 
             </h2>
 
-            <p>Payments</p>
+            <p>
+
+                Payments
+
+            </p>
 
         </div>
 

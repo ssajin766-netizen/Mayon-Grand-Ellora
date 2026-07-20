@@ -146,10 +146,11 @@ span{
     color: crimson;
 }
 footer{
-    width: 100%;
-    background: #222;
-    color: #aaa;
-    margin-bottom: 0px;   
+
+    width:100%;
+
+    margin-bottom:0;
+
 }
 
 /* Residents Page */
@@ -405,9 +406,17 @@ tfoot td {
 ========================================================== */
 
 .profile-header{
-    background:linear-gradient(135deg,#0d6efd,#6f42c1);
-    color:#fff;
+
+    background:linear-gradient(135deg,#0d6efd,#4f46e5);
+
     border-radius:25px;
+
+    padding:40px;
+
+    color:#fff;
+
+    box-shadow:0 15px 40px rgba(13,110,253,.18);
+
 }
 
 .profile-header h2{
@@ -431,17 +440,23 @@ tfoot td {
 /* Cards */
 
 .profile-card{
+
     border:none;
+
     border-radius:20px;
-    overflow:hidden;
-    background:#fff;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
-    transition:.3s;
+
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+
+    transition:.35s;
+
 }
 
 .profile-card:hover{
-    transform:translateY(-5px);
-    box-shadow:0 15px 35px rgba(0,0,0,.15);
+
+    transform:translateY(-6px);
+
+    box-shadow:0 18px 40px rgba(0,0,0,.15);
+
 }
 
 .profile-card .card-header{
@@ -457,15 +472,23 @@ tfoot td {
 /* Information rows */
 
 .info-row{
+
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
-    padding:14px 0;
-    border-bottom:1px solid #ececec;
+
+    padding:16px 0;
+
+    border-bottom:1px solid #edf2f7;
+
 }
 
 .info-row:last-child{
-    border-bottom:none;
+
+    border:none;
+
 }
 
 .info-label{
@@ -507,11 +530,11 @@ tfoot td {
 
     width:100%;
 
+    padding:14px;
+
     margin:8px 0;
 
     border-radius:14px;
-
-    padding:14px;
 
     font-weight:600;
 
@@ -523,7 +546,7 @@ tfoot td {
 
     border:none;
 
-    border-radius:22px;
+    border-radius:20px;
 
     color:#fff;
 
@@ -531,7 +554,7 @@ tfoot td {
 
     text-align:center;
 
-    box-shadow:0 12px 30px rgba(0,0,0,.08);
+    box-shadow:0 15px 30px rgba(0,0,0,.08);
 
     transition:.3s;
 
@@ -711,13 +734,13 @@ tfoot td {
 
     height:180px;
 
-    border-radius:50%;
-
     object-fit:cover;
+
+    border-radius:50%;
 
     border:6px solid #fff;
 
-    box-shadow:0 15px 35px rgba(0,0,0,.18);
+    box-shadow:0 20px 45px rgba(0,0,0,.18);
 
     transition:.35s;
 
@@ -777,16 +800,6 @@ tfoot td {
 
 @media(max-width:768px){
 
-    .profile-avatar{
-
-        width:100px;
-
-        height:100px;
-
-        margin:auto;
-
-    }
-
     .profile-photo{
 
         width:140px;
@@ -803,11 +816,19 @@ tfoot td {
 
     }
 
+    .profile-header{
+
+        text-align:center;
+
+        padding:30px 20px;
+
+    }
+
     .profile-buttons .btn{
 
         width:100%;
 
-        margin:8px 0;
+        margin-top:10px;
 
     }
 
@@ -820,5 +841,85 @@ tfoot td {
         gap:8px;
 
     }
+
+}
+
+/* ==========================================================
+   FOOTER
+========================================================== */
+
+.footer{
+
+    background:#1f2937;
+
+    color:#d1d5db;
+
+}
+
+.footer-title{
+
+    color:#fff;
+
+    font-size:22px;
+
+    font-weight:700;
+
+    margin-bottom:20px;
+
+}
+
+.footer-text{
+
+    line-height:1.8;
+
+    color:#cbd5e1;
+
+}
+
+.footer a{
+
+    color:#ffffff;
+
+    text-decoration:none;
+
+}
+
+.footer a:hover{
+
+    color:#22c55e;
+
+}
+
+.social-icon{
+
+    width:45px;
+
+    height:45px;
+
+    border-radius:50%;
+
+    display:inline-flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:#374151;
+
+    color:#fff;
+
+    font-size:20px;
+
+    transition:.3s;
+
+}
+
+.social-icon:hover{
+
+    background:#198754;
+
+    color:#fff;
+
+    transform:translateY(-3px);
 
 }
