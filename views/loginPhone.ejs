@@ -1,129 +1,112 @@
 <%- include("partials/header") %>
 
-<div class="container py-5">
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/css/intlTelInput.css">
 
-    <div class="row justify-content-center">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+rel="stylesheet">
 
-        <div class="col-lg-5 col-md-7">
+<div class="login-wrapper">
 
-            <div class="card phone-card shadow-lg border-0">
+    <div class="login-card">
 
-                <!-- Header -->
+        <div class="text-center mb-4">
 
-                <div class="card-header text-center">
+            <div class="logo-circle">
 
-                    <div class="phone-icon">
-
-                        <i class="fas fa-mobile-alt"></i>
-
-                    </div>
-
-                    <h2 class="mt-3">
-
-                        Phone Login
-
-                    </h2>
-
-                    <p>
-
-                        Login securely using your mobile number
-
-                    </p>
-
-                </div>
-
-                <!-- Body -->
-
-                <div class="card-body">
-
-                    <% if(success && success.length){ %>
-
-                        <div class="alert alert-success">
-
-                            <%= success %>
-
-                        </div>
-
-                    <% } %>
-
-                    <% if(error && error.length){ %>
-
-                        <div class="alert alert-danger">
-
-                            <%= error %>
-
-                        </div>
-
-                    <% } %>
-
-                    <form
-                        id="phoneLoginForm"
-                        action="/phone/send"
-                        method="POST">
-
-                        <div class="form-group">
-
-                            <label>
-
-                                <i class="fas fa-phone text-success mr-2"></i>
-
-                                Mobile Number
-
-                            </label>
-
-                            <input
-                                id="phone"
-                                type="tel"
-                                class="form-control"
-                                autocomplete="tel"
-                                required>
-
-                            <input
-                                type="hidden"
-                                id="phoneNumber"
-                                name="phoneNumber">
-
-                            <small class="text-muted">
-
-                                Select your country and enter your mobile number.
-
-                            </small>
-
-                        </div>
-
-                        <button
-                            type="submit"
-                            class="btn btn-success btn-lg btn-block">
-
-                            <i class="fas fa-paper-plane mr-2"></i>
-
-                            Send OTP
-
-                        </button>
-
-                    </form>
-
-                    <div class="divider">
-
-                        <span>OR</span>
-
-                    </div>
-
-                    <a
-                        href="/login"
-                        class="btn btn-outline-secondary btn-block">
-
-                        <i class="fas fa-arrow-left mr-2"></i>
-
-                        Back to Email Login
-
-                    </a>
-
-                </div>
+                <i class="fab fa-whatsapp"></i>
 
             </div>
 
+            <h2>
+
+                Continue with Phone
+
+            </h2>
+
+            <p>
+
+                Enter your mobile number to receive a secure verification code.
+
+            </p>
+
         </div>
+
+        <% if(success && success.length){ %>
+
+            <div class="alert alert-success">
+
+                <%= success %>
+
+            </div>
+
+        <% } %>
+
+        <% if(error && error.length){ %>
+
+            <div class="alert alert-danger">
+
+                <%= error %>
+
+            </div>
+
+        <% } %>
+
+        <form
+            id="phoneLoginForm"
+            action="/phone/send"
+            method="POST">
+
+            <div class="mb-4">
+
+                <label class="form-label">
+
+                    Mobile Number
+
+                </label>
+
+                <input
+                    id="phone"
+                    type="tel"
+                    autocomplete="tel"
+                    class="form-control"
+                    required>
+
+                <input
+                    type="hidden"
+                    id="phoneNumber"
+                    name="phoneNumber">
+
+            </div>
+
+            <button
+                id="submitBtn"
+                type="submit"
+                class="btn btn-success w-100">
+
+                <i class="fas fa-paper-plane me-2"></i>
+
+                Send OTP
+
+            </button>
+
+        </form>
+
+        <div class="divider">
+
+            <span>OR</span>
+
+        </div>
+
+        <a
+            href="/login"
+            class="btn btn-outline-secondary w-100">
+
+            <i class="fas fa-arrow-left me-2"></i>
+
+            Back to Email Login
+
+        </a>
 
     </div>
 
@@ -133,11 +116,12 @@
 
 <script>
 
-const phoneInput = document.querySelector("#phone");
-const hiddenInput = document.querySelector("#phoneNumber");
-const form = document.getElementById("phoneLoginForm");
+const phoneInput=document.querySelector("#phone");
+const hiddenInput=document.querySelector("#phoneNumber");
+const form=document.getElementById("phoneLoginForm");
+const btn=document.getElementById("submitBtn");
 
-const iti = window.intlTelInput(phoneInput,{
+const iti=window.intlTelInput(phoneInput,{
 
     initialCountry:"in",
 
@@ -159,8 +143,8 @@ const iti = window.intlTelInput(phoneInput,{
 
     formatOnDisplay:true,
 
-    loadUtils:()=>
-        import("https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js")
+    loadUtils:()=>import(
+"https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/js/utils.js")
 
 });
 
@@ -170,23 +154,20 @@ form.addEventListener("submit",function(e){
 
     if(phoneInput.value.trim()===""){
 
-        alert("Please enter your mobile number.");
-
         phoneInput.focus();
 
         return;
 
     }
 
-    hiddenInput.value = iti.getNumber();
-
-    console.log("Phone:",hiddenInput.value);
-
-    const btn=this.querySelector("button");
+    hiddenInput.value=iti.getNumber();
 
     btn.disabled=true;
 
-    btn.innerHTML='<span class="spinner-border spinner-border-sm mr-2"></span>Sending OTP...';
+    btn.innerHTML=`
+    <span class="spinner-border spinner-border-sm me-2"></span>
+    Sending OTP...
+    `;
 
     this.submit();
 
@@ -198,65 +179,15 @@ form.addEventListener("submit",function(e){
 
 body{
 
-    background:#f4f7fb;
+    background:#f3f5f7;
+
+    font-family:'Inter',sans-serif;
 
 }
 
-/* Card */
+.login-wrapper{
 
-.phone-card{
-
-    border:none;
-
-    border-radius:20px;
-
-    overflow:hidden;
-
-}
-
-/* Header */
-
-.card-header{
-
-    background:linear-gradient(135deg,#198754,#28a745);
-
-    color:#fff;
-
-    padding:35px;
-
-    border:none;
-
-}
-
-.card-header h2{
-
-    font-weight:700;
-
-    margin-bottom:8px;
-
-}
-
-.card-header p{
-
-    margin-bottom:0;
-
-    opacity:.9;
-
-}
-
-/* Phone Icon */
-
-.phone-icon{
-
-    width:85px;
-
-    height:85px;
-
-    margin:auto;
-
-    border-radius:50%;
-
-    background:rgba(255,255,255,.18);
+    min-height:90vh;
 
     display:flex;
 
@@ -264,43 +195,87 @@ body{
 
     justify-content:center;
 
-}
-
-.phone-icon i{
-
-    font-size:36px;
+    padding:30px;
 
 }
 
-/* Body */
+.login-card{
 
-.card-body{
+    width:100%;
 
-    padding:35px;
+    max-width:430px;
+
+    background:#fff;
+
+    border-radius:24px;
+
+    padding:40px;
+
+    box-shadow:
+
+        0 15px 45px rgba(0,0,0,.08);
+
+    animation:fadeUp .45s ease;
 
 }
 
-.form-group{
+.logo-circle{
 
-    margin-bottom:22px;
+    width:90px;
+
+    height:90px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:#25D366;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#fff;
+
+    font-size:42px;
+
+    box-shadow:
+
+        0 10px 25px rgba(37,211,102,.3);
 
 }
 
-.form-group label{
+h2{
+
+    font-weight:700;
+
+    margin-top:25px;
+
+}
+
+p{
+
+    color:#777;
+
+    margin-bottom:25px;
+
+}
+
+.form-label{
 
     font-weight:600;
-
-    color:#444;
 
 }
 
 .form-control{
 
-    height:50px;
+    height:58px;
 
-    border-radius:12px;
+    border-radius:16px;
 
-    border:1px solid #ddd;
+    border:2px solid #e5e7eb;
 
     font-size:16px;
 
@@ -308,13 +283,11 @@ body{
 
 .form-control:focus{
 
-    border-color:#198754;
+    border-color:#25D366;
 
-    box-shadow:0 0 0 .2rem rgba(25,135,84,.15);
+    box-shadow:0 0 0 .2rem rgba(37,211,102,.15);
 
 }
-
-/* Phone Input */
 
 .iti{
 
@@ -326,33 +299,23 @@ body{
 
     width:100%!important;
 
-    height:50px;
+    height:58px!important;
 
 }
-
-.iti__country-list{
-
-    z-index:999999;
-
-}
-
-/* Buttons */
 
 .btn{
 
-    height:50px;
+    height:56px;
 
-    border-radius:12px;
+    border-radius:16px;
 
     font-weight:600;
-
-    font-size:15px;
 
 }
 
 .btn-success{
 
-    background:#198754;
+    background:#25D366;
 
     border:none;
 
@@ -360,61 +323,67 @@ body{
 
 .btn-success:hover{
 
-    background:#157347;
+    background:#1ebe5d;
 
 }
-
-/* Divider */
 
 .divider{
 
-    text-align:center;
+    display:flex;
 
-    margin:25px 0;
+    align-items:center;
 
-    position:relative;
-
-}
-
-.divider span{
-
-    background:#fff;
-
-    padding:0 15px;
-
-    color:#888;
-
-    position:relative;
-
-    z-index:2;
+    margin:28px 0;
 
 }
 
-.divider:before{
+.divider::before,
+
+.divider::after{
 
     content:"";
 
-    position:absolute;
-
-    width:100%;
+    flex:1;
 
     height:1px;
 
     background:#ddd;
 
-    left:0;
+}
 
-    top:50%;
+.divider span{
+
+    padding:0 15px;
+
+    color:#999;
 
 }
 
-/* Mobile */
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(25px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:none;
+
+    }
+
+}
 
 @media(max-width:576px){
 
-    .card-body{
+    .login-card{
 
-        padding:25px;
+        padding:28px;
 
     }
 

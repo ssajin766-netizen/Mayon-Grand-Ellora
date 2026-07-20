@@ -1,118 +1,168 @@
-<%- include('partials/header') %>
+<div class="row mb-4">
 
-<div class="container py-5">
+    <div class="col-lg-12">
 
-    <div class="row mb-4">
+        <div class="card shadow-lg border-0 rounded-4">
 
-        <div class="col-lg-12">
+            <div class="card-body p-5">
 
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="row align-items-center">
 
-                <div class="card-body bg-primary text-white p-5">
+                    <!-- =========================
+                         PROFILE IMAGE
+                    ========================== -->
 
-                    <div class="row align-items-center">
+                    <div class="col-lg-3 text-center">
 
-                        <div class="col-lg-2 text-center">
+                        <form
+                            action="/profile/upload"
+                            method="POST"
+                            enctype="multipart/form-data"
+                            id="profileUploadForm">
 
-    <form
-        action="/profile/upload"
-        method="POST"
-        enctype="multipart/form-data"
-        id="profileUploadForm">
+                            <input
+                                type="file"
+                                id="profileImage"
+                                name="profileImage"
+                                accept="image/*"
+                                style="display:none">
 
-        <input
-            type="file"
-            id="profileImage"
-            name="profileImage"
-            accept="image/*"
-            style="display:none">
+                            <div
+                                class="profile-photo-wrapper"
+                                onclick="document.getElementById('profileImage').click()">
 
-        <div
-            class="profile-photo-wrapper"
-            onclick="document.getElementById('profileImage').click()">
+                                <img
+                                    id="profilePreview"
+                                    src="<%= resident.profileImage || '/images/default-avatar.png' %>"
+                                    class="profile-photo"
+                                    alt="Profile">
 
-            <img
-                id="profilePreview"
-                src="<%= resident.profileImage || '/images/default-avatar.png' %>"
-                class="profile-photo"
-                alt="Profile">
+                                <div class="camera-overlay">
 
-            <div class="camera-overlay">
+                                    <i class="fas fa-camera"></i>
 
-                <i class="fas fa-camera"></i>
+                                </div>
 
-            </div>
+                            </div>
 
-        </div>
+                            <button
+                                id="uploadBtn"
+                                class="btn btn-success mt-3 px-4"
+                                style="display:none">
 
-        <button
-            id="uploadBtn"
-            class="btn btn-success btn-sm mt-3 px-4"
-            style="display:none">
+                                <i class="fas fa-upload me-2"></i>
 
-            <i class="fas fa-upload me-2"></i>
+                                Save Photo
 
-            Save Photo
+                            </button>
 
-        </button>
+                        </form>
 
-    </form>
+                    </div>
 
-</div>
+                    <!-- =========================
+                         USER DETAILS
+                    ========================== -->
 
-                        <div class="col-lg-6">
+                    <div class="col-lg-6 mt-4 mt-lg-0">
 
-                            <h2 class="fw-bold mb-2">
+                        <h2 class="fw-bold mb-2">
 
-                                <%= resident.firstName %>
+                            <%= resident.firstName %>
 
-                                <%= resident.lastName %>
+                            <%= resident.lastName %>
 
-                            </h2>
+                        </h2>
 
-                            <p class="mb-2">
+                        <p class="text-muted mb-2">
 
-                                <i class="fas fa-envelope me-2"></i>
+                            <i class="fas fa-envelope me-2 text-primary"></i>
 
-                                <%= resident.username %>
+                            <%= resident.username %>
 
-                            </p>
+                        </p>
 
-                            <p class="mb-0">
+                        <p class="text-muted mb-3">
 
-                                <i class="fas fa-home me-2"></i>
+                            <i class="fas fa-home me-2 text-success"></i>
 
-                                Flat
+                            Flat <%= resident.flatNumber %>
 
-                                <%= resident.flatNumber %>
+                        </p>
 
-                            </p>
+                        <div class="d-flex flex-wrap gap-2">
+
+                            <% if(resident.isEmailVerified){ %>
+
+                                <span class="badge bg-success">
+
+                                    <i class="fas fa-check-circle me-1"></i>
+
+                                    Email Verified
+
+                                </span>
+
+                            <% } %>
+
+                            <% if(resident.isPhoneVerified){ %>
+
+                                <span class="badge bg-primary">
+
+                                    <i class="fas fa-mobile-alt me-1"></i>
+
+                                    Phone Verified
+
+                                </span>
+
+                            <% } %>
+
+                            <% if(resident.isAdmin){ %>
+
+                                <span class="badge bg-danger">
+
+                                    Administrator
+
+                                </span>
+
+                            <% } else { %>
+
+                                <span class="badge bg-info text-dark">
+
+                                    Resident
+
+                                </span>
+
+                            <% } %>
 
                         </div>
 
-                        <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                    </div>
 
-                            <a
-                                href="/editProfile"
-                                class="btn btn-light me-2">
+                    <!-- =========================
+                         ACTION BUTTONS
+                    ========================== -->
 
-                                <i class="fas fa-user-edit me-2"></i>
+                    <div class="col-lg-3 text-lg-end mt-4 mt-lg-0">
 
-                                Edit Profile
+                        <a
+                            href="/editProfile"
+                            class="btn btn-primary w-100 mb-3">
 
-                            </a>
+                            <i class="fas fa-user-edit me-2"></i>
 
-                            <a
-                                href="/security"
-                                class="btn btn-danger">
+                            Edit Profile
 
-                                <i class="fas fa-user-shield me-2"></i>
+                        </a>
 
-                                Security
+                        <a
+                            href="/security"
+                            class="btn btn-outline-danger w-100">
 
-                            </a>
+                            <i class="fas fa-user-shield me-2"></i>
 
-                        </div>
+                            Security
+
+                        </a>
 
                     </div>
 
@@ -124,131 +174,129 @@
 
     </div>
 
-    <div class="row g-4">
-    
+</div>
+
 <!-- ==========================================================
      PERSONAL INFORMATION
 ========================================================== -->
 
 <div class="col-lg-6">
 
-    <div class="card shadow-lg border-0 rounded-4 h-100">
+    <div class="card shadow-sm border-0 rounded-4 h-100">
 
-        <div class="card-header bg-white border-0 pt-4">
+        <div class="card-body p-4">
 
-            <h4 class="fw-bold text-primary">
+            <div class="d-flex align-items-center mb-4">
 
-                <i class="fas fa-user-circle me-2"></i>
+                <div class="icon-box bg-primary">
 
-                Personal Information
-
-            </h4>
-
-            <small class="text-muted">
-
-                Your personal account details.
-
-            </small>
-
-        </div>
-
-        <div class="card-body">
-
-            <!-- Name -->
-
-            <div class="d-flex justify-content-between py-3 border-bottom">
-
-                <div>
-
-                    <i class="fas fa-user text-primary me-2"></i>
-
-                    <strong>Full Name</strong>
+                    <i class="fas fa-user text-white"></i>
 
                 </div>
 
-                <span class="text-secondary">
+                <div class="ms-3">
+
+                    <h4 class="fw-bold mb-0">
+
+                        Personal Information
+
+                    </h4>
+
+                    <small class="text-muted">
+
+                        Your account details
+
+                    </small>
+
+                </div>
+
+            </div>
+
+            <div class="profile-item">
+
+                <span>
+
+                    <i class="fas fa-user text-primary me-2"></i>
+
+                    Full Name
+
+                </span>
+
+                <strong>
 
                     <%= resident.firstName %>
 
                     <%= resident.lastName %>
 
-                </span>
+                </strong>
 
             </div>
 
-            <!-- Email -->
+            <div class="profile-item">
 
-            <div class="d-flex justify-content-between py-3 border-bottom">
-
-                <div>
+                <span>
 
                     <i class="fas fa-envelope text-danger me-2"></i>
 
-                    <strong>Email</strong>
+                    Email
 
-                </div>
+                </span>
 
-                <span class="text-secondary">
+                <strong>
 
                     <%= resident.username %>
 
-                </span>
+                </strong>
 
             </div>
 
-            <!-- Phone -->
+            <div class="profile-item">
 
-            <div class="d-flex justify-content-between py-3 border-bottom">
-
-                <div>
+                <span>
 
                     <i class="fas fa-phone text-success me-2"></i>
 
-                    <strong>Phone</strong>
+                    Phone
 
-                </div>
+                </span>
 
-                <span class="text-secondary">
+                <strong>
 
                     <%= resident.phoneNumber || "Not Added" %>
 
-                </span>
+                </strong>
 
             </div>
 
-            <!-- Flat -->
+            <div class="profile-item">
 
-            <div class="d-flex justify-content-between py-3 border-bottom">
-
-                <div>
+                <span>
 
                     <i class="fas fa-home text-warning me-2"></i>
 
-                    <strong>Flat Number</strong>
-
-                </div>
-
-                <span class="text-secondary">
-
-                    <%= resident.flatNumber %>
+                    Flat Number
 
                 </span>
 
+                <strong>
+
+                    <%= resident.flatNumber %>
+
+                </strong>
+
             </div>
 
-            <!-- Account Type -->
+            <div class="profile-item">
 
-            <div class="d-flex justify-content-between py-3 border-bottom">
-
-                <div>
+                <span>
 
                     <i class="fas fa-user-tag text-info me-2"></i>
 
-                    <strong>Role</strong>
+                    Role
 
-                </div>
+                </span>
 
-                <span>
+                <strong>
 
                     <% if(resident.isAdmin){ %>
 
@@ -258,7 +306,7 @@
 
                         </span>
 
-                    <% } else { %>
+                    <% }else{ %>
 
                         <span class="badge bg-primary">
 
@@ -268,23 +316,21 @@
 
                     <% } %>
 
-                </span>
+                </strong>
 
             </div>
 
-            <!-- Status -->
+            <div class="profile-item border-0">
 
-            <div class="d-flex justify-content-between py-3">
-
-                <div>
+                <span>
 
                     <i class="fas fa-check-circle text-success me-2"></i>
 
-                    <strong>Approval Status</strong>
+                    Status
 
-                </div>
+                </span>
 
-                <span>
+                <strong>
 
                     <% if(resident.validation==="approved"){ %>
 
@@ -294,7 +340,7 @@
 
                         </span>
 
-                    <% } else if(resident.validation==="applied"){ %>
+                    <% }else if(resident.validation==="applied"){ %>
 
                         <span class="badge bg-warning text-dark">
 
@@ -302,7 +348,7 @@
 
                         </span>
 
-                    <% } else { %>
+                    <% }else{ %>
 
                         <span class="badge bg-danger">
 
@@ -312,7 +358,7 @@
 
                     <% } %>
 
-                </span>
+                </strong>
 
             </div>
 
@@ -328,173 +374,151 @@
 
 <div class="col-lg-6">
 
-    <div class="card shadow-lg border-0 rounded-4 h-100">
+    <div class="card shadow-sm border-0 rounded-4 h-100">
 
-        <div class="card-header bg-white border-0 pt-4">
+        <div class="card-body p-4">
 
-            <h4 class="fw-bold text-success">
+            <div class="d-flex align-items-center mb-4">
 
-                <i class="fas fa-building me-2"></i>
+                <div class="icon-box bg-success">
 
-                Society Information
+                    <i class="fas fa-building text-white"></i>
 
-            </h4>
+                </div>
 
-            <small class="text-muted">
+                <div class="ms-3">
 
-                Details about your apartment society.
+                    <h4 class="fw-bold mb-0">
 
-            </small>
+                        Society Information
 
-        </div>
+                    </h4>
 
-        <div class="card-body">
+                    <small class="text-muted">
 
-            <!-- Society Name -->
+                        Apartment details
 
-            <div class="d-flex justify-content-between py-3 border-bottom">
+                    </small>
 
-                <div>
+                </div>
+
+            </div>
+
+            <div class="profile-item">
+
+                <span>
 
                     <i class="fas fa-city text-success me-2"></i>
 
-                    <strong>Society Name</strong>
+                    Society
 
-                </div>
+                </span>
 
-                <span class="text-secondary">
+                <strong>
 
                     <%= society.societyName %>
 
-                </span>
+                </strong>
 
             </div>
 
-            <!-- Address -->
+            <div class="profile-item">
 
-            <div class="py-3 border-bottom">
-
-                <div class="mb-2">
+                <span>
 
                     <i class="fas fa-map-marker-alt text-danger me-2"></i>
 
-                    <strong>Address</strong>
+                    Address
 
-                </div>
+                </span>
 
-                <div class="text-secondary ms-4">
+                <strong>
 
                     <%= society.societyAddress.address %>
 
-                </div>
+                </strong>
 
             </div>
 
-            <!-- City -->
+            <div class="profile-item">
 
-            <div class="d-flex justify-content-between py-3 border-bottom">
-
-                <div>
+                <span>
 
                     <i class="fas fa-map text-primary me-2"></i>
 
-                    <strong>City</strong>
+                    City
 
-                </div>
+                </span>
 
-                <span class="text-secondary">
+                <strong>
 
                     <%= society.societyAddress.city %>
 
-                </span>
+                </strong>
 
             </div>
 
-            <!-- District -->
+            <div class="profile-item">
 
-            <div class="d-flex justify-content-between py-3 border-bottom">
-
-                <div>
+                <span>
 
                     <i class="fas fa-location-arrow text-warning me-2"></i>
 
-                    <strong>District</strong>
+                    District
 
-                </div>
+                </span>
 
-                <span class="text-secondary">
+                <strong>
 
                     <%= society.societyAddress.district %>
 
-                </span>
+                </strong>
 
             </div>
 
-            <!-- Postal Code -->
+            <div class="profile-item">
 
-            <div class="d-flex justify-content-between py-3 border-bottom">
-
-                <div>
+                <span>
 
                     <i class="fas fa-mail-bulk text-info me-2"></i>
 
-                    <strong>Postal Code</strong>
+                    Postal Code
 
-                </div>
+                </span>
 
-                <span class="text-secondary">
+                <strong>
 
                     <%= society.societyAddress.postalCode %>
 
-                </span>
+                </strong>
 
             </div>
 
-            <!-- Society Status -->
+            <div class="profile-item border-0">
 
-            <div class="d-flex justify-content-between py-3 border-bottom">
-
-                <div>
+                <span>
 
                     <i class="fas fa-check-circle text-success me-2"></i>
 
-                    <strong>Status</strong>
-
-                </div>
-
-                <span class="badge bg-success">
-
-                    Active
+                    Society Status
 
                 </span>
 
-            </div>
+                <strong>
 
-            <!-- Membership -->
+                    <span class="badge bg-success">
 
-            <div class="d-flex justify-content-between py-3">
+                        Active
 
-                <div>
+                    </span>
 
-                    <i class="fas fa-users text-primary me-2"></i>
-
-                    <strong>Membership</strong>
-
-                </div>
-
-                <span class="badge bg-primary">
-
-                    Resident
-
-                </span>
+                </strong>
 
             </div>
 
         </div>
 
     </div>
-
-</div>
 
 </div>
 
@@ -506,118 +530,206 @@
 
     <div class="col-lg-12">
 
-        <div class="card shadow-lg border-0 rounded-4">
+        <h3 class="fw-bold mb-4">
 
-            <div class="card-body">
+            <i class="fas fa-bolt text-warning me-2"></i>
 
-                <h4 class="fw-bold mb-4">
+            Quick Actions
 
-                    <i class="fas fa-bolt text-warning me-2"></i>
+        </h3>
 
-                    Quick Actions
+    </div>
 
-                </h4>
+    <!-- Edit Profile -->
 
-                <div class="row text-center">
+    <div class="col-xl-3 col-md-6 mb-4">
 
-                    <div class="col-md-3 mb-3">
+        <a href="/editProfile" class="text-decoration-none">
 
-                        <a
-                            href="/editProfile"
-                            class="btn btn-primary w-100 py-3">
+            <div class="action-card">
 
-                            <i class="fas fa-user-edit fa-2x mb-2"></i>
+                <div class="action-icon bg-primary">
 
-                            <br>
-
-                            Edit Profile
-
-                        </a>
-
-                    </div>
-
-                    <div class="col-md-3 mb-3">
-
-                        <a
-                            href="/security"
-                            class="btn btn-danger w-100 py-3">
-
-                            <i class="fas fa-user-shield fa-2x mb-2"></i>
-
-                            <br>
-
-                            Security
-
-                        </a>
-
-                    </div>
-
-                    <div class="col-md-3 mb-3">
-
-                        <a
-                            href="/changePassword"
-                            class="btn btn-warning w-100 py-3">
-
-                            <i class="fas fa-key fa-2x mb-2"></i>
-
-                            <br>
-
-                            Change Password
-
-                        </a>
-
-                    </div>
-
-                    <div class="col-md-3 mb-3">
-
-                        <a
-                            href="/loginHistory"
-                            class="btn btn-info text-white w-100 py-3">
-
-                            <i class="fas fa-history fa-2x mb-2"></i>
-
-                            <br>
-
-                            Login History
-
-                        </a>
-
-                    </div>
+                    <i class="fas fa-user-edit"></i>
 
                 </div>
 
+                <h5>Edit Profile</h5>
+
+                <p>
+
+                    Update your personal information.
+
+                </p>
+
             </div>
+
+        </a>
+
+    </div>
+
+    <!-- Security -->
+
+    <div class="col-xl-3 col-md-6 mb-4">
+
+        <a href="/security" class="text-decoration-none">
+
+            <div class="action-card">
+
+                <div class="action-icon bg-danger">
+
+                    <i class="fas fa-user-shield"></i>
+
+                </div>
+
+                <h5>Security</h5>
+
+                <p>
+
+                    Password, 2FA and login settings.
+
+                </p>
+
+            </div>
+
+        </a>
+
+    </div>
+
+    <!-- Password -->
+
+    <div class="col-xl-3 col-md-6 mb-4">
+
+        <a href="/changePassword" class="text-decoration-none">
+
+            <div class="action-card">
+
+                <div class="action-icon bg-warning">
+
+                    <i class="fas fa-key"></i>
+
+                </div>
+
+                <h5>Password</h5>
+
+                <p>
+
+                    Change your account password.
+
+                </p>
+
+            </div>
+
+        </a>
+
+    </div>
+
+    <!-- Login History -->
+
+    <div class="col-xl-3 col-md-6 mb-4">
+
+        <a href="/loginHistory" class="text-decoration-none">
+
+            <div class="action-card">
+
+                <div class="action-icon bg-success">
+
+                    <i class="fas fa-history"></i>
+
+                </div>
+
+                <h5>Login History</h5>
+
+                <p>
+
+                    View your recent sign-in activity.
+
+                </p>
+
+            </div>
+
+        </a>
+
+    </div>
+
+</div>
+
+<!-- ==========================================================
+     ACCOUNT SUMMARY
+========================================================== -->
+
+<div class="row mt-5">
+
+    <div class="col-lg-3 col-sm-6 mb-4">
+
+        <div class="summary-card">
+
+            <i class="fas fa-file-alt text-primary fa-2x mb-3"></i>
+
+            <h2>
+
+                <%= resident.complaints.length %>
+
+            </h2>
+
+            <p>Complaints</p>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-sm-6 mb-4">
+
+        <div class="summary-card">
+
+            <i class="fas fa-wallet text-success fa-2x mb-3"></i>
+
+            <h2>
+
+                ₹<%= resident.makePayment %>
+
+            </h2>
+
+            <p>Maintenance</p>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-sm-6 mb-4">
+
+        <div class="summary-card">
+
+            <i class="fas fa-sign-in-alt text-warning fa-2x mb-3"></i>
+
+            <h2>
+
+                <%= resident.loginHistory.length %>
+
+            </h2>
+
+            <p>Logins</p>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-sm-6 mb-4">
+
+        <div class="summary-card">
+
+            <i class="fas fa-receipt text-danger fa-2x mb-3"></i>
+
+            <h2>
+
+                <%= resident.paymentHistory.length %>
+
+            </h2>
+
+            <p>Payments</p>
 
         </div>
 
     </div>
 
 </div>
-
-<script>
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const input = document.getElementById("profileImage");
-
-    const preview = document.getElementById("profilePreview");
-
-    const uploadBtn = document.getElementById("uploadBtn");
-
-    input.addEventListener("change", function () {
-
-        if (!this.files.length) return;
-
-        const file = this.files[0];
-
-        preview.src = URL.createObjectURL(file);
-
-        uploadBtn.style.display = "inline-block";
-
-    });
-
-});
-
-</script>
-
-<%- include("partials/footer") %>

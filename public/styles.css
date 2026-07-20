@@ -482,52 +482,89 @@ tfoot td {
 /* Quick Actions */
 
 .quick-card{
+
     border:none;
-    border-radius:20px;
+
+    border-radius:22px;
+
     background:#fff;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+    transition:.3s;
+
+    padding:25px;
+
+}
+
+.quick-card:hover{
+
+    transform:translateY(-8px);
+
 }
 
 .quick-card .btn{
-    margin:8px 0;
-    border-radius:12px;
-    padding:15px;
-    font-weight:600;
-    transition:.3s;
-}
 
-.quick-card .btn:hover{
-    transform:translateY(-3px);
+    width:100%;
+
+    margin:8px 0;
+
+    border-radius:14px;
+
+    padding:14px;
+
+    font-weight:600;
+
 }
 
 /* Dashboard Statistics */
 
 .stat-card{
+
     border:none;
-    border-radius:18px;
+
+    border-radius:22px;
+
     color:#fff;
+
+    padding:30px;
+
     text-align:center;
-    padding:25px;
+
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+
     transition:.3s;
+
 }
 
 .stat-card:hover{
-    transform:translateY(-6px);
+
+    transform:translateY(-8px);
+
 }
 
 .stat-card i{
-    font-size:36px;
-    margin-bottom:15px;
+
+    font-size:42px;
+
+    margin-bottom:20px;
+
 }
 
 .stat-card h3{
-    font-size:30px;
-    margin-bottom:5px;
+
+    font-size:34px;
+
     font-weight:700;
+
 }
 
 .stat-card p{
+
     margin:0;
+
+    opacity:.9;
+
 }
 
 /* Colors */
@@ -574,15 +611,43 @@ tfoot td {
 
 @media(max-width:768px){
 
-    .info-row{
-        flex-direction:column;
-        align-items:flex-start;
-        gap:8px;
-    }
+.info-row{
 
-    .info-value{
-        text-align:left;
-    }
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:18px 0;
+
+    border-bottom:1px solid #eef2f7;
+
+}
+
+.info-row:last-child{
+
+    border:none;
+
+}
+
+.info-label{
+
+    color:#6c757d;
+
+    font-weight:600;
+
+}
+
+.info-value{
+
+    font-weight:600;
+
+    color:#212529;
+
+    text-align:right;
+
+}
 
     .profile-buttons .btn{
         width:100%;
@@ -627,39 +692,133 @@ tfoot td {
 }
 
 .profile-photo-wrapper{
-    width:170px;
-    height:170px;
+
+    width:180px;
+
+    height:180px;
+
     margin:auto;
+
     position:relative;
+
     cursor:pointer;
+
 }
 
 .profile-photo{
-    width:170px;
-    height:170px;
+
+    width:180px;
+
+    height:180px;
+
     border-radius:50%;
+
     object-fit:cover;
-    border:5px solid #fff;
-    box-shadow:0 10px 30px rgba(0,0,0,.25);
-    transition:.3s;
+
+    border:6px solid #fff;
+
+    box-shadow:0 15px 35px rgba(0,0,0,.18);
+
+    transition:.35s;
+
 }
 
-.profile-photo-wrapper:hover .profile-photo{
-    transform:scale(1.03);
+.profile-photo:hover{
+
+    transform:scale(1.04);
+
 }
 
 .camera-overlay{
+
     position:absolute;
-    right:8px;
-    bottom:8px;
-    width:42px;
-    height:42px;
+
+    right:12px;
+
+    bottom:12px;
+
+    width:46px;
+
+    height:46px;
+
     border-radius:50%;
+
     background:#0d6efd;
+
     color:#fff;
+
     display:flex;
+
     justify-content:center;
+
     align-items:center;
+
     font-size:18px;
-    box-shadow:0 5px 15px rgba(0,0,0,.3);
+
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+
+}
+
+.card{
+
+    transition:.3s;
+
+}
+
+.card:hover{
+
+    box-shadow:0 18px 40px rgba(0,0,0,.10);
+
+}
+
+/* ==========================================================
+   MOBILE PROFILE RESPONSIVE
+========================================================== */
+
+@media(max-width:768px){
+
+    .profile-avatar{
+
+        width:100px;
+
+        height:100px;
+
+        margin:auto;
+
+    }
+
+    .profile-photo{
+
+        width:140px;
+
+        height:140px;
+
+    }
+
+    .profile-photo-wrapper{
+
+        width:140px;
+
+        height:140px;
+
+    }
+
+    .profile-buttons .btn{
+
+        width:100%;
+
+        margin:8px 0;
+
+    }
+
+    .info-row{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:8px;
+
+    }
+
 }
