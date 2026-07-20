@@ -925,6 +925,28 @@ tfoot td {
 
 }
 
+/* =========================================
+   FIX PAGE SPACING
+========================================= */
+
+.container{
+
+    max-width:1320px;
+
+}
+
+.navbar{
+
+    margin-bottom:0;
+
+}
+
+body{
+
+    padding-top:0;
+
+}
+
 /* ==========================================================
    GLOBAL PAGE LAYOUT
 ========================================================== */
@@ -942,12 +964,8 @@ body{
     flex-direction:column;
 }
 
-main.page-content{
-    flex:1;
+.page-content{
     width:100%;
-    max-width:1400px;
-    margin:20px auto;
-    padding:20px;
 }
 
 @media(max-width:768px){

@@ -5,6 +5,46 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<style>
+
+.hero-section{
+
+    background:
+    linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.45)),
+    url("/images/night");
+
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+
+    min-height:90vh;
+
+    display:flex;
+
+    align-items:center;
+
+    color:#fff;
+
+}
+
+.hero-title{
+
+    font-size:4rem;
+
+    font-weight:700;
+
+}
+
+.hero-subtitle{
+
+    font-size:1.2rem;
+
+    max-width:650px;
+
+}
+
+</style>
+
 <head>
 
     <title>Mayon Grand Ellora</title>
@@ -64,54 +104,50 @@
 <!-- ==========================================================
      NAVBAR
 ========================================================== -->
-
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
 
     <div class="container">
 
+        <!-- Brand -->
+
         <a
             href="/"
-            class="navbar-brand d-flex align-items-center">
+            class="navbar-brand fw-bold fs-4">
 
-            <img
-
-                src="/images/diversity.png"
-
-                width="45"
-
-                class="me-2 rounded-circle">
-
-            <strong>
-
-                Mayon Grand Ellora
-
-            </strong>
+            Mayon Grand Ellora
 
         </a>
 
+        <!-- Mobile Toggle -->
+
         <button
-
             class="navbar-toggler"
-
+            type="button"
             data-bs-toggle="collapse"
-
-            data-bs-target="#navbar">
+            data-bs-target="#navbar"
+            aria-controls="navbar"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
 
             <span class="navbar-toggler-icon"></span>
 
         </button>
 
+        <!-- Menu -->
+
         <div
             class="collapse navbar-collapse"
             id="navbar">
 
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
 
                 <li class="nav-item">
 
                     <a
-                        class="nav-link"
+                        class="nav-link px-lg-3"
                         href="#features">
+
+                        <i class="fas fa-layer-group me-2"></i>
 
                         Features
 
@@ -122,8 +158,10 @@
                 <li class="nav-item">
 
                     <a
-                        class="nav-link"
+                        class="nav-link px-lg-3"
                         href="#contact">
+
+                        <i class="fas fa-envelope me-2"></i>
 
                         Contact
 
@@ -131,12 +169,13 @@
 
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
 
                     <a
-                        class="btn btn-success ms-lg-3"
+                        href="/login"
+                        class="btn btn-success">
 
-                        href="/login">
+                        <i class="fas fa-sign-in-alt me-2"></i>
 
                         Login
 
@@ -465,130 +504,10 @@
 </section>
 
 <!-- ==========================================================
-     STATISTICS
-========================================================== -->
-
-<section class="py-5">
-
-    <div class="container">
-
-        <div class="row text-center g-4">
-
-            <div class="col-lg-3 col-md-6" data-aos="fade-up">
-
-                <div class="card border-0 shadow stat-card">
-
-                    <div class="card-body">
-
-                        <i class="fas fa-city text-primary fa-3x mb-3"></i>
-
-                        <h2 class="fw-bold">
-
-                            <%= city %>
-
-                        </h2>
-
-                        <p class="text-muted">
-
-                            Cities
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-3 col-md-6" data-aos="fade-up">
-
-                <div class="card border-0 shadow stat-card">
-
-                    <div class="card-body">
-
-                        <i class="fas fa-building text-success fa-3x mb-3"></i>
-
-                        <h2 class="fw-bold">
-
-                            <%= society %>
-
-                        </h2>
-
-                        <p class="text-muted">
-
-                            Societies
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-3 col-md-6" data-aos="fade-up">
-
-                <div class="card border-0 shadow stat-card">
-
-                    <div class="card-body">
-
-                        <i class="fas fa-users text-warning fa-3x mb-3"></i>
-
-                        <h2 class="fw-bold">
-
-                            <%= user %>
-
-                        </h2>
-
-                        <p class="text-muted">
-
-                            Residents
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-3 col-md-6" data-aos="fade-up">
-
-                <div class="card border-0 shadow stat-card">
-
-                    <div class="card-body">
-
-                        <i class="fas fa-eye text-danger fa-3x mb-3"></i>
-
-                        <h2 class="fw-bold">
-
-                            <%= visit %>
-
-                        </h2>
-
-                        <p class="text-muted">
-
-                            Visitors
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ==========================================================
      CONTACT
 ========================================================== -->
 
-<section id="contact" class="py-5 bg-light">
+<section id="contact" class="py-4 bg-light">
 
     <div class="container">
 
@@ -777,16 +696,6 @@
 ========================================================== -->
 
 <style>
-
-.hero-section{
-
-    padding:120px 0;
-
-    background:linear-gradient(135deg,#0d6efd,#6610f2);
-
-    color:#fff;
-
-}
 
 .hero-section h1{
 
