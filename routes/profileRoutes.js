@@ -47,10 +47,28 @@ router.get(
                 });
             }
 
+            // Dashboard Counts
+
+           const noticeCount =
+             Array.isArray(society.noticeBoard)
+             ? society.noticeBoard.length
+            : 0;
+
+            const visitorCount =
+               Array.isArray(society.visitors)
+               ? society.visitors.length
+               : 0;
+
+            // Render
+
             res.render("profile", {
-                resident,
-                society
-            });
+              resident,
+              society,
+              noticeCount,
+              visitorCount,
+              success: req.flash("success"),
+              error: req.flash("error")
+         });
 
         } catch (err) {
 

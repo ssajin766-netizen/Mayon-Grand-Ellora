@@ -1,156 +1,190 @@
+<!-- ==========================================================
+     PROFILE PAGE
+========================================================== -->
+
 <%- include("partials/header") %>
 
-<div class="container mt-5">
+<div class="container py-5">
 
-<div class="row mb-4">
+    <!-- ======================================================
+         PROFILE HEADER
+    ======================================================= -->
 
-    <div class="col-lg-12">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-5">
 
-        <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-body p-5">
 
-            <div class="card-body p-5">
+            <div class="row align-items-center">
 
-                <div class="row align-items-center">
+                <!-- ===============================
+                     PROFILE PHOTO
+                ================================ -->
 
-                    <!-- =========================
-                         PROFILE IMAGE
-                    ========================== -->
+                <div class="col-lg-3 text-center">
 
-                    <div class="col-lg-3 text-center">
+                    <form
+                        action="/profile/upload"
+                        method="POST"
+                        enctype="multipart/form-data"
+                        id="profileUploadForm">
 
-                        <form
-                            action="/profile/upload"
-                            method="POST"
-                            enctype="multipart/form-data"
-                            id="profileUploadForm">
+                        <input
+                            type="file"
+                            name="profileImage"
+                            id="profileImage"
+                            accept="image/*"
+                            hidden>
 
-                            <input
-                                type="file"
-                                id="profileImage"
-                                name="profileImage"
-                                accept="image/*"
-                                style="display:none">
+                        <div
+                            class="profile-photo-wrapper"
+                            onclick="document.getElementById('profileImage').click()">
 
-                            <div
-                                class="profile-photo-wrapper"
-                                onclick="document.getElementById('profileImage').click()">
+                            <img
+                                id="profilePreview"
+                                src="<%= resident.profileImage || '/images/default-avatar.png' %>"
+                                class="profile-photo"
+                                alt="Profile">
 
-                                <img
-                                    id="profilePreview"
-                                    src="<%= resident.profileImage || '/images/default-avatar.png' %>"
-                                    class="profile-photo"
-                                    alt="Profile">
+                            <div class="camera-overlay">
 
-                                <div class="camera-overlay">
-
-                                    <i class="fas fa-camera"></i>
-
-                                </div>
+                                <i class="fas fa-camera"></i>
 
                             </div>
 
-                            <button
-                                id="uploadBtn"
-                                class="btn btn-success mt-3 px-4"
-                                style="display:none">
-
-                                <i class="fas fa-upload me-2"></i>
-
-                                Save Photo
-
-                            </button>
-
-                        </form>
-
-                    </div>
-
-                    <!-- =========================
-                         USER DETAILS
-                    ========================== -->
-
-                    <div class="col-lg-6 mt-4 mt-lg-0">
-
-                        <h2 class="fw-bold mb-2">
-
-                            <%= resident.firstName %>
-
-                            <%= resident.lastName %>
-
-                        </h2>
-
-                        <p class="text-muted mb-2">
-
-                            <i class="fas fa-envelope me-2 text-primary"></i>
-
-                            <%= resident.username %>
-
-                        </p>
-
-                        <p class="text-muted mb-3">
-
-                            <i class="fas fa-home me-2 text-success"></i>
-
-                            Flat <%= resident.flatNumber %>
-
-                        </p>
-
-                        <div class="d-flex flex-wrap gap-2">
-
-                            <% if(resident.isEmailVerified){ %>
-
-                                <span class="badge bg-success">
-
-                                    <i class="fas fa-check-circle me-1"></i>
-
-                                    Email Verified
-
-                                </span>
-
-                            <% } %>
-
-                            <% if(resident.isPhoneVerified){ %>
-
-                                <span class="badge bg-primary">
-
-                                    <i class="fas fa-mobile-alt me-1"></i>
-
-                                    Phone Verified
-
-                                </span>
-
-                            <% } %>
-
-                            <% if(resident.isAdmin){ %>
-
-                                <span class="badge bg-danger">
-
-                                    Administrator
-
-                                </span>
-
-                            <% } else { %>
-
-                                <span class="badge bg-info text-dark">
-
-                                    Resident
-
-                                </span>
-
-                            <% } %>
-
                         </div>
 
+                        <button
+                            id="uploadBtn"
+                            class="btn btn-success mt-4"
+                            style="display:none;">
+
+                            <i class="fas fa-upload me-2"></i>
+
+                            Upload Photo
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+                <!-- ===============================
+                     USER INFORMATION
+                ================================ -->
+
+                <div class="col-lg-6 mt-4 mt-lg-0">
+
+                    <h2 class="fw-bold mb-2">
+
+                        <%= resident.firstName %>
+
+                        <%= resident.lastName %>
+
+                    </h2>
+
+                    <p class="text-muted mb-2">
+
+                        <i class="fas fa-envelope text-primary me-2"></i>
+
+                        <%= resident.username %>
+
+                    </p>
+
+                    <p class="text-muted mb-2">
+
+                        <i class="fas fa-phone text-success me-2"></i>
+
+                        <%= resident.phoneNumber || "Not Added" %>
+
+                    </p>
+
+                    <p class="text-muted mb-3">
+
+                        <i class="fas fa-home text-warning me-2"></i>
+
+                        Flat <%= resident.flatNumber %>
+
+                    </p>
+
+                    <!-- Status Badges -->
+
+                    <div class="d-flex flex-wrap gap-2">
+
+                        <% if(resident.isEmailVerified){ %>
+
+                            <span class="badge bg-success">
+
+                                <i class="fas fa-check-circle me-1"></i>
+
+                                Email Verified
+
+                            </span>
+
+                        <% } %>
+
+                        <% if(resident.isPhoneVerified){ %>
+
+                            <span class="badge bg-primary">
+
+                                <i class="fas fa-mobile-alt me-1"></i>
+
+                                Phone Verified
+
+                            </span>
+
+                        <% } %>
+
+                        <% if(resident.validation==="approved"){ %>
+
+                            <span class="badge bg-success">
+
+                                Approved
+
+                            </span>
+
+                        <% }else{ %>
+
+                            <span class="badge bg-warning text-dark">
+
+                                Pending
+
+                            </span>
+
+                        <% } %>
+
+                        <% if(resident.isAdmin){ %>
+
+                            <span class="badge bg-danger">
+
+                                Administrator
+
+                            </span>
+
+                        <% }else{ %>
+
+                            <span class="badge bg-info text-dark">
+
+                                Resident
+
+                            </span>
+
+                        <% } %>
+
                     </div>
 
-                    <!-- =========================
-                         ACTION BUTTONS
-                    ========================== -->
+                </div>
 
-                    <div class="col-lg-3 text-lg-end mt-4 mt-lg-0">
+                <!-- ===============================
+                     ACTION BUTTONS
+                ================================ -->
+
+                <div class="col-lg-3 mt-4 mt-lg-0">
+
+                    <div class="d-grid gap-3">
 
                         <a
                             href="/editProfile"
-                            class="btn btn-primary w-100 mb-3">
+                            class="btn btn-primary">
 
                             <i class="fas fa-user-edit me-2"></i>
 
@@ -160,11 +194,21 @@
 
                         <a
                             href="/security"
-                            class="btn btn-outline-danger w-100">
+                            class="btn btn-outline-danger">
 
                             <i class="fas fa-user-shield me-2"></i>
 
                             Security
+
+                        </a>
+
+                        <a
+                            href="/changePassword"
+                            class="btn btn-outline-dark">
+
+                            <i class="fas fa-key me-2"></i>
+
+                            Change Password
 
                         </a>
 
@@ -178,349 +222,335 @@
 
     </div>
 
-</div>
+    <div class="row g-4">
 
-<!-- ==========================================================
-     INFORMATION SECTION
-========================================================== -->
+         <!-- ==================================================
+             PERSONAL INFORMATION
+        =================================================== -->
 
-<div class="row g-4 mt-4">
+        <div class="col-lg-6">
 
-    <!-- Personal Information -->
+            <div class="card shadow-sm border-0 rounded-4 h-100">
 
-    <div class="col-lg-6">
+                <div class="card-header bg-primary text-white py-3">
 
-    <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <h4 class="mb-0">
 
-        <div class="card-body p-4">
-
-            <div class="d-flex align-items-center mb-4">
-
-                <div class="icon-box bg-primary">
-
-                    <i class="fas fa-user text-white"></i>
-
-                </div>
-
-                <div class="ms-3">
-
-                    <h4 class="fw-bold mb-0">
+                        <i class="fas fa-user-circle me-2"></i>
 
                         Personal Information
 
                     </h4>
 
-                    <small class="text-muted">
-
-                        Your account details
-
-                    </small>
-
                 </div>
 
-            </div>
+                <div class="card-body">
 
-            <div class="profile-item">
+                    <div class="profile-item">
 
-                <span>
+                        <span>
 
-                    <i class="fas fa-user text-primary me-2"></i>
+                            <i class="fas fa-user text-primary me-2"></i>
 
-                    Full Name
-
-                </span>
-
-                <strong>
-
-                    <%= resident.firstName %>
-
-                    <%= resident.lastName %>
-
-                </strong>
-
-            </div>
-
-            <div class="profile-item">
-
-                <span>
-
-                    <i class="fas fa-envelope text-danger me-2"></i>
-
-                    Email
-
-                </span>
-
-                <strong>
-
-                    <%= resident.username %>
-
-                </strong>
-
-            </div>
-
-            <div class="profile-item">
-
-                <span>
-
-                    <i class="fas fa-phone text-success me-2"></i>
-
-                    Phone
-
-                </span>
-
-                <strong>
-
-                    <%= resident.phoneNumber || "Not Added" %>
-
-                </strong>
-
-            </div>
-
-            <div class="profile-item">
-
-                <span>
-
-                    <i class="fas fa-home text-warning me-2"></i>
-
-                    Flat Number
-
-                </span>
-
-                <strong>
-
-                    <%= resident.flatNumber %>
-
-                </strong>
-
-            </div>
-
-            <div class="profile-item">
-
-                <span>
-
-                    <i class="fas fa-user-tag text-info me-2"></i>
-
-                    Role
-
-                </span>
-
-                <strong>
-
-                    <% if(resident.isAdmin){ %>
-
-                        <span class="badge bg-danger">
-
-                            Administrator
+                            Full Name
 
                         </span>
 
-                    <% }else{ %>
+                        <strong>
 
-                        <span class="badge bg-primary">
+                            <%= resident.firstName %>
 
-                            Resident
+                            <%= resident.lastName %>
 
-                        </span>
+                        </strong>
 
-                    <% } %>
+                    </div>
 
-                </strong>
+                    <div class="profile-item">
 
-            </div>
+                        <span>
 
-            <div class="profile-item border-0">
+                            <i class="fas fa-envelope text-danger me-2"></i>
 
-                <span>
-
-                    <i class="fas fa-check-circle text-success me-2"></i>
-
-                    Status
-
-                </span>
-
-                <strong>
-
-                    <% if(resident.validation==="approved"){ %>
-
-                        <span class="badge bg-success">
-
-                            Approved
+                            Email
 
                         </span>
 
-                    <% }else if(resident.validation==="applied"){ %>
+                        <strong>
 
-                        <span class="badge bg-warning text-dark">
+                            <%= resident.username %>
 
-                            Pending
+                        </strong>
+
+                    </div>
+
+                    <div class="profile-item">
+
+                        <span>
+
+                            <i class="fas fa-phone text-success me-2"></i>
+
+                            Phone Number
 
                         </span>
 
-                    <% }else{ %>
+                        <strong>
 
-                        <span class="badge bg-danger">
+                            <%= resident.phoneNumber || "Not Added" %>
 
-                            Rejected
+                        </strong>
+
+                    </div>
+
+                    <div class="profile-item">
+
+                        <span>
+
+                            <i class="fas fa-home text-warning me-2"></i>
+
+                            Flat Number
 
                         </span>
 
-                    <% } %>
+                        <strong>
 
-                </strong>
+                            <%= resident.flatNumber %>
+
+                        </strong>
+
+                    </div>
+
+                    <div class="profile-item">
+
+                        <span>
+
+                            <i class="fas fa-id-card text-info me-2"></i>
+
+                            Resident ID
+
+                        </span>
+
+                        <strong>
+
+                            <%= resident._id %>
+
+                        </strong>
+
+                    </div>
+
+                    <div class="profile-item">
+
+                        <span>
+
+                            <i class="fas fa-calendar text-secondary me-2"></i>
+
+                            Member Since
+
+                        </span>
+
+                        <strong>
+
+                            <%= new Date(resident.createdAt).toLocaleDateString() %>
+
+                        </strong>
+
+                    </div>
+
+                </div>
 
             </div>
 
         </div>
 
-    </div>
+        <!-- ==================================================
+             SOCIETY INFORMATION
+        =================================================== -->
 
-</div>
+        <div class="col-lg-6">
 
-<!-- ==========================================================
-     SOCIETY INFORMATION
-========================================================== -->
+            <div class="card shadow-sm border-0 rounded-4 h-100">
 
-<div class="col-lg-6">
+                <div class="card-header bg-success text-white py-3">
 
-    <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <h4 class="mb-0">
 
-        <div class="card-body p-4">
-
-            <div class="d-flex align-items-center mb-4">
-
-                <div class="icon-box bg-success">
-
-                    <i class="fas fa-building text-white"></i>
-
-                </div>
-
-                <div class="ms-3">
-
-                    <h4 class="fw-bold mb-0">
+                        <i class="fas fa-building me-2"></i>
 
                         Society Information
 
                     </h4>
 
-                    <small class="text-muted">
-
-                        Apartment details
-
-                    </small>
-
                 </div>
 
-            </div>
+                <div class="card-body">
 
-            <div class="profile-item">
+                    <div class="profile-item">
 
-                <span>
+                        <span>
 
-                    <i class="fas fa-city text-success me-2"></i>
+                            <i class="fas fa-city text-primary me-2"></i>
 
-                    Society
+                            Society Name
 
-                </span>
+                        </span>
 
-                <strong>
+                        <strong>
 
-                    <%= society.societyName %>
+                            <%= resident.societyName %>
 
-                </strong>
+                        </strong>
 
-            </div>
+                    </div>
 
-            <div class="profile-item">
+                    <div class="profile-item">
 
-                <span>
+                        <span>
 
-                    <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                            <i class="fas fa-check-circle text-success me-2"></i>
 
-                    Address
+                            Approval Status
 
-                </span>
+                        </span>
 
-                <strong>
+                        <strong>
 
-                    <%= society.societyAddress.address %>
+                            <% if(resident.validation==="approved"){ %>
 
-                </strong>
+                                <span class="badge bg-success">
 
-            </div>
+                                    Approved
 
-            <div class="profile-item">
+                                </span>
 
-                <span>
+                            <% }else{ %>
 
-                    <i class="fas fa-map text-primary me-2"></i>
+                                <span class="badge bg-warning text-dark">
 
-                    City
+                                    Pending
 
-                </span>
+                                </span>
 
-                <strong>
+                            <% } %>
 
-                    <%= society.societyAddress.city %>
+                        </strong>
 
-                </strong>
+                    </div>
 
-            </div>
+                    <div class="profile-item">
 
-            <div class="profile-item">
+                        <span>
 
-                <span>
+                            <i class="fas fa-user-shield text-danger me-2"></i>
 
-                    <i class="fas fa-location-arrow text-warning me-2"></i>
+                            Role
 
-                    District
+                        </span>
 
-                </span>
+                        <strong>
 
-                <strong>
+                            <% if(resident.isAdmin){ %>
 
-                    <%= society.societyAddress.district %>
+                                Administrator
 
-                </strong>
+                            <% }else{ %>
 
-            </div>
+                                Resident
 
-            <div class="profile-item">
+                            <% } %>
 
-                <span>
+                        </strong>
 
-                    <i class="fas fa-mail-bulk text-info me-2"></i>
+                    </div>
 
-                    Postal Code
+                    <div class="profile-item">
 
-                </span>
+                        <span>
 
-                <strong>
+                            <i class="fas fa-envelope-open-text text-info me-2"></i>
 
-                    <%= society.societyAddress.postalCode %>
+                            Email Status
 
-                </strong>
+                        </span>
 
-            </div>
+                        <strong>
 
-            <div class="profile-item border-0">
+                            <% if(resident.isEmailVerified){ %>
 
-                <span>
+                                <span class="badge bg-success">
 
-                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Verified
 
-                    Society Status
+                                </span>
 
-                </span>
+                            <% }else{ %>
 
-                <strong>
+                                <span class="badge bg-danger">
 
-                    <span class="badge bg-success">
+                                    Not Verified
 
-                        Active
+                                </span>
 
-                    </span>
+                            <% } %>
 
-                </strong>
+                        </strong>
+
+                    </div>
+
+                    <div class="profile-item">
+
+                        <span>
+
+                            <i class="fas fa-mobile-alt text-success me-2"></i>
+
+                            Phone Status
+
+                        </span>
+
+                        <strong>
+
+                            <% if(resident.isPhoneVerified){ %>
+
+                                <span class="badge bg-success">
+
+                                    Verified
+
+                                </span>
+
+                            <% }else{ %>
+
+                                <span class="badge bg-danger">
+
+                                    Not Verified
+
+                                </span>
+
+                            <% } %>
+
+                        </strong>
+
+                    </div>
+
+                    <div class="profile-item">
+
+                        <span>
+
+                            <i class="fas fa-clock text-secondary me-2"></i>
+
+                            Last Login
+
+                        </span>
+
+                        <strong>
+
+                            <%= resident.lastLogin
+                                ? new Date(resident.lastLogin).toLocaleString()
+                                : "N/A" %>
+
+                        </strong>
+
+                    </div>
+
+                </div>
 
             </div>
 
@@ -528,238 +558,482 @@
 
     </div>
 
-</div>
+    <div class="row mt-5 g-4">
+        
+<!-- ======================================================
+         DASHBOARD SUMMARY
+======================================================= -->
 
-</div>
+    <div class="row g-4 mt-1">
 
-<!-- ==========================================================
-     QUICK ACTIONS
-========================================================== -->
+        <!-- Bills -->
 
-<div class="row mt-5">
+        <div class="col-lg-3 col-md-6">
 
-    <div class="col-lg-12">
+            <div class="summary-card">
 
-        <h3 class="fw-bold mb-4">
+                <div
+                    class="action-icon bg-success">
 
-            <i class="fas fa-bolt text-warning me-2"></i>
-
-            Quick Actions
-
-        </h3>
-
-    </div>
-
-    <!-- Edit Profile -->
-
-    <div class="col-xl-3 col-md-6 mb-4">
-
-        <a href="/editProfile" class="text-decoration-none">
-
-            <div class="action-card">
-
-                <div class="action-icon bg-primary">
-
-                    <i class="fas fa-user-edit"></i>
+                    <i class="fas fa-file-invoice-dollar"></i>
 
                 </div>
 
-                <h5>Edit Profile</h5>
+                <h2>
+
+                    ₹ <%= resident.makePayment || 0 %>
+
+                </h2>
 
                 <p>
 
-                    Update your personal information.
+                    Pending Maintenance
 
                 </p>
 
             </div>
 
-        </a>
+        </div>
 
-    </div>
+        <!-- Complaints -->
 
-    <!-- Security -->
+        <div class="col-lg-3 col-md-6">
 
-    <div class="col-xl-3 col-md-6 mb-4">
+            <div class="summary-card">
 
-        <a href="/security" class="text-decoration-none">
+                <div
+                    class="action-icon bg-danger">
 
-            <div class="action-card">
-
-                <div class="action-icon bg-danger">
-
-                    <i class="fas fa-user-shield"></i>
+                    <i class="fas fa-tools"></i>
 
                 </div>
 
-                <h5>Security</h5>
+                <h2>
+
+                    <%= resident.complaints
+                        ? resident.complaints.length
+                        : 0 %>
+
+                </h2>
 
                 <p>
 
-                    Password, 2FA and login settings.
+                    Complaints
 
                 </p>
 
             </div>
 
-        </a>
+        </div>
 
-    </div>
+        <!-- Notices -->
 
-    <!-- Password -->
+        <div class="col-lg-3 col-md-6">
 
-    <div class="col-xl-3 col-md-6 mb-4">
+            <div class="summary-card">
 
-        <a href="/changePassword" class="text-decoration-none">
+                <div
+                    class="action-icon bg-warning">
 
-            <div class="action-card">
-
-                <div class="action-icon bg-warning">
-
-                    <i class="fas fa-key"></i>
+                    <i class="fas fa-bullhorn"></i>
 
                 </div>
 
-                <h5>Password</h5>
+                <h2>
+
+                    <%= typeof noticeCount !== "undefined"
+                        ? noticeCount
+                        : 0 %>
+
+                </h2>
 
                 <p>
 
-                    Change your account password.
+                    Notices
 
                 </p>
 
             </div>
 
-        </a>
+        </div>
+
+        <!-- Visitors -->
+
+        <div class="col-lg-3 col-md-6">
+
+            <div class="summary-card">
+
+                <div
+                    class="action-icon bg-primary">
+
+                    <i class="fas fa-users"></i>
+
+                </div>
+
+                <h2>
+
+                    <% if(resident.isAdmin){ %>
+
+                        <%= typeof visitorCount !== "undefined"
+                            ? visitorCount
+                            : 0 %>
+
+                    <% }else{ %>
+
+                        <%= resident.visitors
+                            ? resident.visitors.length
+                            : 0 %>
+
+                    <% } %>
+
+                </h2>
+
+                <p>
+
+                    Visitors
+
+                </p>
+
+            </div>
+
+        </div>
 
     </div>
 
-    <!-- Login History -->
+    <div class="row mt-5 g-4">  
+        
+    <!-- ======================================================
+         QUICK ACTIONS
+    ======================================================= -->
 
-    <div class="col-xl-3 col-md-6 mb-4">
+    <div class="row g-4">
 
-        <a href="/loginHistory" class="text-decoration-none">
+        <!-- Bills -->
+
+        <div class="col-lg-4 col-md-6">
 
             <div class="action-card">
 
                 <div class="action-icon bg-success">
 
+                    <i class="fas fa-file-invoice-dollar"></i>
+
+                </div>
+
+                <h4>
+
+                    Maintenance Bills
+
+                </h4>
+
+                <p class="text-muted">
+
+                    View and pay your monthly maintenance bill.
+
+                </p>
+
+                <a
+                    href="/bill"
+                    class="btn btn-success">
+
+                    Open Bills
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Complaints -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <div class="action-card">
+
+                <div class="action-icon bg-danger">
+
+                    <i class="fas fa-tools"></i>
+
+                </div>
+
+                <h4>
+
+                    Complaints
+
+                </h4>
+
+                <p class="text-muted">
+
+                    Submit and monitor maintenance complaints.
+
+                </p>
+
+                <a
+                    href="/complaint"
+                    class="btn btn-danger">
+
+                    Open Complaints
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Noticeboard -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <div class="action-card">
+
+                <div class="action-icon bg-warning">
+
+                    <i class="fas fa-bullhorn"></i>
+
+                </div>
+
+                <h4>
+
+                    Noticeboard
+
+                </h4>
+
+                <p class="text-muted">
+
+                    Read the latest announcements from your society.
+
+                </p>
+
+                <a
+                    href="/noticeboard"
+                    class="btn btn-warning text-dark">
+
+                    View Notices
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Login History -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <div class="action-card">
+
+                <div class="action-icon bg-primary">
+
                     <i class="fas fa-history"></i>
 
                 </div>
 
-                <h5>Login History</h5>
+                <h4>
 
-                <p>
+                    Login History
 
-                    View your recent sign-in activity.
+                </h4>
+
+                <p class="text-muted">
+
+                    Review recent login activity.
 
                 </p>
 
+                <a
+                    href="/loginHistory"
+                    class="btn btn-primary">
+
+                    View History
+
+                </a>
+
             </div>
 
-        </a>
+        </div>
+
+        <!-- Security -->
+
+        <div class="col-lg-4 col-md-6">
+
+            <div class="action-card">
+
+                <div class="action-icon bg-dark">
+
+                    <i class="fas fa-user-shield"></i>
+
+                </div>
+
+                <h4>
+
+                    Security
+
+                </h4>
+
+                <p class="text-muted">
+
+                    Manage password, OTP and account security.
+
+                </p>
+
+                <a
+                    href="/security"
+                    class="btn btn-dark">
+
+                    Open Security
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Residents -->
+
+        <% if(resident.isAdmin){ %>
+
+        <div class="col-lg-4 col-md-6">
+
+            <div class="action-card">
+
+                <div class="action-icon bg-info">
+
+                    <i class="fas fa-users"></i>
+
+                </div>
+
+                <h4>
+
+                    Residents
+
+                </h4>
+
+                <p class="text-muted">
+
+                    Manage society members and approvals.
+
+                </p>
+
+                <a
+                    href="/residents"
+                    class="btn btn-info text-white">
+
+                    Manage Residents
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <% } %>
 
     </div>
+
+    <!-- ======================================================
+         RECENT PAYMENT
+    ======================================================= -->
+
+    <% if(resident.lastPayment && resident.lastPayment.amount){ %>
+
+    <div class="card shadow-sm border-0 rounded-4 mt-5">
+
+        <div class="card-header bg-success text-white">
+
+            <h4 class="mb-0">
+
+                <i class="fas fa-receipt me-2"></i>
+
+                Latest Payment
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-4">
+
+                    <strong>Invoice</strong>
+
+                    <p>
+
+                        <%= resident.lastPayment.invoice || "-" %>
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <strong>Amount</strong>
+
+                    <p>
+
+                        ₹ <%= resident.lastPayment.amount %>
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <strong>Paid On</strong>
+
+                    <p>
+
+                        <%= resident.lastPayment.date
+                            ? new Date(resident.lastPayment.date).toLocaleDateString()
+                            : "-" %>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <% } %>
 
 </div>
 
 <!-- ==========================================================
-     ACCOUNT SUMMARY
+     PROFILE IMAGE PREVIEW
 ========================================================== -->
 
-<div class="row mt-5">
+<script>
 
-    <div class="col-lg-3 col-md-6 mb-4">
+const imageInput=document.getElementById("profileImage");
 
-        <div class="summary-card">
+if(imageInput){
 
-            <i class="fas fa-file-alt text-primary fa-2x mb-3"></i>
+imageInput.addEventListener("change",function(){
 
-            <h2>
+const file=this.files[0];
 
-                <%= resident.complaints ? resident.complaints.length : 0 %>
+if(!file)return;
 
-            </h2>
+document.getElementById("uploadBtn").style.display="inline-block";
 
-            <p>
+const reader=new FileReader();
 
-                Complaints
+reader.onload=function(e){
 
-            </p>
+document.getElementById("profilePreview").src=e.target.result;
 
-        </div>
+}
 
-    </div>
+reader.readAsDataURL(file);
 
-    <div class="col-lg-3 col-md-6 mb-4">
+});
 
-        <div class="summary-card">
+}
 
-            <i class="fas fa-wallet text-success fa-2x mb-3"></i>
+</script>
 
-            <h2>
-
-                ₹<%= resident.makePayment || 0 %>
-
-            </h2>
-
-            <p>
-
-                Maintenance
-
-            </p>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-3 col-md-6 mb-4">
-
-        <div class="summary-card">
-
-            <i class="fas fa-history text-warning fa-2x mb-3"></i>
-
-            <h2>
-
-                <%= resident.loginHistory ? resident.loginHistory.length : 0 %>
-
-            </h2>
-
-            <p>
-
-                Login History
-
-            </p>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-3 col-md-6 mb-4">
-
-        <div class="summary-card">
-
-            <i class="fas fa-receipt text-danger fa-2x mb-3"></i>
-
-            <h2>
-
-                <%= resident.paymentHistory ? resident.paymentHistory.length : 0 %>
-
-            </h2>
-
-            <p>
-
-                Payments
-
-            </p>
-
-        </div>
-
-    </div>
-
-</div>
-
-</div>
-
-<%- include("partials/footer") %>
+<%- include("partials/footer") %>        

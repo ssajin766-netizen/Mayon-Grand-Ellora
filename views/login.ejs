@@ -4,26 +4,147 @@
 
 <%- include("partials/headerForm") %>
 
-<body class="bg-light">
+<style>
+
+body{
+
+    background:#f5f7fb;
+
+}
+
+.login-card{
+
+    border:none;
+
+    border-radius:22px;
+
+    box-shadow:0 15px 40px rgba(0,0,0,.08);
+
+}
+
+.logo{
+
+    width:90px;
+
+    height:90px;
+
+    border-radius:50%;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
+
+}
+
+.form-label{
+
+    font-weight:600;
+
+}
+
+.input-group-text{
+
+    background:#fff;
+
+    border-right:none;
+
+    height:58px;
+
+}
+
+.form-control{
+
+    height:58px;
+
+    border-left:none;
+
+    border-radius:0;
+
+}
+
+.form-control:focus{
+
+    box-shadow:none;
+
+    border-color:#ced4da;
+
+}
+
+.password-toggle{
+
+    height:58px;
+
+    width:58px;
+
+    background:#fff;
+
+    border:1px solid #ced4da;
+
+    border-left:none;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+.password-toggle:hover{
+
+    background:#f8f9fa;
+
+}
+
+.input-group{
+
+    border-radius:12px;
+
+    overflow:hidden;
+
+}
+
+.btn{
+
+    border-radius:12px;
+
+    font-weight:600;
+
+    height:54px;
+
+}
+
+.social-btn{
+
+    height:54px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+}
+
+</style>
+
+<body>
 
 <div class="container py-5">
 
-    <div class="row justify-content-center align-items-center">
+    <div class="row justify-content-center">
 
         <div class="col-lg-5 col-md-7">
 
-            <div class="card shadow-lg border-0 rounded-4">
+            <div class="card login-card">
 
                 <div class="card-body p-5">
-
-                    <!-- Logo -->
 
                     <div class="text-center mb-4">
 
                         <img
                             src="/images/diversity.png"
-                            width="90"
-                            class="mb-3 rounded-circle shadow">
+                            class="logo mb-3">
 
                         <h2 class="fw-bold">
 
@@ -38,8 +159,6 @@
                         </p>
 
                     </div>
-
-                    <!-- Flash Messages -->
 
                     <% if(error && error.length){ %>
 
@@ -61,15 +180,13 @@
 
                     <% } %>
 
-                    <!-- Login Form -->
-
                     <form action="/login" method="POST">
 
                         <!-- Email -->
 
                         <div class="mb-3">
 
-                            <label class="form-label fw-semibold">
+                            <label class="form-label">
 
                                 Email Address
 
@@ -84,17 +201,11 @@
                                 </span>
 
                                 <input
-
                                     type="email"
-
-                                    name="username"
-
                                     class="form-control"
-
+                                    name="username"
                                     placeholder="Enter your email"
-
                                     required
-
                                     autofocus>
 
                             </div>
@@ -105,7 +216,7 @@
 
                         <div class="mb-3">
 
-                            <label class="form-label fw-semibold">
+                            <label class="form-label">
 
                                 Password
 
@@ -120,36 +231,27 @@
                                 </span>
 
                                 <input
-
                                     type="password"
-
                                     id="password"
-
-                                    name="password"
-
                                     class="form-control"
-
+                                    name="password"
                                     placeholder="Enter your password"
-
                                     required>
 
                                 <button
-
-                                    class="btn btn-outline-secondary"
-
                                     type="button"
+                                    class="password-toggle"
+                                    id="togglePassword">
 
-                                    onclick="togglePassword()">
-
-                                    <i class="fas fa-eye" id="eyeIcon"></i>
+                                    <i
+                                        class="fas fa-eye"
+                                        id="eyeIcon"></i>
 
                                 </button>
 
                             </div>
 
                         </div>
-
-                        <!-- Forgot Password -->
 
                         <div class="text-end mb-4">
 
@@ -163,11 +265,9 @@
 
                         </div>
 
-                        <!-- Login -->
-
                         <button
-                            type="submit"
-                            class="btn btn-dark w-100 py-2">
+                            class="btn btn-dark w-100"
+                            type="submit">
 
                             <i class="fas fa-sign-in-alt me-2"></i>
 
@@ -184,22 +284,17 @@
 
                         <hr>
 
-                        <!-- Google -->
-
                         <a
                             href="/auth/google"
-                            class="btn btn-light border w-100">
+                            class="btn btn-light border social-btn w-100">
 
                             <img
                                 src="https://developers.google.com/identity/images/g-logo.png"
-                                width="18"
-                                class="me-2">
+                                width="20">
 
                             Continue with Google
 
                         </a>
-
-                        <!-- Phone Login -->
 
                         <a
                             href="/loginPhone"
@@ -213,13 +308,11 @@
 
                         <hr>
 
-                        <!-- Signup -->
-
-                        <div class="text-center mb-3">
+                        <p class="text-center">
 
                             Don't have an account?
 
-                        </div>
+                        </p>
 
                         <a
                             href="/signup"
@@ -230,8 +323,6 @@
                             Create Account
 
                         </a>
-
-                        <!-- Home -->
 
                         <a
                             href="/"
@@ -257,31 +348,29 @@
 
 <script>
 
-function togglePassword(){
+const password=document.getElementById("password");
 
-    const password = document.getElementById("password");
+const toggle=document.getElementById("togglePassword");
 
-    const eye = document.getElementById("eyeIcon");
+const eye=document.getElementById("eyeIcon");
 
-    if(password.type === "password"){
+toggle.addEventListener("click",function(){
 
-        password.type = "text";
+    if(password.type==="password"){
 
-        eye.classList.remove("fa-eye");
+        password.type="text";
 
-        eye.classList.add("fa-eye-slash");
+        eye.classList.replace("fa-eye","fa-eye-slash");
 
     }else{
 
-        password.type = "password";
+        password.type="password";
 
-        eye.classList.remove("fa-eye-slash");
-
-        eye.classList.add("fa-eye");
+        eye.classList.replace("fa-eye-slash","fa-eye");
 
     }
 
-}
+});
 
 </script>
 
