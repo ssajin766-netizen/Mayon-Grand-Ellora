@@ -108,71 +108,77 @@
 
                     <!-- Status Badges -->
 
-                    <div class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-wrap gap-2 mt-3">
 
-                        <% if(resident.isEmailVerified){ %>
+                <% if(resident.isEmailVerified){ %>
 
-                            <span class="badge bg-success">
+                     <span class="btn btn-success btn-sm disabled">
 
-                                <i class="fas fa-check-circle me-1"></i>
+                    <i class="fas fa-check-circle me-2"></i>
 
-                                Email Verified
+                           Email Verified
 
-                            </span>
+                    </span>
 
-                        <% } %>
+                <% } %>
 
-                        <% if(resident.isPhoneVerified){ %>
+                <% if(resident.isPhoneVerified){ %>
 
-                            <span class="badge bg-primary">
+                    <span class="btn btn-primary btn-sm disabled">
 
-                                <i class="fas fa-mobile-alt me-1"></i>
+                    <i class="fas fa-mobile-alt me-2"></i>
 
-                                Phone Verified
+                               Phone Verified
 
-                            </span>
+                    </span>
 
-                        <% } %>
+                <% } %>
 
-                        <% if(resident.validation==="approved"){ %>
+                <% if(resident.validation==="approved"){ %>
 
-                            <span class="badge bg-success">
+                    <span class="btn btn-success btn-sm disabled">
 
-                                Approved
+                    <i class="fas fa-check me-2"></i>
 
-                            </span>
+                             Approved
 
-                        <% }else{ %>
+                    </span>
 
-                            <span class="badge bg-warning text-dark">
+                <% }else{ %>
 
-                                Pending
+        <span class="btn btn-warning btn-sm disabled text-dark">
 
-                            </span>
+            <i class="fas fa-clock me-2"></i>
 
-                        <% } %>
+            Pending
 
-                        <% if(resident.isAdmin){ %>
+        </span>
 
-                            <span class="badge bg-danger">
+    <% } %>
 
-                                Administrator
+    <% if(resident.isAdmin){ %>
 
-                            </span>
+        <span class="btn btn-danger btn-sm disabled">
 
-                        <% }else{ %>
+            <i class="fas fa-user-shield me-2"></i>
 
-                            <span class="badge bg-info text-dark">
+            Administrator
 
-                                Resident
+        </span>
 
-                            </span>
+    <% }else{ %>
 
-                        <% } %>
+        <span class="btn btn-info btn-sm disabled text-white">
 
-                    </div>
+            <i class="fas fa-user me-2"></i>
 
-                </div>
+            Resident
+
+        </span>
+
+    <% } %>
+
+</div>
 
                 <!-- ===============================
                      ACTION BUTTONS
