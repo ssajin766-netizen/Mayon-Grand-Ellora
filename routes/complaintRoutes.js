@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 
 const user_collection = require("../models/userModel");
+const {
+    createNotification
+} = require("../services/notificationService");
 const date = require("../date/date");
 
 const {
@@ -142,7 +145,65 @@ router.post(
 
             });
 
-            await foundUser.save();
+           await foundUser.save();
+
+/*
+--------------------------------------------------
+RESIDENT NOTIFICATION
+--------------------------------------------------
+*/
+
+await createNotification({
+
+    user: foundUser._id,
+
+    title: "Complaint Submitted",
+
+    message:
+        `Your ${req.body.category} complaint has been submitted successfully.`,
+
+    type: "info",
+
+    icon: "fa-circle-exclamation",
+
+    link: "/helpdesk"
+
+});
+
+/*
+--------------------------------------------------
+ADMIN NOTIFICATION
+--------------------------------------------------
+*/
+
+const admins = await user_collection.User.find({
+
+    societyName: foundUser.societyName,
+
+    isAdmin: true
+
+});
+
+for (const admin of admins) {
+
+    await createNotification({
+
+        user: admin._id,
+
+        title: "New Complaint",
+
+        message:
+            `${foundUser.firstName} ${foundUser.lastName} submitted a ${req.body.category} complaint.`,
+
+        type: "warning",
+
+        icon: "fa-headset",
+
+        link: "/helpdesk"
+
+    });
+
+}
 
             res.redirect("/helpdesk");
 
@@ -195,6 +256,29 @@ router.post(
             foundUser.complaints[ticketIndex].status = "close";
 
             await foundUser.save();
+
+            /*
+--------------------------------------------------
+COMPLAINT CLOSED
+--------------------------------------------------
+*/
+
+await createNotification({
+
+    user: foundUser._id,
+
+    title: "Complaint Resolved",
+
+    message:
+        `Your ${foundUser.complaints[ticketIndex].category} complaint has been resolved.`,
+
+    type: "success",
+
+    icon: "fa-circle-check",
+
+    link: "/helpdesk"
+
+});
 
             res.redirect("/helpdesk");
 

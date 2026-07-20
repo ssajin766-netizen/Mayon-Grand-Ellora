@@ -2,6 +2,11 @@ const express = require("express");
 const router = express.Router();
 
 const society_collection = require("../models/societyModel");
+const { User } = require("../models/userModel");
+
+const {
+    createNotification
+} = require("../services/notificationService");
 const date = require("../date/date");
 
 const {
@@ -136,6 +141,45 @@ router.post(
             });
 
             await foundSociety.save();
+/*
+--------------------------------------------------
+NOTIFY ALL APPROVED RESIDENTS
+--------------------------------------------------
+*/
+
+const residents = await User.find({
+
+    societyName: req.user.societyName,
+
+    validation: "approved",
+
+    _id: { $ne: req.user._id } // Skip admin who posted the notice
+
+});
+
+await Promise.all(
+
+    residents.map(resident =>
+
+        createNotification({
+
+            user: resident._id,
+
+            title: "New Notice",
+
+            message: req.body.subject,
+
+            type: "info",
+
+            icon: "fa-bullhorn",
+
+            link: "/noticeboard"
+
+        })
+
+    )
+
+);
 
             res.redirect("/noticeboard");
 
