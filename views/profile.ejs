@@ -108,78 +108,71 @@
 
                     <!-- Status Badges -->
 
-            <div class="d-flex flex-wrap gap-2 mt-3">
+           <div class="d-flex flex-wrap gap-2">
 
-                <% if(resident.isEmailVerified){ %>
+                        <% if(resident.isEmailVerified){ %>
 
-                     <span class="btn btn-success btn-sm disabled">
+                            <span class="badge bg-success">
 
-                    <i class="fas fa-check-circle me-2"></i>
+                                <i class="fas fa-check-circle me-1"></i>
 
-                           Email Verified
+                                Email Verified
 
-                    </span>
+                            </span>
 
-                <% } %>
+                        <% } %>
 
-                <% if(resident.isPhoneVerified){ %>
+                        <% if(resident.isPhoneVerified){ %>
 
-                    <span class="btn btn-primary btn-sm disabled">
+                            <span class="badge bg-primary">
 
-                    <i class="fas fa-mobile-alt me-2"></i>
+                                <i class="fas fa-mobile-alt me-1"></i>
 
-                               Phone Verified
+                                Phone Verified
 
-                    </span>
+                            </span>
 
-                <% } %>
+                        <% } %>
 
-                <% if(resident.validation==="approved"){ %>
+                        <% if(resident.validation==="approved"){ %>
 
-                    <span class="btn btn-success btn-sm disabled">
+                            <span class="badge bg-success">
 
-                    <i class="fas fa-check me-2"></i>
+                                Approved
 
-                             Approved
+                            </span>
 
-                    </span>
+                        <% }else{ %>
 
-                <% }else{ %>
+                            <span class="badge bg-warning text-dark">
 
-        <span class="btn btn-warning btn-sm disabled text-dark">
+                                Pending
 
-            <i class="fas fa-clock me-2"></i>
+                            </span>
 
-            Pending
+                        <% } %>
 
-        </span>
+                        <% if(resident.isAdmin){ %>
 
-    <% } %>
+                            <span class="badge bg-danger">
 
-    <% if(resident.isAdmin){ %>
+                                Administrator
 
-        <span class="btn btn-danger btn-sm disabled">
+                            </span>
 
-            <i class="fas fa-user-shield me-2"></i>
+                        <% }else{ %>
 
-            Administrator
+                            <span class="badge bg-info text-dark">
 
-        </span>
+                                Resident
 
-    <% }else{ %>
+                            </span>
 
-        <span class="btn btn-info btn-sm disabled text-white">
+                        <% } %>
 
-            <i class="fas fa-user me-2"></i>
+                    </div>
 
-            Resident
-
-        </span>
-
-    <% } %>
-
-</div>
-
+                </div>
                 <!-- ===============================
                      ACTION BUTTONS
                 ================================ -->
@@ -422,7 +415,7 @@
 
                             <% if(resident.validation==="approved"){ %>
 
-                                <span class="badge bg-success">
+                                <span class="badge bg-success text-dark">
 
                                     Approved
 
@@ -482,7 +475,7 @@
 
                             <% if(resident.isEmailVerified){ %>
 
-                                <span class="badge bg-success">
+                                <span class="badge bg-success text-dark">
 
                                     Verified
 
@@ -490,7 +483,7 @@
 
                             <% }else{ %>
 
-                                <span class="badge bg-danger">
+                                <span class="badge bg-danger text-dark">
 
                                     Not Verified
 
@@ -516,7 +509,7 @@
 
                             <% if(resident.isPhoneVerified){ %>
 
-                                <span class="badge bg-success">
+                                <span class="badge bg-success text-dark">
 
                                     Verified
 
@@ -524,7 +517,7 @@
 
                             <% }else{ %>
 
-                                <span class="badge bg-danger">
+                                <span class="badge bg-danger text-dark">
 
                                     Not Verified
 
