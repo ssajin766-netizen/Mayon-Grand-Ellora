@@ -1,80 +1,66 @@
 const mongoose = require("mongoose");
 
-const otpSchema = new mongoose.Schema(
+const otpSchema = new mongoose.Schema({
 
-    {
+    email: {
+        type: String,
+        required: true,
+        lowercase: true,
+        trim: true
+    },
 
-        email: {
-            type: String,
-            required: true,
-            lowercase: true,
-            trim: true
-        },
+    otp: {
+        type: String,
+        required: true
+    },
 
-        otp: {
-            type: String,
-            required: true
-        },
+    purpose: {
 
-purpose: {
+        type: String,
 
-    type: String,
+        enum: [
 
-    enum: [
+            "email_verification",
 
-        "email_verification",
+            "forgot_password",
 
-        "forgot_password",
+            "login",
 
-        "login",
+            "phone_login",
 
-        "phone_login"
+            "delete_account"
 
-    ],
+        ],
 
-    default: "email_verification"
-
-},
-        isUsed: {
-
-            type: Boolean,
-
-            default: false
-
-        },
-
-        expiresAt: {
-
-            type: Date,
-
-            required: true
-
-        }
+        default: "email_verification"
 
     },
 
-    {
+    isUsed: {
 
-        timestamps: true
+        type: Boolean,
+
+        default: false
+
+    },
+
+    expiresAt: {
+
+        type: Date,
+
+        required: true
 
     }
 
-);
+}, {
+
+    timestamps: true
+
+});
 
 otpSchema.index(
-
-    {
-
-        expiresAt: 1
-
-    },
-
-    {
-
-        expireAfterSeconds: 0
-
-    }
-
+    { expiresAt: 1 },
+    { expireAfterSeconds: 0 }
 );
 
 module.exports = mongoose.model("OTP", otpSchema);

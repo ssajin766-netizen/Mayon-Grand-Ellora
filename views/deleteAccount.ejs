@@ -4,98 +4,128 @@
 
     <div class="row justify-content-center">
 
-        <div class="col-lg-8">
+        <div class="col-xl-9 col-lg-10">
 
-            <div class="card shadow-lg border-0 rounded-4">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
 
-                <div class="card-header bg-danger text-white py-4">
+                <!-- ===========================
+                     Header
+                ============================ -->
 
-                    <h2 class="mb-0">
-                        <i class="fas fa-user-times me-2"></i>
-                        Delete Your Account
-                    </h2>
+                <div class="card-header bg-white border-0 py-4 px-5">
 
-                </div>
+                    <div class="d-flex align-items-center">
 
-                <div class="card-body p-5">
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-4"
+                             style="width:70px;height:70px;">
 
-                    <div class="text-center mb-5">
+                            <i class="fas fa-user-times text-danger fa-2x"></i>
 
-                        <i class="fas fa-exclamation-triangle text-danger display-1"></i>
+                        </div>
 
-                        <h3 class="fw-bold mt-4">
-                            We're sorry to see you go.
-                        </h3>
+                        <div>
 
-                        <p class="text-muted fs-5">
-                            Before deleting your account, please review what will happen.
-                        </p>
+                            <h2 class="fw-bold mb-1">
+
+                                Delete Your Account
+
+                            </h2>
+
+                            <p class="text-muted mb-0">
+
+                                Before continuing, please review what will happen after your account is permanently deleted.
+
+                            </p>
+
+                        </div>
 
                     </div>
 
-                    <div class="alert alert-warning border-warning">
+                </div>
 
-                        <h5 class="fw-bold mb-3">
+                <!-- ===========================
+                     Body
+                ============================ -->
 
-                            Your account will permanently lose:
+                <div class="card-body p-5">
 
-                        </h5>
+                    <!-- Progress -->
 
-                        <div class="row">
+                    <div class="mb-5">
 
-                            <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center">
 
-                                <ul class="list-unstyled">
+                            <div class="text-center">
 
-                                    <li class="mb-3">
-                                        <i class="fas fa-user text-danger me-2"></i>
-                                        Profile Information
-                                    </li>
+                                <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold mx-auto"
+                                     style="width:46px;height:46px;">
 
-                                    <li class="mb-3">
-                                        <i class="fas fa-money-check text-danger me-2"></i>
-                                        Payment History
-                                    </li>
+                                    1
 
-                                    <li class="mb-3">
-                                        <i class="fas fa-tools text-danger me-2"></i>
-                                        Complaints
-                                    </li>
+                                </div>
 
-                                    <li class="mb-3">
-                                        <i class="fas fa-bell text-danger me-2"></i>
-                                        Notifications
-                                    </li>
+                                <small class="fw-semibold">
 
-                                </ul>
+                                    Information
+
+                                </small>
 
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="flex-grow-1 border-top mx-2"></div>
 
-                                <ul class="list-unstyled">
+                            <div class="text-center">
 
-                                    <li class="mb-3">
-                                        <i class="fas fa-history text-danger me-2"></i>
-                                        Login History
-                                    </li>
+                                <div class="rounded-circle border d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:46px;height:46px;">
 
-                                    <li class="mb-3">
-                                        <i class="fas fa-users text-danger me-2"></i>
-                                        Visitor Records
-                                    </li>
+                                    2
 
-                                    <li class="mb-3">
-                                        <i class="fas fa-building text-danger me-2"></i>
-                                        Society Membership
-                                    </li>
+                                </div>
 
-                                    <li class="mb-3">
-                                        <i class="fas fa-image text-danger me-2"></i>
-                                        Uploaded Profile Photo
-                                    </li>
+                                <small class="text-muted">
 
-                                </ul>
+                                    Verify
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle border d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:46px;height:46px;">
+
+                                    3
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    OTP
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle border d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:46px;height:46px;">
+
+                                    4
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    Reason
+
+                                </small>
 
                             </div>
 
@@ -103,37 +133,379 @@
 
                     </div>
 
-                    <div class="alert alert-danger mt-4">
+                    <!-- Hero -->
 
-                        <h5 class="fw-bold">
-                            <i class="fas fa-radiation me-2"></i>
-                            Warning
-                        </h5>
+                    <div class="text-center mb-5">
 
-                        This action is permanent and cannot be undone.
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center"
+                             style="width:120px;height:120px;">
 
-                    </div>
+                            <i class="fas fa-exclamation-triangle text-danger fa-4x"></i>
 
-                    <div class="form-check mt-4">
+                        </div>
 
-                        <input
-                            class="form-check-input"
-                            type="checkbox"
-                            id="agreeDelete">
+                        <h3 class="fw-bold mt-4">
 
-                        <label
-                            class="form-check-label"
-                            for="agreeDelete">
+                            We're sorry to see you leave.
 
-                            I understand that my account and all associated data will be permanently deleted.
+                        </h3>
 
-                        </label>
+                        <p class="text-muted fs-5">
+
+                            Deleting your account removes your personal information and access to all Mayon Grand Ellora services.
+
+                        </p>
 
                     </div>
 
-                    <div class="d-flex justify-content-between mt-5">
+                    <!-- Lost Data -->
 
-                        <a href="/profile" class="btn btn-outline-secondary btn-lg">
+                    <div class="border rounded-4 p-4 bg-light">
+
+                        <h4 class="fw-bold mb-4">
+
+                            <i class="fas fa-circle-info text-primary me-2"></i>
+
+                            You'll permanently lose access to:
+
+                        </h4>
+
+                        <div class="row g-4">
+
+                            <div class="col-md-6">
+
+                                <div class="d-flex align-items-center mb-4">
+
+                                    <i class="fas fa-user text-danger fs-4 me-3"></i>
+
+                                    <div>
+
+                                        <h6 class="fw-bold mb-1">
+
+                                            Profile Information
+
+                                        </h6>
+
+                                        <small class="text-muted">
+
+                                            Personal details and account settings.
+
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="d-flex align-items-center mb-4">
+
+                                    <i class="fas fa-money-check-dollar text-danger fs-4 me-3"></i>
+
+                                    <div>
+
+                                        <h6 class="fw-bold mb-1">
+
+                                            Maintenance Payments
+
+                                        </h6>
+
+                                        <small class="text-muted">
+
+                                            Bills and payment history.
+
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="d-flex align-items-center mb-4">
+
+                                    <i class="fas fa-tools text-danger fs-4 me-3"></i>
+
+                                    <div>
+
+                                        <h6 class="fw-bold mb-1">
+
+                                            Complaints
+
+                                        </h6>
+
+                                        <small class="text-muted">
+
+                                            Submitted complaints and requests.
+
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="d-flex align-items-center">
+
+                                    <i class="fas fa-bell text-danger fs-4 me-3"></i>
+
+                                    <div>
+
+                                        <h6 class="fw-bold mb-1">
+
+                                            Notifications
+
+                                        </h6>
+
+                                        <small class="text-muted">
+
+                                            Alerts and announcements.
+
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                                                <div class="d-flex align-items-center mb-4">
+
+                                    <i class="fas fa-clock-rotate-left text-danger fs-4 me-3"></i>
+
+                                    <div>
+
+                                        <h6 class="fw-bold mb-1">
+
+                                            Login History
+
+                                        </h6>
+
+                                        <small class="text-muted">
+
+                                            Device and sign-in history.
+
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="d-flex align-items-center mb-4">
+
+                                    <i class="fas fa-users text-danger fs-4 me-3"></i>
+
+                                    <div>
+
+                                        <h6 class="fw-bold mb-1">
+
+                                            Visitor Records
+
+                                        </h6>
+
+                                        <small class="text-muted">
+
+                                            All visitor management records.
+
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="d-flex align-items-center mb-4">
+
+                                    <i class="fas fa-building text-danger fs-4 me-3"></i>
+
+                                    <div>
+
+                                        <h6 class="fw-bold mb-1">
+
+                                            Society Membership
+
+                                        </h6>
+
+                                        <small class="text-muted">
+
+                                            Your resident membership information.
+
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="d-flex align-items-center">
+
+                                    <i class="fas fa-image text-danger fs-4 me-3"></i>
+
+                                    <div>
+
+                                        <h6 class="fw-bold mb-1">
+
+                                            Profile Picture
+
+                                        </h6>
+
+                                        <small class="text-muted">
+
+                                            Uploaded profile photo.
+
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Warning -->
+
+                    <div class="alert alert-danger border-0 rounded-4 shadow-sm mt-5">
+
+                        <div class="d-flex">
+
+                            <div class="me-3">
+
+                                <i class="fas fa-triangle-exclamation fa-3x"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h4 class="fw-bold">
+
+                                    This action cannot be undone
+
+                                </h4>
+
+                                <p class="mb-2">
+
+                                    Once your account is deleted, all associated information will be permanently removed from Mayon Grand Ellora.
+
+                                </p>
+
+                                <p class="mb-0">
+
+                                    You will no longer be able to sign in using this account.
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Important Notice -->
+
+                    <div class="card border-warning bg-warning bg-opacity-10 rounded-4 mt-4">
+
+                        <div class="card-body">
+
+                            <h5 class="fw-bold">
+
+                                <i class="fas fa-shield-alt text-warning me-2"></i>
+
+                                Before you continue
+
+                            </h5>
+
+                            <ul class="mb-0 mt-3">
+
+                                <li class="mb-2">
+
+                                    Download any important information you want to keep.
+
+                                </li>
+
+                                <li class="mb-2">
+
+                                    Make sure there are no pending maintenance payments.
+
+                                </li>
+
+                                <li class="mb-2">
+
+                                    Contact your society administrator if you have questions.
+
+                                </li>
+
+                                <li>
+
+                                    This process cannot be reversed after confirmation.
+
+                                </li>
+
+                            </ul>
+
+                        </div>
+
+                    </div>
+
+                                        <!-- ==========================================
+                    Confirmation
+                    =========================================== -->
+
+                    <div class="card border-0 bg-light rounded-4 mt-5">
+
+                        <div class="card-body p-4">
+
+                            <div class="form-check">
+
+                                <input
+
+                                    class="form-check-input"
+
+                                    type="checkbox"
+
+                                    id="agreeDelete"
+
+                                    style="width:1.4rem;height:1.4rem;">
+
+                                <label
+
+                                    class="form-check-label ms-3"
+
+                                    for="agreeDelete">
+
+                                    <strong>
+
+                                        I understand that deleting my account is permanent.
+
+                                    </strong>
+
+                                    <br>
+
+                                    <span class="text-muted">
+
+                                        I understand that my account, profile information,
+                                        society membership, complaints, payment history,
+                                        notifications and uploaded files will be permanently
+                                        deleted and cannot be recovered.
+
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ==========================================
+                    Buttons
+                    =========================================== -->
+
+                    <div class="d-flex justify-content-between align-items-center mt-5">
+
+                        <a
+
+                            href="/profile"
+
+                            class="btn btn-outline-secondary rounded-pill px-5 py-3">
 
                             <i class="fas fa-arrow-left me-2"></i>
 
@@ -142,8 +514,11 @@
                         </a>
 
                         <button
+
                             id="continueBtn"
-                            class="btn btn-danger btn-lg"
+
+                            class="btn btn-danger rounded-pill px-5 py-3 shadow"
+
                             disabled>
 
                             Continue
@@ -164,9 +539,66 @@
 
 </div>
 
+<!-- ==========================================
+Custom Styles
+========================================== -->
+
+<style>
+
+.card{
+
+    transition:.25s ease;
+
+}
+
+.card:hover{
+
+    transform:translateY(-3px);
+
+}
+
+.btn{
+
+    transition:.25s ease;
+
+}
+
+.btn:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.form-check{
+
+    cursor:pointer;
+
+}
+
+#continueBtn:disabled{
+
+    opacity:.5;
+
+    cursor:not-allowed;
+
+}
+
+.bg-light{
+
+    background:#f8fafc!important;
+
+}
+
+</style>
+
+<!-- ==========================================
+Javascript
+========================================== -->
+
 <script>
 
 const agree = document.getElementById("agreeDelete");
+
 const continueBtn = document.getElementById("continueBtn");
 
 agree.addEventListener("change", () => {

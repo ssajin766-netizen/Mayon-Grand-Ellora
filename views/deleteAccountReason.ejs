@@ -1,118 +1,385 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Delete Account</title>
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet">
-</head>
-
-<body class="bg-light">
+<%- include("partials/header") %>
 
 <div class="container py-5">
 
-    <div class="card shadow">
+    <div class="row justify-content-center">
 
-        <div class="card-header bg-danger text-white">
-            <h3 class="mb-0">
-                Reason for Leaving
-            </h3>
-        </div>
+        <div class="col-xl-8 col-lg-9 col-md-11">
 
-        <div class="card-body">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
 
-            <% if (error && error.length) { %>
+                <!-- ==========================
+                Header
+                =========================== -->
 
-                <div class="alert alert-danger">
-                    <%= error %>
+                <div class="card-header bg-white border-0 p-4">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
+                             style="width:70px;height:70px;">
+
+                            <i class="fas fa-comment-dots fa-2x text-danger"></i>
+
+                        </div>
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                Before You Leave
+
+                            </h2>
+
+                            <p class="text-muted mb-0">
+
+                                We'd appreciate knowing why you're deleting your account.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
-            <% } %>
+                <!-- ==========================
+                Body
+                =========================== -->
 
-            <% if (success && success.length) { %>
+                <div class="card-body p-5">
 
-                <div class="alert alert-success">
-                    <%= success %>
+                    <!-- Progress -->
+
+                    <div class="mb-5">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    <i class="fas fa-check"></i>
+
+                                </div>
+
+                                <small>
+
+                                    Information
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    <i class="fas fa-check"></i>
+
+                                </div>
+
+                                <small>
+
+                                    Verify
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    <i class="fas fa-check"></i>
+
+                                </div>
+
+                                <small>
+
+                                    OTP
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    4
+
+                                </div>
+
+                                <small class="fw-bold">
+
+                                    Reason
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Hero -->
+
+                    <div class="text-center mb-5">
+
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center"
+                             style="width:120px;height:120px;">
+
+                            <i class="fas fa-heart-crack fa-4x text-danger"></i>
+
+                        </div>
+
+                        <h3 class="fw-bold mt-4">
+
+                            We're Sorry to See You Go
+
+                        </h3>
+
+                        <p class="text-muted">
+
+                            Your feedback helps us improve Mayon Grand Ellora for everyone.
+
+                        </p>
+
+                    </div>
+
+                    <% if (error && error.length) { %>
+
+                        <div class="alert alert-danger rounded-3">
+
+                            <i class="fas fa-circle-exclamation me-2"></i>
+
+                            <%= error %>
+
+                        </div>
+
+                    <% } %>
+
+                    <% if (success && success.length) { %>
+
+                        <div class="alert alert-success rounded-3">
+
+                            <i class="fas fa-circle-check me-2"></i>
+
+                            <%= success %>
+
+                        </div>
+
+                    <% } %>
+
+                    <!-- Form -->
+
+                    <form action="/delete-account" method="POST">
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+
+                                Why are you deleting your account?
+
+                            </label>
+
+                            <select
+                                class="form-select form-select-lg rounded-4"
+                                name="reason"
+                                required>
+
+                                <option value="">
+
+                                    Select a reason
+
+                                </option>
+
+                                <option value="Privacy Concerns">
+
+                                    🔒 Privacy Concerns
+
+                                </option>
+
+                                <option value="Moving to another society">
+
+                                    🏢 Moving to another society
+
+                                </option>
+
+                                <option value="Created another account">
+
+                                    👤 Created another account
+
+                                </option>
+
+                                <option value="No longer needed">
+
+                                    📦 No longer needed
+
+                                </option>
+
+                                <option value="Poor experience">
+
+                                    😞 Poor experience
+
+                                </option>
+
+                                <option value="Other">
+
+                                    ✍️ Other
+
+                                </option>
+
+                            </select>
+
+                            <small class="text-muted">
+
+                                Select the option that best describes your reason.
+
+                            </small>
+
+                        </div>
+
+                                                <!-- ==========================================
+                        Feedback
+                        =========================================== -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+
+                                Additional Feedback (Optional)
+
+                            </label>
+
+                            <textarea
+                                class="form-control rounded-4"
+                                name="feedback"
+                                rows="6"
+                                maxlength="500"
+                                placeholder="Tell us how we can improve your experience with Mayon Grand Ellora..."></textarea>
+
+                            <small class="text-muted">
+
+                                Your feedback is valuable and helps us improve our services.
+
+                            </small>
+
+                        </div>
+
+                        <!-- ==========================================
+                        Info Card
+                        =========================================== -->
+
+                        <div class="card border-0 bg-light rounded-4 mb-4">
+
+                            <div class="card-body">
+
+                                <div class="d-flex">
+
+                                    <i class="fas fa-lightbulb text-warning fa-2x me-3 mt-1"></i>
+
+                                    <div>
+
+                                        <h5 class="fw-bold">
+
+                                            Your feedback matters
+
+                                        </h5>
+
+                                        <p class="text-muted mb-0">
+
+                                            Every suggestion helps us improve Mayon Grand Ellora.
+                                            We carefully review user feedback to make the platform
+                                            better for all residents.
+
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ==========================================
+                        Final Warning
+                        =========================================== -->
+
+                        <div class="alert alert-danger rounded-4 border-0">
+
+                            <div class="d-flex">
+
+                                <i class="fas fa-triangle-exclamation fa-2x me-3"></i>
+
+                                <div>
+
+                                    <h6 class="fw-bold">
+
+                                        Final Warning
+
+                                    </h6>
+
+                                    <p class="mb-0">
+
+                                        Clicking <strong>Delete My Account</strong> will permanently
+                                        delete your account, profile information, notifications,
+                                        uploaded files, and all associated records.
+                                        This action cannot be undone.
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ==========================================
+                        Buttons
+                        =========================================== -->
+
+                        <div class="d-flex justify-content-between mt-5">
+
+                            <a
+                                href="/delete-account/otp"
+                                class="btn btn-outline-secondary rounded-pill px-5">
+
+                                <i class="fas fa-arrow-left me-2"></i>
+
+                                Back
+
+                            </a>
+
+                            <button
+                                type="submit"
+                                class="btn btn-danger rounded-pill px-5">
+
+                                <i class="fas fa-trash-alt me-2"></i>
+
+                                Delete My Account
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
                 </div>
 
-            <% } %>
-<form action="/delete-account" method="POST">
-
-    <div class="mb-3">
-
-        <label class="form-label">
-            Why are you deleting your account?
-        </label>
-
-        <select
-            class="form-select"
-            name="reason"
-            required>
-
-            <option value="">Select a reason</option>
-
-            <option value="Privacy Concerns">
-                Privacy Concerns
-            </option>
-
-            <option value="Moving to another society">
-                Moving to another society
-            </option>
-
-            <option value="Created another account">
-                Created another account
-            </option>
-
-            <option value="No longer needed">
-                No longer needed
-            </option>
-
-            <option value="Other">
-                Other
-            </option>
-
-        </select>
-
-    </div>
-
-    <div class="mb-3">
-
-        <label class="form-label">
-            Additional Feedback (Optional)
-        </label>
-
-        <textarea
-            class="form-control"
-            rows="5"
-            name="feedback"
-            placeholder="Tell us how we can improve..."></textarea>
-
-    </div>
-
-    <div class="d-flex justify-content-between">
-
-        <a
-            href="/delete-account/otp"
-            class="btn btn-secondary">
-
-            Back
-
-        </a>
-
-        <button
-            type="submit"
-            class="btn btn-danger">
-
-            Delete My Account
-
-        </button>
-
-    </div>
-
-</form>
+            </div>
 
         </div>
 
@@ -120,5 +387,53 @@
 
 </div>
 
-</body>
-</html>
+<style>
+
+.card{
+    transition:.25s ease;
+}
+
+.card:hover{
+    transform:translateY(-3px);
+}
+
+.btn{
+    transition:.25s ease;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+}
+
+.form-control,
+.form-select{
+    border-radius:16px;
+}
+
+textarea{
+    resize:vertical;
+}
+
+.alert{
+    border-radius:18px;
+}
+
+</style>
+
+<script>
+
+const textarea = document.querySelector("textarea");
+
+textarea.addEventListener("input", function(){
+
+    if(this.value.length > 500){
+
+        this.value = this.value.substring(0,500);
+
+    }
+
+});
+
+</script>
+
+<%- include("partials/footer") %>

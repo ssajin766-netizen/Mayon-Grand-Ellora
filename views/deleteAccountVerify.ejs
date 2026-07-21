@@ -1,75 +1,427 @@
-<!DOCTYPE html>
-<html lang="en">
+<%- include("partials/header") %>
 
-<head>
+<div class="container py-5">
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <div class="row justify-content-center">
 
-    <title>Verify Account Deletion</title>
+        <div class="col-xl-7 col-lg-8 col-md-10">
 
-    <link rel="stylesheet" href="/styles.css">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
 
-</head>
+                <!-- ==========================
+                Header
+                =========================== -->
 
-<body>
+                <div class="card-header bg-white border-0 p-4">
 
-<div class="container">
+                    <div class="d-flex align-items-center">
 
-    <div class="card">
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
+                             style="width:70px;height:70px;">
 
-        <h2>Verify Your Identity</h2>
+                            <i class="fas fa-user-shield fa-2x text-danger"></i>
 
-        <p>
-            Before deleting your account, we need to verify that it's really you.
-        </p>
+                        </div>
 
-        <p>
-            We will send a One-Time Password (OTP) to:
-        </p>
+                        <div>
 
-        <h4><%= user.username %></h4>
+                            <h2 class="fw-bold mb-1">
 
-        <% if(success.length){ %>
+                                Verify Your Identity
 
-            <div class="alert alert-success">
-                <%= success %>
+                            </h2>
+
+                            <p class="text-muted mb-0">
+
+                                Before deleting your account, we need to confirm it's really you.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ==========================
+                Body
+                =========================== -->
+
+                <div class="card-body p-5">
+
+                    <!-- Progress -->
+
+                    <div class="mb-5">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    <i class="fas fa-check"></i>
+
+                                </div>
+
+                                <small>
+
+                                    Information
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center fw-bold mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    2
+
+                                </div>
+
+                                <small class="fw-bold">
+
+                                    Verify
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center text-secondary">
+
+                                <div class="rounded-circle border d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    3
+
+                                </div>
+
+                                <small>
+
+                                    OTP
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center text-secondary">
+
+                                <div class="rounded-circle border d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    4
+
+                                </div>
+
+                                <small>
+
+                                    Reason
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Hero -->
+
+                    <div class="text-center mb-5">
+
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center"
+                             style="width:120px;height:120px;">
+
+                            <i class="fas fa-envelope-circle-check fa-4x text-danger"></i>
+
+                        </div>
+
+                        <h3 class="fw-bold mt-4">
+
+                            Identity Verification
+
+                        </h3>
+
+                        <p class="text-muted">
+
+                            For your security, we'll send a One-Time Password (OTP)
+                            to your registered email address.
+
+                        </p>
+
+                    </div>
+
+                    <!-- Email Card -->
+
+                    <div class="card border-0 bg-light rounded-4 mb-4">
+
+                        <div class="card-body">
+
+                            <div class="d-flex align-items-center">
+
+                                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
+                                     style="width:60px;height:60px;">
+
+                                    <i class="fas fa-envelope fa-lg text-primary"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small class="text-muted">
+
+                                        Verification email will be sent to
+
+                                    </small>
+
+                                    <h5 class="fw-bold mb-0">
+
+                                        <%= user.username %>
+
+                                    </h5>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <% if(success && success.length){ %>
+
+                        <div class="alert alert-success rounded-4">
+
+                            <i class="fas fa-circle-check me-2"></i>
+
+                            <%= success %>
+
+                        </div>
+
+                    <% } %>
+
+                    <% if(error && error.length){ %>
+
+                        <div class="alert alert-danger rounded-4">
+
+                            <i class="fas fa-circle-exclamation me-2"></i>
+
+                            <%= error %>
+
+                        </div>
+
+                    <% } %>
+
+                    <!-- Send OTP -->
+
+                    <form action="/delete-account/send-otp" method="POST">
+
+                        <button
+                            type="submit"
+                            class="btn btn-danger btn-lg rounded-pill w-100">
+
+                            <i class="fas fa-paper-plane me-2"></i>
+
+                            Send Verification Code
+
+                        </button>
+
+                    </form>
+
+                                        <!-- ==========================================
+                    Security Information
+                    =========================================== -->
+
+                    <div class="card border-0 bg-light rounded-4 mt-4">
+
+                        <div class="card-body">
+
+                            <div class="d-flex">
+
+                                <div class="me-3">
+
+                                    <i class="fas fa-shield-alt fa-2x text-primary"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <h5 class="fw-bold">
+
+                                        Why is verification required?
+
+                                    </h5>
+
+                                    <p class="text-muted mb-0">
+
+                                        Account deletion is permanent. To protect your
+                                        personal information, we verify your identity by
+                                        sending a One-Time Password (OTP) to your
+                                        registered email address.
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ==========================================
+                    Next Step
+                    =========================================== -->
+
+                    <div class="card border-0 mt-4 shadow-sm rounded-4">
+
+                        <div class="card-body">
+
+                            <h5 class="fw-bold mb-3">
+
+                                <i class="fas fa-list-check text-success me-2"></i>
+
+                                What happens next?
+
+                            </h5>
+
+                            <div class="d-flex align-items-start mb-3">
+
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                     style="width:34px;height:34px;min-width:34px;">
+
+                                    1
+
+                                </div>
+
+                                <div>
+
+                                    A verification code will be sent to your email.
+
+                                </div>
+
+                            </div>
+
+                            <div class="d-flex align-items-start mb-3">
+
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                     style="width:34px;height:34px;min-width:34px;">
+
+                                    2
+
+                                </div>
+
+                                <div>
+
+                                    Enter the 6-digit OTP to verify your identity.
+
+                                </div>
+
+                            </div>
+
+                            <div class="d-flex align-items-start">
+
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                     style="width:34px;height:34px;min-width:34px;">
+
+                                    3
+
+                                </div>
+
+                                <div>
+
+                                    You'll be asked for your reason before your account
+                                    is permanently deleted.
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ==========================================
+                    Back Button
+                    =========================================== -->
+
+                    <div class="d-flex justify-content-between mt-5">
+
+                        <a
+                            href="/delete-account"
+                            class="btn btn-outline-secondary rounded-pill px-5">
+
+                            <i class="fas fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
             </div>
 
-        <% } %>
-
-        <% if(error.length){ %>
-
-            <div class="alert alert-danger">
-                <%= error %>
-            </div>
-
-        <% } %>
-
-        <form action="/delete-account/send-otp" method="POST">
-
-            <button
-                type="submit"
-                class="btn btn-danger w-100">
-
-                Send Verification Code
-
-            </button>
-
-        </form>
-
-        <br>
-
-        <a href="/delete-account" class="btn btn-secondary">
-
-            Back
-
-        </a>
+        </div>
 
     </div>
 
 </div>
 
-</body>
+<style>
 
-</html>
+.card{
+    transition:all .25s ease;
+}
+
+.card:hover{
+    transform:translateY(-3px);
+}
+
+.btn{
+    transition:all .25s ease;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+}
+
+.alert{
+    border-radius:18px;
+}
+
+.rounded-4{
+    border-radius:18px !important;
+}
+
+</style>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const button = document.querySelector("button[type='submit']");
+
+    button.addEventListener("click", () => {
+
+        button.disabled = true;
+
+        button.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-2"></span>Sending Verification Code...';
+
+    });
+
+});
+
+</script>
+
+<%- include("partials/footer") %>

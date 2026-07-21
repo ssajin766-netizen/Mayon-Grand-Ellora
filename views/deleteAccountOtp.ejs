@@ -1,125 +1,405 @@
-<!DOCTYPE html>
-<html lang="en">
+<%- include("partials/header") %>
 
-<head>
+<div class="container py-5">
 
-    <meta charset="UTF-8">
+    <div class="row justify-content-center">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+        <div class="col-xl-7 col-lg-8 col-md-10">
 
-    <title>Verify OTP</title>
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
 
-    <link rel="stylesheet" href="/styles.css">
+                <!-- ==========================
+                Header
+                =========================== -->
 
-</head>
+                <div class="card-header bg-white border-0 p-4">
 
-<body>
+                    <div class="d-flex align-items-center">
 
-<div class="container">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
+                             style="width:70px;height:70px;">
 
-    <div class="card">
+                            <i class="fas fa-envelope-open-text fa-2x text-primary"></i>
 
-        <h2>Email Verification</h2>
+                        </div>
 
-        <p>
+                        <div>
 
-            Enter the 6-digit verification code sent to
+                            <h2 class="fw-bold mb-1">
 
-        </p>
+                                Verify Your Email
 
-        <strong>
+                            </h2>
 
-            <%= email %>
+                            <p class="text-muted mb-0">
 
-        </strong>
+                                Enter the verification code sent to your registered email address.
 
-        <br><br>
+                            </p>
 
-        <% if(success.length){ %>
+                        </div>
 
-            <div class="alert alert-success">
+                    </div>
 
-                <%= success %>
+                </div>
+
+                <!-- ==========================
+                Body
+                =========================== -->
+
+                <div class="card-body p-5">
+
+                    <!-- Progress -->
+
+                    <div class="mb-5">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    <i class="fas fa-check"></i>
+
+                                </div>
+
+                                <small>
+
+                                    Information
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    <i class="fas fa-check"></i>
+
+                                </div>
+
+                                <small>
+
+                                    Verify
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center">
+
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    3
+
+                                </div>
+
+                                <small class="fw-bold">
+
+                                    OTP
+
+                                </small>
+
+                            </div>
+
+                            <div class="flex-grow-1 border-top mx-2"></div>
+
+                            <div class="text-center text-secondary">
+
+                                <div class="rounded-circle border d-flex align-items-center justify-content-center mx-auto"
+                                     style="width:44px;height:44px;">
+
+                                    4
+
+                                </div>
+
+                                <small>
+
+                                    Reason
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Icon -->
+
+                    <div class="text-center mb-4">
+
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center"
+                             style="width:110px;height:110px;">
+
+                            <i class="fas fa-shield-alt fa-4x text-primary"></i>
+
+                        </div>
+
+                    </div>
+
+                    <h3 class="text-center fw-bold">
+
+                        Email Verification
+
+                    </h3>
+
+                    <p class="text-center text-muted mb-4">
+
+                        We've sent a 6-digit verification code to
+
+                    </p>
+
+                    <div class="text-center mb-5">
+
+                        <span class="badge bg-light text-dark border fs-6 px-4 py-3">
+
+                            <i class="fas fa-envelope me-2 text-primary"></i>
+
+                            <%= email %>
+
+                        </span>
+
+                    </div>
+
+                    <% if(success.length){ %>
+
+                        <div class="alert alert-success rounded-3">
+
+                            <i class="fas fa-circle-check me-2"></i>
+
+                            <%= success %>
+
+                        </div>
+
+                    <% } %>
+
+                    <% if(error.length){ %>
+
+                        <div class="alert alert-danger rounded-3">
+
+                            <i class="fas fa-circle-xmark me-2"></i>
+
+                            <%= error %>
+
+                        </div>
+
+                    <% } %>
+
+                    <!-- OTP Form -->
+
+                    <form
+                        action="/delete-account/verify-otp"
+                        method="POST">
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+
+                                Verification Code
+
+                            </label>
+
+                            <input
+
+                                type="text"
+
+                                class="form-control form-control-lg text-center fs-3 rounded-4"
+
+                                name="otp"
+
+                                maxlength="6"
+
+                                minlength="6"
+
+                                placeholder="000000"
+
+                                autocomplete="one-time-code"
+
+                                required>
+
+                            <small class="text-muted">
+
+                                Enter the 6-digit OTP received in your email.
+
+                            </small>
+
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary btn-lg rounded-pill w-100">
+
+                            <i class="fas fa-check-circle me-2"></i>
+
+                            Verify OTP
+
+                        </button>
+
+                    </form>
+
+                                        <!-- ==========================================
+                    Resend OTP
+                    =========================================== -->
+
+                    <div class="card border-0 bg-light rounded-4 mt-4">
+
+                        <div class="card-body text-center">
+
+                            <h5 class="fw-bold">
+
+                                Didn't receive the code?
+
+                            </h5>
+
+                            <p class="text-muted mb-4">
+
+                                Check your Spam/Junk folder. If you still haven't received it,
+                                request a new verification code.
+
+                            </p>
+
+                            <form
+                                action="/delete-account/send-otp"
+                                method="POST">
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-primary rounded-pill px-5">
+
+                                    <i class="fas fa-rotate-right me-2"></i>
+
+                                    Resend OTP
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ==========================================
+                    Security Notice
+                    =========================================== -->
+
+                    <div class="alert alert-info rounded-4 border-0 mt-4">
+
+                        <div class="d-flex">
+
+                            <i class="fas fa-shield-halved fa-2x me-3 text-primary"></i>
+
+                            <div>
+
+                                <h6 class="fw-bold">
+
+                                    Security Verification
+
+                                </h6>
+
+                                <p class="mb-0">
+
+                                    This verification step protects your account from
+                                    unauthorized deletion.
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ==========================================
+                    Buttons
+                    =========================================== -->
+
+                    <div class="d-flex justify-content-between mt-5">
+
+                        <a
+                            href="/delete-account/verify"
+                            class="btn btn-outline-secondary rounded-pill px-5">
+
+                            <i class="fas fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
 
             </div>
 
-        <% } %>
-
-        <% if(error.length){ %>
-
-            <div class="alert alert-danger">
-
-                <%= error %>
-
-            </div>
-
-        <% } %>
-
-        <form
-            action="/delete-account/verify-otp"
-            method="POST">
-
-            <input
-
-                type="text"
-
-                name="otp"
-
-                maxlength="6"
-
-                minlength="6"
-
-                placeholder="Enter OTP"
-
-                required
-
-                class="form-control"
-
-            >
-
-            <br>
-
-            <button
-                type="submit"
-                class="btn btn-success w-100">
-
-                Verify OTP
-
-            </button>
-
-        </form>
-
-        <br>
-
-        <form
-            action="/delete-account/send-otp"
-            method="POST">
-
-            <button
-                type="submit"
-                class="btn btn-warning">
-
-                Resend OTP
-
-            </button>
-
-        </form>
-
-        <br>
-
-        <a
-            href="/delete-account/verify"
-            class="btn btn-secondary">
-
-            Back
-
-        </a>
+        </div>
 
     </div>
 
 </div>
 
-</body>
+<style>
 
-</html>
+.card{
+
+    transition:.25s ease;
+
+}
+
+.card:hover{
+
+    transform:translateY(-3px);
+
+}
+
+.btn{
+
+    transition:.25s ease;
+
+}
+
+.btn:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.form-control{
+
+    letter-spacing:.45rem;
+
+    font-weight:700;
+
+}
+
+.badge{
+
+    border-radius:15px;
+
+}
+
+</style>
+
+<script>
+
+const otpInput = document.querySelector("input[name='otp']");
+
+otpInput.addEventListener("input", function () {
+
+    this.value = this.value.replace(/[^0-9]/g, "");
+
+});
+
+otpInput.focus();
+
+</script>
+
+<%- include("partials/footer") %>
