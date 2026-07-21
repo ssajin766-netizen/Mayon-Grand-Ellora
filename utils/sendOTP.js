@@ -55,6 +55,17 @@ async function sendOTP(
 
             break;
 
+        case "delete_account":
+
+               subject = "Delete Account Verification";
+
+               title = "Delete Account";
+
+              description =
+                    "Use the OTP below to verify your identity before permanently deleting your account.";
+
+        break;    
+
         case "email_verification":
 
         default:

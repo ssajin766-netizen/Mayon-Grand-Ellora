@@ -10,6 +10,8 @@ const upload = require("../middleware/uploadProfile");
 const { User } = require("../models/userModel");
 const { Society } = require("../models/societyModel");
 const Notification = require("../models/notificationModel");
+const otpController = require("../controllers/otpController");
+const DeleteAccountLog = require("../models/deleteAccountLog");
 
 const {
     isLoggedIn,
@@ -952,6 +954,248 @@ router.post(
 
 /*
 --------------------------------------------------
+DELETE ACCOUNT - STEP 1 PAGE
+--------------------------------------------------
+*/
+
+router.get(
+    "/delete-account",
+    isLoggedIn,
+    (req, res) => {
+
+        res.render("deleteAccount", {
+            user: req.user,
+            success: req.flash("success"),
+            error: req.flash("error")
+        });
+
+    }
+);
+
+/*
+--------------------------------------------------
+DELETE ACCOUNT - VERIFY PAGE
+--------------------------------------------------
+*/
+
+router.get(
+    "/delete-account/verify",
+    isLoggedIn,
+    (req, res) => {
+
+        res.render("deleteAccountVerify", {
+            user: req.user,
+            success: req.flash("success"),
+            error: req.flash("error")
+        });
+
+    }
+);
+
+/*
+--------------------------------------------------
+SEND DELETE ACCOUNT OTP
+--------------------------------------------------
+*/
+
+router.post(
+    "/delete-account/send-otp",
+    isLoggedIn,
+    async (req, res) => {
+
+        try {
+
+            await otpController.sendDeleteAccountOTP(
+                req.user.username
+            );
+
+            req.flash(
+                "success",
+                "Verification code has been sent to your email."
+            );
+
+            return res.redirect("/delete-account/otp");
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            req.flash(
+                "error",
+                "Unable to send verification code."
+            );
+
+            return res.redirect("/delete-account/verify");
+
+        }
+
+    }
+);
+
+/*
+--------------------------------------------------
+DELETE ACCOUNT OTP PAGE
+--------------------------------------------------
+*/
+
+router.get(
+    "/delete-account/otp",
+    isLoggedIn,
+    (req, res) => {
+
+        res.render("deleteAccountOtp", {
+
+            email: req.user.username,
+
+            success: req.flash("success"),
+
+            error: req.flash("error")
+
+        });
+
+    }
+);
+
+/*
+--------------------------------------------------
+VERIFY DELETE ACCOUNT OTP
+--------------------------------------------------
+*/
+
+router.post(
+    "/delete-account/verify-otp",
+    isLoggedIn,
+    async (req, res) => {
+
+        try {
+
+            const result = await otpController.verifyOTP(
+
+                req.user.username,
+
+                req.body.otp,
+
+                "delete_account"
+
+            );
+
+            if (!result.success) {
+
+                req.flash(
+                    "error",
+                    result.message
+                );
+
+                return res.redirect(
+                    "/delete-account/otp"
+                );
+
+            }
+
+            req.session.deleteOTPVerified = true;
+
+            return res.redirect(
+                "/delete-account/reason"
+            );
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            req.flash(
+                "error",
+                "OTP verification failed."
+            );
+
+            return res.redirect(
+                "/delete-account/otp"
+            );
+
+        }
+
+    }
+);
+
+/*
+--------------------------------------------------
+SAVE DELETE ACCOUNT REASON
+--------------------------------------------------
+*/
+
+router.post(
+    "/delete-account/reason",
+    isLoggedIn,
+    (req, res) => {
+
+        if (!req.session.deleteOTPVerified) {
+
+            req.flash(
+                "error",
+                "Please verify your email first."
+            );
+
+            return res.redirect(
+                "/delete-account/verify"
+            );
+
+        }
+
+        req.session.deleteReason = {
+
+            reason: req.body.reason,
+
+            feedback: req.body.feedback
+
+        };
+
+        return res.redirect("/delete-account/confirm");
+
+    }
+);
+
+/*
+--------------------------------------------------
+DELETE ACCOUNT CONFIRM PAGE
+--------------------------------------------------
+*/
+
+router.get(
+    "/delete-account/confirm",
+    isLoggedIn,
+    (req, res) => {
+
+        if (!req.session.deleteOTPVerified) {
+
+            req.flash(
+                "error",
+                "Please verify your email first."
+            );
+
+            return res.redirect("/delete-account/verify");
+
+        }
+
+        res.render("deleteAccountConfirm", {
+
+            user: req.user,
+
+            deleteReason: req.session.deleteReason,
+
+            success: req.flash("success"),
+
+            error: req.flash("error")
+
+        });
+
+    }
+);
+
+/*
+--------------------------------------------------
 DELETE ACCOUNT
 --------------------------------------------------
 */
@@ -961,7 +1205,41 @@ router.post(
     isLoggedIn,
     async (req, res, next) => {
 
+        /*
+        ==========================================
+        Verify OTP
+        ==========================================
+        */
+
+        if (!req.session.deleteOTPVerified) {
+
+            req.flash(
+                "error",
+                "Please verify your email first."
+            );
+
+            return res.redirect("/delete-account/verify");
+
+        }
+
         try {
+
+            /*
+            ==========================================
+            Delete Reason
+            ==========================================
+            */
+
+            const { reason, feedback } = req.body;
+
+            console.log("Delete Reason:", reason);
+            console.log("Feedback:", feedback);
+
+            /*
+            ==========================================
+            Fetch User
+            ==========================================
+            */
 
             const user = await User.findById(req.user._id);
 
@@ -998,6 +1276,28 @@ router.post(
                 return res.redirect("/profile");
 
             }
+
+            /*
+            ==========================================
+            Save Delete Log
+            ==========================================
+            */
+
+            await DeleteAccountLog.create({
+
+                email: user.username,
+
+                firstName: user.firstName,
+
+                lastName: user.lastName,
+
+                societyName: user.societyName,
+
+                reason,
+
+                feedback
+
+            });
 
             /*
             ==========================================
@@ -1064,6 +1364,9 @@ router.post(
                     return next(err);
 
                 }
+
+                // Clear temporary OTP session
+                delete req.session.deleteOTPVerified;
 
                 req.session.destroy(() => {
 

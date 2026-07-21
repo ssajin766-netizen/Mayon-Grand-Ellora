@@ -33,7 +33,11 @@ async function createOTP(email, purpose) {
 
     });
 
-    await sendOTP(email, otp);
+    await sendOTP(
+    email,
+    otp,
+    purpose
+    );
 
     return true;
 
@@ -108,6 +112,48 @@ exports.sendLoginOTP = async (email) => {
             email,
 
             "login"
+
+        );
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        throw err;
+
+    }
+
+};
+
+/*
+==================================================
+SEND DELETE ACCOUNT OTP
+==================================================
+*/
+
+exports.sendDeleteAccountOTP = async (email) => {
+
+    try {
+
+        const user = await User.findOne({
+
+            username: email.toLowerCase()
+
+        });
+
+        if (!user) {
+
+            throw new Error("User not found.");
+
+        }
+
+        return await createOTP(
+
+            email,
+
+            "delete_account"
 
         );
 
@@ -264,6 +310,18 @@ exports.verifyOTP = async (
             };
 
         }
+
+        if (purpose === "delete_account") {
+
+         return {
+
+          success: true,
+
+          message: "OTP verified successfully."
+
+    };
+
+}
 
         await User.updateOne(
 
