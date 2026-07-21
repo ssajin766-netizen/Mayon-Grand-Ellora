@@ -327,21 +327,24 @@ router.post("/login", (req, res, next) => {
             return next(err);
         }
 
-        await sendMail(
+      if (!user.lastLogin) {
 
-    user.username,
+    await sendMail(
+        user.username,
+        "Welcome to Mayon Grand Ellora",
+        `
+        <h2>Welcome!</h2>
 
-    "Login Successful",
+        <p>You have successfully logged in to your account.</p>
 
-    `
-    <h2>Login Successful</h2>
+        <p>Thank you for joining Mayon Grand Ellora.</p>
+        `
+    );
+}
 
-    <p>You have successfully logged in to your Mayon Grand Ellora account.</p>
+user.lastLogin = new Date();
+await user.save();
 
-    <p>If this wasn't you, please change your password immediately.</p>
-    `
-
-);
 
         return res.redirect("/home");
 
@@ -739,14 +742,23 @@ router.post("/verify-otp", async (req, res, next) => {
 
     if (err) return next(err);
 
+    if (!user.lastLogin) {
+
     await sendMail(
         user.username,
-        "Login Successful",
+        "Welcome to Mayon Grand Ellora",
         `
-        <h2>Login Successful</h2>
-        <p>You have successfully logged in to your account.</p>
+        <h2>Welcome!</h2>
+
+        <p>You have successfully logged in to your account for the first time.</p>
+
+        <p>Thank you for joining Mayon Grand Ellora.</p>
         `
     );
+}
+
+user.lastLogin = new Date();
+await user.save();
 
     delete req.session.pendingUser;
 
