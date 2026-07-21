@@ -43,7 +43,8 @@
                                 id="profilePreview"
                                 src="<%= resident.profileImage || '/images/default-avatar.png' %>"
                                 class="profile-photo"
-                                alt="Profile">
+                                alt="Profile"
+                                onerror="this.onerror=null; this.src='/images/default-avatar.png';">
 
                             <div class="camera-overlay">
 
