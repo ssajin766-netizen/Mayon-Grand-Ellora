@@ -9,7 +9,7 @@ const upload = require("../middleware/uploadProfile");
 
 const { User } = require("../models/userModel");
 const { Society } = require("../models/societyModel");
-const Notification = require("../models/notificationModel");
+const { Notification } = require("../models/notificationModel");
 const otpController = require("../controllers/otpController");
 const DeleteAccountLog = require("../models/deleteAccountLog");
 
