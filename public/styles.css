@@ -864,29 +864,21 @@ body{
 
 .danger-card{
 
+    background:linear-gradient(135deg,#ffffff,#fff5f5);
+
     border-left:6px solid #dc3545;
 
-    background:linear-gradient(135deg,#fff,#fff5f5);
+    border-radius:18px;
 
-}
+    padding:30px;
 
-.danger-card .action-icon{
+    text-align:center;
 
-    background:#dc3545;
+    height:100%;
 
-}
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
 
-.danger-card h5{
-
-    color:#b02a37;
-
-    font-weight:700;
-
-}
-
-.danger-card p{
-
-    color:#6c757d;
+    transition:all .3s ease;
 
 }
 
@@ -895,5 +887,215 @@ body{
     transform:translateY(-6px);
 
     box-shadow:0 20px 40px rgba(220,53,69,.18);
+
+}
+
+.danger-card .action-icon{
+
+    width:70px;
+
+    height:70px;
+
+    margin:0 auto 20px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:#dc3545;
+
+    color:#fff;
+
+    font-size:28px;
+
+    box-shadow:0 8px 20px rgba(220,53,69,.35);
+
+}
+
+.danger-card h4{
+
+    color:#b02a37;
+
+    font-weight:700;
+
+    margin-bottom:12px;
+
+}
+
+.danger-card p{
+
+    color:#6c757d;
+
+    font-size:15px;
+
+    line-height:1.7;
+
+    min-height:60px;
+
+    margin-bottom:20px;
+
+}
+
+.danger-card .btn{
+
+    width:100%;
+
+    border-radius:10px;
+
+    font-weight:600;
+
+    padding:12px;
+
+    margin-top:auto;
+
+}
+
+.danger-card .btn-danger{
+
+    background:#dc3545;
+
+    border-color:#dc3545;
+
+}
+
+.danger-card .btn-danger:hover{
+
+    background:#bb2d3b;
+
+    border-color:#b02a37;
+
+}
+
+.danger-card .btn-danger:focus{
+
+    box-shadow:0 0 0 .25rem rgba(220,53,69,.25);
+
+}
+
+/* ==========================================================
+   DELETE SOCIETY MODAL
+========================================================== */
+
+#deleteSocietyModal .modal-content{
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+}
+
+#deleteSocietyModal .modal-header{
+
+    border-bottom:none;
+
+}
+
+#deleteSocietyModal .modal-footer{
+
+    border-top:none;
+
+}
+
+#deleteSocietyModal .alert{
+
+    border-left:5px solid #dc3545;
+
+}
+
+#deleteSocietyModal .list-group-item{
+
+    border:0;
+
+    padding:12px 0;
+
+    font-size:15px;
+
+}
+
+#deleteSocietyModal .form-control{
+
+    height:48px;
+
+    border-radius:10px;
+
+}
+
+#deleteSocietyModal .btn{
+
+    border-radius:10px;
+
+    font-weight:600;
+
+}
+
+#deleteSocietyBtn{
+
+    min-width:180px;
+
+}
+
+#deleteSocietyBtn:disabled{
+
+    opacity:.7;
+
+    cursor:not-allowed;
+
+}
+
+/* ==========================================================
+   DELETE ACCOUNT MODAL
+========================================================== */
+
+#deleteAccountModal .modal-content{
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+}
+
+#deleteAccountModal .modal-header{
+
+    border-bottom:none;
+
+}
+
+#deleteAccountModal .modal-footer{
+
+    border-top:none;
+
+}
+
+#deleteAccountModal .form-control{
+
+    height:48px;
+
+    border-radius:10px;
+
+}
+
+#deleteAccountModal .btn{
+
+    border-radius:10px;
+
+    font-weight:600;
+
+}
+
+#deleteBtn{
+
+    min-width:180px;
+
+}
+
+#deleteBtn:disabled{
+
+    opacity:.7;
+
+    cursor:not-allowed;
 
 }
