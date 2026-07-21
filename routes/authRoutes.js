@@ -20,12 +20,20 @@ GET LOGIN
 router.get("/login", (req, res) => {
 
     if (req.isAuthenticated()) {
-
         return res.redirect("/home");
-
     }
 
-    res.render("login");
+    res.render("login", {
+
+        error: req.flash("error"),
+
+        success: req.flash("success"),
+
+        deleted: req.query.deleted === "1",
+
+        societyDeleted: req.query.societyDeleted === "1"
+
+    });
 
 });
 

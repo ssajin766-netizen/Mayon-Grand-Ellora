@@ -9,6 +9,7 @@ const upload = require("../middleware/uploadProfile");
 
 const { User } = require("../models/userModel");
 const { Society } = require("../models/societyModel");
+const Notification = require("../models/notificationModel");
 
 const {
     isLoggedIn,
@@ -949,4 +950,320 @@ router.post(
     }
 );
 
-module.exports = router;
+/*
+--------------------------------------------------
+DELETE ACCOUNT
+--------------------------------------------------
+*/
+
+router.post(
+    "/delete-account",
+    isLoggedIn,
+    async (req, res, next) => {
+
+        try {
+
+            const user = await User.findById(req.user._id);
+
+            if (!user) {
+
+                req.flash(
+                    "error",
+                    "User not found."
+                );
+
+                return res.redirect("/profile");
+
+            }
+
+            /*
+            ==========================================
+            Prevent Society Admin Deletion
+            ==========================================
+            */
+
+            const society = await Society.findOne({
+
+                admin: user.username
+
+            });
+
+            if (society) {
+
+                req.flash(
+                    "error",
+                    "You are the Society Administrator. Transfer ownership or delete the society before deleting your account."
+                );
+
+                return res.redirect("/profile");
+
+            }
+
+            /*
+            ==========================================
+            Delete Profile Image
+            ==========================================
+            */
+
+            if (
+
+                user.profileImage &&
+
+                user.profileImage !== "/images/default-avatar.png"
+
+            ) {
+
+                const imagePath = path.join(
+
+                    __dirname,
+
+                    "../public",
+
+                    user.profileImage
+
+                );
+
+                if (fs.existsSync(imagePath)) {
+
+                    fs.unlinkSync(imagePath);
+
+                }
+
+            }
+
+            /*
+            ==========================================
+            Delete Notifications
+            ==========================================
+            */
+
+            await Notification.deleteMany({
+
+                user: user._id
+
+            });
+
+            /*
+            ==========================================
+            Delete User
+            ==========================================
+            */
+
+            await User.findByIdAndDelete(user._id);
+
+            /*
+            ==========================================
+            Logout
+            ==========================================
+            */
+
+            req.logout((err) => {
+
+                if (err) {
+
+                    return next(err);
+
+                }
+
+                req.session.destroy(() => {
+
+                    res.clearCookie("connect.sid");
+
+                    return res.redirect("/login?deleted=1");
+
+                });
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error("DELETE ACCOUNT ERROR:", err);
+
+            req.flash(
+
+                "error",
+
+                "Unable to delete account."
+
+            );
+
+            return res.redirect("/profile");
+
+        }
+
+    }
+);
+
+/*
+--------------------------------------------------
+DELETE SOCIETY
+--------------------------------------------------
+*/
+
+router.post(
+    "/delete-society",
+    isLoggedIn,
+    async (req, res, next) => {
+
+        try {
+
+            const admin = await User.findById(req.user._id);
+
+            if (!admin) {
+
+                req.flash(
+                    "error",
+                    "Administrator not found."
+                );
+
+                return res.redirect("/profile");
+
+            }
+
+            if (!admin.isAdmin) {
+
+                req.flash(
+                    "error",
+                    "Only administrators can delete a society."
+                );
+
+                return res.redirect("/profile");
+
+            }
+
+            /*
+            ==========================================
+            Get All Society Users
+            ==========================================
+            */
+
+            const users = await User.find({
+
+                societyName: admin.societyName
+
+            });
+
+            /*
+            ==========================================
+            Delete Profile Images
+            ==========================================
+            */
+
+            for (const user of users) {
+
+                if (
+
+                    user.profileImage &&
+
+                    user.profileImage !== "/images/default-avatar.png"
+
+                ) {
+
+                    const imagePath = path.join(
+
+                        __dirname,
+
+                        "../public",
+
+                        user.profileImage
+
+                    );
+
+                    if (fs.existsSync(imagePath)) {
+
+                        fs.unlinkSync(imagePath);
+
+                    }
+
+                }
+
+            }
+
+            /*
+            ==========================================
+            Delete Notifications
+            ==========================================
+            */
+
+            const userIds = users.map(user => user._id);
+
+            await Notification.deleteMany({
+
+                user: {
+
+                    $in: userIds
+
+                }
+
+            });
+
+            /*
+            ==========================================
+            Delete Users
+            ==========================================
+            */
+
+            await User.deleteMany({
+
+                societyName: admin.societyName
+
+            });
+
+            /*
+            ==========================================
+            Delete Society
+            ==========================================
+            */
+
+            await Society.deleteOne({
+
+                societyName: admin.societyName
+
+            });
+
+            /*
+            ==========================================
+            Logout
+            ==========================================
+            */
+
+            req.logout((err) => {
+
+                if (err) {
+
+                    return next(err);
+
+                }
+
+                req.session.destroy(() => {
+
+                    res.clearCookie("connect.sid");
+
+                    return res.redirect("/login?societyDeleted=1");
+
+                });
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            req.flash(
+
+                "error",
+
+                "Unable to delete society."
+
+            );
+
+            return res.redirect("/profile");
+
+        }
+
+    }
+);

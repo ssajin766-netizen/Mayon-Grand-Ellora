@@ -180,6 +180,43 @@ body{
 
                     <% } %>
 
+                    <% if (deleted) { %>
+
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+
+                    <i class="fas fa-check-circle me-2"></i>
+
+                       Your account has been deleted successfully.
+
+                    <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close">
+                    </button>
+
+                    </div>
+
+                   <% } %>
+
+                   <% if (societyDeleted) { %>
+
+                   <div class="alert alert-success alert-dismissible fade show">
+
+                   <i class="fas fa-check-circle me-2"></i>
+
+                       Society deleted successfully.
+
+                    <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+                    </button>
+
+                    </div>
+
+                    <% } %>
+
                     <form action="/login" method="POST">
 
                         <!-- Email -->

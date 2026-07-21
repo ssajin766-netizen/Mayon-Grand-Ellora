@@ -857,3 +857,43 @@ body{
     border:2px solid #fff;
 
 }
+
+/* ==========================================================
+   DANGER ACTION CARDS
+========================================================== */
+
+.danger-card{
+
+    border-left:6px solid #dc3545;
+
+    background:linear-gradient(135deg,#fff,#fff5f5);
+
+}
+
+.danger-card .action-icon{
+
+    background:#dc3545;
+
+}
+
+.danger-card h5{
+
+    color:#b02a37;
+
+    font-weight:700;
+
+}
+
+.danger-card p{
+
+    color:#6c757d;
+
+}
+
+.danger-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:0 20px 40px rgba(220,53,69,.18);
+
+}
