@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Verify OTP</title>
+
+    <link rel="stylesheet" href="/styles.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h2>Email Verification</h2>
+
+        <p>
+
+            Enter the 6-digit verification code sent to
+
+        </p>
+
+        <strong>
+
+            <%= email %>
+
+        </strong>
+
+        <br><br>
+
+        <% if(success.length){ %>
+
+            <div class="alert alert-success">
+
+                <%= success %>
+
+            </div>
+
+        <% } %>
+
+        <% if(error.length){ %>
+
+            <div class="alert alert-danger">
+
+                <%= error %>
+
+            </div>
+
+        <% } %>
+
+        <form
+            action="/delete-account/verify-otp"
+            method="POST">
+
+            <input
+
+                type="text"
+
+                name="otp"
+
+                maxlength="6"
+
+                minlength="6"
+
+                placeholder="Enter OTP"
+
+                required
+
+                class="form-control"
+
+            >
+
+            <br>
+
+            <button
+                type="submit"
+                class="btn btn-success w-100">
+
+                Verify OTP
+
+            </button>
+
+        </form>
+
+        <br>
+
+        <form
+            action="/delete-account/send-otp"
+            method="POST">
+
+            <button
+                type="submit"
+                class="btn btn-warning">
+
+                Resend OTP
+
+            </button>
+
+        </form>
+
+        <br>
+
+        <a
+            href="/delete-account/verify"
+            class="btn btn-secondary">
+
+            Back
+
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>
