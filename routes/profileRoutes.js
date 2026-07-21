@@ -1122,11 +1122,11 @@ router.post(
 
 /*
 --------------------------------------------------
-SAVE DELETE ACCOUNT REASON
+DELETE ACCOUNT REASON PAGE
 --------------------------------------------------
 */
 
-router.post(
+router.get(
     "/delete-account/reason",
     isLoggedIn,
     (req, res) => {
@@ -1138,57 +1138,13 @@ router.post(
                 "Please verify your email first."
             );
 
-            return res.redirect(
-                "/delete-account/verify"
-            );
-
-        }
-
-        req.session.deleteReason = {
-
-            reason: req.body.reason,
-
-            feedback: req.body.feedback
-
-        };
-
-        return res.redirect("/delete-account/confirm");
-
-    }
-);
-
-/*
---------------------------------------------------
-DELETE ACCOUNT CONFIRM PAGE
---------------------------------------------------
-*/
-
-router.get(
-    "/delete-account/confirm",
-    isLoggedIn,
-    (req, res) => {
-
-        if (!req.session.deleteOTPVerified) {
-
-            req.flash(
-                "error",
-                "Please verify your email first."
-            );
-
             return res.redirect("/delete-account/verify");
-
         }
 
-        res.render("deleteAccountConfirm", {
-
+        res.render("deleteAccountReason", {
             user: req.user,
-
-            deleteReason: req.session.deleteReason,
-
             success: req.flash("success"),
-
             error: req.flash("error")
-
         });
 
     }
