@@ -8,9 +8,8 @@ const society_collection = require("../models/societyModel");
 
 const otpController = require("../controllers/otpController");
 const forgotPasswordController = require("../controllers/forgotPasswordController");
-const {
-    createNotification
-} = require("../services/notificationService");
+const sendMail = require("../services/sendMail");
+
 
 /*
 --------------------------------------------------
@@ -328,21 +327,21 @@ router.post("/login", (req, res, next) => {
             return next(err);
         }
 
-        await createNotification({
+        await sendMail(
 
-            user: user._id,
+    user.username,
 
-            title: "Login Successful",
+    "Login Successful",
 
-            message: "Welcome back to Mayon Grand Ellora.",
+    `
+    <h2>Login Successful</h2>
 
-            type: "success",
+    <p>You have successfully logged in to your Mayon Grand Ellora account.</p>
 
-            icon: "fa-right-to-bracket",
+    <p>If this wasn't you, please change your password immediately.</p>
+    `
 
-            link: "/profile"
-
-        });
+);
 
         return res.redirect("/home");
 
@@ -524,22 +523,6 @@ router.get(
 
     async (req,res)=>{
 
-    await createNotification({
-
-        user: req.user._id,
-
-        title: "Google Login",
-
-        message: "You signed in with Google.",
-
-        type: "success",
-
-        icon: "fa-google",
-
-        link: "/profile"
-
-    });
-
     return res.redirect("/home");
 
 }
@@ -681,31 +664,26 @@ router.post("/verify-otp", async (req, res, next) => {
 
                 delete req.session.pendingSociety;
 
+                await sendMail(
+
+               user.username,
+
+              "Society Registered Successfully",
+
+             `
+              <h2>Congratulations!</h2>
+
+              <p>Your society has been registered successfully.</p>
+
+              <p><strong>Society:</strong> ${user.societyName}</p>
+
+              <p>You can now log in and manage your society.</p>
+            `
+
+       );
             }
 
-            /*
-            ------------------------------------------
-            NOTIFICATION
-            ------------------------------------------
-            */
-
-            await createNotification({
-
-                user: user._id,
-
-                title: "Society Registered",
-
-                message: "Your society has been registered successfully.",
-
-                type: "success",
-
-                icon: "fa-building",
-
-                link: "/profile"
-
-            });
-
-        }
+        }    
 
         /*
         ==================================================
@@ -713,41 +691,43 @@ router.post("/verify-otp", async (req, res, next) => {
         ==================================================
         */
 
-        if (req.body.purpose === "signup") {
+       if (req.body.purpose === "signup") {
 
-            await createNotification({
+    await sendMail(
 
-                user: user._id,
+        user.username,
 
-                title: "Account Created",
+        "Account Created Successfully",
 
-                message: "Your resident account has been created and is awaiting administrator approval.",
+        `
+        <h2>Welcome to Mayon Grand Ellora</h2>
 
-                type: "info",
+        <p>Your account has been created successfully.</p>
 
-                icon: "fa-user-plus",
+        <p>Your account is awaiting administrator approval.</p>
 
-                link: "/login"
+        <p>You will receive another email once your account has been approved.</p>
+        `
 
-            });
+    );
 
-            delete req.session.pendingUser;
+    delete req.session.pendingUser;
 
-            return req.session.save(() => {
+    return req.session.save(() => {
 
-                req.flash(
+        req.flash(
 
-                    "success",
+            "success",
 
-                    "Account created successfully. Please login after administrator approval."
+            "Account created successfully. Please login after administrator approval."
 
-                );
+        );
 
-                return res.redirect("/login");
+        return res.redirect("/login");
 
-            });
+    });
 
-        }
+}
 
         /*
         ==================================================
@@ -757,37 +737,24 @@ router.post("/verify-otp", async (req, res, next) => {
 
         req.logIn(user, async (err) => {
 
-            if (err) {
+    if (err) return next(err);
 
-                return next(err);
+    await sendMail(
+        user.username,
+        "Login Successful",
+        `
+        <h2>Login Successful</h2>
+        <p>You have successfully logged in to your account.</p>
+        `
+    );
 
-            }
+    delete req.session.pendingUser;
 
-            await createNotification({
+    return req.session.save(() => {
+        return res.redirect("/home");
+    });
 
-                user: user._id,
-
-                title: "Login Successful",
-
-                message: "Welcome back to Mayon Grand Ellora.",
-
-                type: "success",
-
-                icon: "fa-right-to-bracket",
-
-                link: "/profile"
-
-            });
-
-            delete req.session.pendingUser;
-
-            return req.session.save(() => {
-
-            return res.redirect("/home");
-
-        });
-
-        });
+});
 
     }
 
@@ -1022,22 +989,6 @@ router.post("/newRequest", async (req, res) => {
         user.validation = "applied";
 
         await user.save();
-
-        await createNotification({
-
-    user: user._id,
-
-    title: "Request Submitted",
-
-    message: "Your resident approval request has been submitted.",
-
-    type: "info",
-
-    icon: "fa-paper-plane",
-
-    link: "/profile"
-
-});
 
         return res.redirect("/home");
 

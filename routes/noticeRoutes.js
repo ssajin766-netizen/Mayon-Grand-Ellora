@@ -173,14 +173,15 @@ await Promise.all(
 
             icon: "fa-bullhorn",
 
-            link: "/noticeboard"
+            link: "/noticeboard",
+
+            sendEmail: true
 
         })
 
     )
 
 );
-
             res.redirect("/noticeboard");
 
         }

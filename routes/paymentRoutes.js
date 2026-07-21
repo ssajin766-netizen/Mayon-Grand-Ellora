@@ -140,38 +140,43 @@ router.post(
             ----------------------------------------
             */
 
+          await createNotification({
+
+    user: user._id,
+
+    title: "Payment Successful",
+
+    message:
+        `₹${user.makePayment} maintenance payment received successfully.`,
+
+    type: "success",
+
+    icon: "fa-credit-card",
+
+    link: "/bill",
+
+    sendEmail: true
+
+});
+
             await createNotification({
 
-                user: user._id,
+    user: user._id,
 
-                title: "Payment Successful",
+    title: "Receipt Generated",
 
-                message: `₹${user.makePayment} maintenance payment received successfully.`,
+    message:
+        `Invoice ${invoice} has been generated successfully.`,
 
-                type: "success",
+    type: "info",
 
-                icon: "fa-credit-card",
+    icon: "fa-receipt",
 
-                link: "/bill"
+    link: "/bill",
 
-            });
+    sendEmail: true
 
-            await createNotification({
-
-                user: user._id,
-
-                title: "Receipt Generated",
-
-                message: `Invoice ${invoice} has been generated successfully.`,
-
-                type: "info",
-
-                icon: "fa-receipt",
-
-                link: "/bill"
-
-            });
-
+});
             /*
             ----------------------------------------
             WhatsApp

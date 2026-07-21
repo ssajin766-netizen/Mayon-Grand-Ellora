@@ -276,7 +276,9 @@ await createNotification({
 
     icon: "fa-circle-check",
 
-    link: "/helpdesk"
+    link: "/helpdesk",
+
+    sendEmail: true
 
 });
 
