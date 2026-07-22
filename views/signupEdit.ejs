@@ -143,6 +143,25 @@ href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.0/build/css/intlTelInput.
 
                         </div>
 
+                        <!-- Email Address -->
+
+                        <div class="mb-4">
+
+                        <label class="form-label">
+                           Email Address
+                        </label>
+
+                        <input
+                        type="email"
+                        id="username"
+                        name="username"
+                        class="form-control"
+                        placeholder="example@gmail.com"
+                        value="<%= user.username && !user.username.endsWith('@phone.esociety') ? user.username : '' %>"
+                        required>
+
+                        </div>
+
                         <!-- Society -->
 
                         <h5 class="section-title">

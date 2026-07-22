@@ -257,9 +257,9 @@ else {
 
                 validation: "applied",
 
-                societyName: "Pending",
+                societyName: "",
 
-                flatNumber: "Pending",
+                flatNumber: "",
 
                 isAdmin: false,
 

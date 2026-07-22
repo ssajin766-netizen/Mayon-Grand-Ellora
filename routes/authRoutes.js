@@ -995,6 +995,9 @@ router.post("/newRequest", async (req, res) => {
         user.firstName = req.body.firstName;
         user.lastName = req.body.lastName;
 
+        user.username = req.body.username.trim().toLowerCase();
+        user.isEmailVerified = false;
+
         let phoneNumber = (req.body.phoneNumber || "").trim();
 
         if (/^[6-9]\d{9}$/.test(phoneNumber)) {
