@@ -6,68 +6,80 @@
 
 <div class="container py-5">
 
-    <!-- ======================================================
-         PROFILE HEADER
-    ======================================================= -->
+    <div class="row align-items-center">
 
-    <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-5">
+ <!-- ===============================
+     PROFILE PHOTO
+================================ -->
 
-        <div class="card-body p-5">
+<div class="col-lg-3 text-center">
 
-            <div class="row align-items-center">
+    <form
+        action="/profile/upload"
+        method="POST"
+        enctype="multipart/form-data"
+        id="profileUploadForm">
 
-                <!-- ===============================
-                     PROFILE PHOTO
-                ================================ -->
+        <input
+            type="file"
+            name="profileImage"
+            id="profileImage"
+            accept="image/*"
+            hidden>
 
-                <div class="col-lg-3 text-center">
+        <div class="profile-photo-wrapper">
 
-                    <form
-                        action="/profile/upload"
-                        method="POST"
-                        enctype="multipart/form-data"
-                        id="profileUploadForm">
+            <!-- Profile Image -->
 
-                        <input
-                            type="file"
-                            name="profileImage"
-                            id="profileImage"
-                            accept="image/*"
-                            hidden>
+            <img
+               id="profilePreview"
+               src="<%= resident.profileImage || '/images/default-avatar.png' %>"
+               class="profile-photo"
+               alt="Profile"
+               loading="lazy"
+               data-bs-toggle="modal"
+               data-bs-target="#profileImageModal"
+               onerror="this.onerror=null;this.src='/images/default-avatar.png';">
 
-                        <div
-                            class="profile-photo-wrapper"
-                            onclick="document.getElementById('profileImage').click()">
+            <!-- Online Indicator -->
 
-                            <img
-                                id="profilePreview"
-                                src="<%= resident.profileImage || '/images/default-avatar.png' %>"
-                                class="profile-photo"
-                                alt="Profile"
-                                onerror="this.onerror=null; this.src='/images/default-avatar.png';">
+            <% if(resident.validation === "approved"){ %>
 
-                            <div class="camera-overlay">
+                <span class="online-status"></span>
 
-                                <i class="fas fa-camera"></i>
+            <% } %>
 
-                            </div>
+            <!-- Camera Button -->
 
-                        </div>
+            <button
+                 type="button"
+                 class="camera-btn"
+                 onclick="document.getElementById('profileImage').click()">
 
-                        <button
-                            id="uploadBtn"
-                            class="btn btn-success mt-4"
-                            style="display:none;">
+                   <i class="fas fa-camera"></i>
 
-                            <i class="fas fa-upload me-2"></i>
+            </button>
 
-                            Upload Photo
+            <!-- Verification Badge -->
 
-                        </button>
+            <% if(resident.isEmailVerified){ %>
 
-                    </form>
+                <span class="verified-badge">
 
-                </div>
+                    <i class="fas fa-check"></i>
+
+                </span>
+
+            <% } %>
+
+        </div>
+
+    </form>
+
+</div>
+
+    </div>
+
 
                 <!-- ===============================
                      USER INFORMATION
@@ -1018,33 +1030,52 @@
 ========================================================== -->
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
 
-const imageInput=document.getElementById("profileImage");
+    const imageInput = document.getElementById("profileImage");
+    const profilePreview = document.getElementById("profilePreview");
+    const modalProfileImage = document.getElementById("modalProfileImage");
+    const uploadForm = document.getElementById("profileUploadForm");
 
-if(imageInput){
+    if (!imageInput || !uploadForm) return;
 
-imageInput.addEventListener("change",function(){
+    imageInput.addEventListener("change", function () {
 
-const file=this.files[0];
+        const file = this.files[0];
 
-if(!file)return;
+        if (!file) return;
 
-document.getElementById("uploadBtn").style.display="inline-block";
+        if (!file.type.startsWith("image/")) {
+            alert("Please select a valid image.");
+            this.value = "";
+            return;
+        }
 
-const reader=new FileReader();
+        if (file.size > 5 * 1024 * 1024) {
+            alert("Image size must be less than 5 MB.");
+            this.value = "";
+            return;
+        }
 
-reader.onload=function(e){
+        const reader = new FileReader();
 
-document.getElementById("profilePreview").src=e.target.result;
+        reader.onload = function (e) {
 
-}
+            if (profilePreview)
+                profilePreview.src = e.target.result;
 
-reader.readAsDataURL(file);
+            if (modalProfileImage)
+                modalProfileImage.src = e.target.result;
+
+        };
+
+        reader.readAsDataURL(file);
+
+        uploadForm.submit();
+
+    });
 
 });
-
-}
-
 </script>
 
 <script> 
@@ -1130,4 +1161,41 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<%- include("partials/footer") %>        
+<!-- ==========================================
+     PROFILE IMAGE MODAL
+========================================== -->
+
+<div
+    class="modal fade"
+    id="profileImageModal"
+    tabindex="-1"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+
+        <div class="modal-content bg-transparent border-0">
+
+            <button
+                type="button"
+                class="btn-close btn-close-white position-absolute top-0 end-0 m-4"
+                data-bs-dismiss="modal">
+            </button>
+
+            <div class="text-center">
+
+                <img
+                    id="modalProfileImage"
+                    src="<%= resident.profileImage || '/images/default-avatar.png' %>"
+                    class="profile-modal-image"
+                    alt="Profile"
+                    onerror="this.onerror=null;this.src='/images/default-avatar.png';">
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<%- include("partials/footer") %>       
