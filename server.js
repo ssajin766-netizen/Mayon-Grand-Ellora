@@ -1,6 +1,8 @@
 require("dotenv").config();
 require("./config/passport");
 
+const cors = require("cors");
+
 const flash = require("connect-flash");
 const express = require("express");
 const session = require("express-session");
@@ -19,6 +21,7 @@ const user_collection = require("./models/userModel");
 const society_collection = require("./models/societyModel");
 const { Notification } = require("./models/notificationModel");
 
+
 /*
 --------------------------------------------------
 ROUTES
@@ -35,8 +38,32 @@ const noticeRoutes = require("./routes/noticeRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const authApi = require("./routes/api/authApi");
+const profileApi = require("./routes/api/profileApi");
+const residentApi = require("./routes/api/residentApi");
+const noticeApi = require("./routes/api/noticeApi");
+const billApi = require("./routes/api/billApi");
+const paymentApi = require("./routes/api/paymentApi");
+const helpdeskApi = require("./routes/api/helpdeskApi");
+const notificationApi = require("./routes/api/notificationApi");
+const contactApi = require("./routes/api/contactApi");
+const dashboardApi = require("./routes/api/dashboardApi");
 
 const app = express();
+
+app.use(cors({
+  origin: [
+    "http://localhost:8081",
+    "http://localhost:19006",
+    "http://localhost:3000",
+    "https://e-society-erp9.onrender.com"
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+app.options("*", cors());
 
 /*
 --------------------------------------------------
@@ -366,6 +393,26 @@ app.use("/", profileRoutes);
 app.use("/", contactRoutes);
 
 app.use("/", notificationRoutes);
+
+app.use("/api/auth", authApi);
+
+app.use("/api", profileApi);
+
+app.use("/api", residentApi);
+
+app.use("/api", noticeApi);
+
+app.use("/api", billApi);
+
+app.use("/api", paymentApi);
+
+app.use("/api", helpdeskApi);
+
+app.use("/api", notificationApi);
+
+app.use("/api", contactApi);
+
+app.use("/api", dashboardApi);
 
 /*
 --------------------------------------------------

@@ -197,4 +197,66 @@ await Promise.all(
     }
 );
 
+/*
+--------------------------------------------------
+NOTICE BOARD API
+--------------------------------------------------
+*/
+
+router.get(
+    "/api/notices",
+    isLoggedIn,
+    isApproved,
+    async (req, res) => {
+
+        try {
+
+            const society =
+                await society_collection.Society.findOne(
+                    {
+                        societyName: req.user.societyName
+                    },
+                    {
+                        noticeboard: 1
+                    }
+                );
+
+            if (!society) {
+
+                return res.status(404).json({
+
+                    success: false,
+                    message: "Society not found"
+
+                });
+
+            }
+
+            res.json({
+
+                success: true,
+
+                notices: society.noticeboard || []
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            res.status(500).json({
+
+                success: false,
+
+                message: "Server Error"
+
+            });
+
+        }
+
+    }
+);
+
 module.exports = router;

@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Mayon Grand Ellora",
+    "slug": "mayon-grand-ellora",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.esociety.mayongrandellora"
+    },
+    "android": {
+      "package": "com.esociety.mayongrandellora"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "scheme": "esociety",
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}

@@ -201,6 +201,8 @@ exports.verifyOTP = async (req, res) => {
 
         }
 
+        
+
 /*
 ------------------------------------------
 FIND USER
@@ -408,6 +410,182 @@ else {
         );
 
         return res.redirect("/verifyPhoneOtp");
+
+    }
+
+};
+
+/*
+--------------------------------------------------
+FLUTTER API - SEND OTP
+--------------------------------------------------
+*/
+
+exports.sendOtpApi = async (req, res) => {
+
+    try {
+
+        let { phoneNumber } = req.body;
+
+        phoneNumber = (phoneNumber || "").trim();
+
+        if (!phoneNumber) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Phone number is required."
+            });
+
+        }
+
+        const user = await User.findOne({ phoneNumber });
+
+        if (!user) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Phone number not registered."
+            });
+
+        }
+
+        await sendVerification(phoneNumber);
+
+        return res.json({
+
+            success: true,
+            message: "OTP sent successfully."
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        return res.status(500).json({
+
+            success: false,
+            message: err.message
+
+        });
+
+    }
+
+};
+
+/*
+--------------------------------------------------
+FLUTTER API - VERIFY OTP
+--------------------------------------------------
+*/
+
+exports.verifyOtpApi = async (req, res, next) => {
+
+    try {
+
+        const { phoneNumber, otp } = req.body;
+
+        if (!phoneNumber || !otp) {
+
+            return res.status(400).json({
+
+                success: false,
+                message: "Phone number and OTP are required."
+
+            });
+
+        }
+
+        const result = await checkVerification(
+            phoneNumber,
+            otp
+        );
+
+        if (result.status !== "approved") {
+
+            return res.status(401).json({
+
+                success: false,
+                message: "Invalid OTP"
+
+            });
+
+        }
+
+        const user = await User.findOne({ phoneNumber });
+
+        if (!user) {
+
+            return res.status(404).json({
+
+                success: false,
+                message: "User not found"
+
+            });
+
+        }
+
+        // Update login details
+        user.lastLogin = new Date();
+        user.lastLoginIp = req.ip;
+        user.loginType = "phone";
+        user.isPhoneVerified = true;
+
+        user.addLoginHistory({
+
+            loginTime: new Date(),
+            loginMethod: "Phone",
+            status: "Success",
+            ip: req.ip,
+            browser: req.headers["user-agent"] || "",
+            device: "",
+            location: ""
+
+        });
+
+        await user.save();
+
+        req.login(user, err => {
+
+            if (err) return next(err);
+
+            return res.json({
+
+                success: true,
+                message: "Login successful",
+
+                user: {
+
+                    id: user._id,
+                    username: user.username,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    phoneNumber: user.phoneNumber,
+                    societyName: user.societyName,
+                    flatNumber: user.flatNumber,
+                    validation: user.validation,
+                    isAdmin: user.isAdmin
+
+                }
+
+            });
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        return res.status(500).json({
+
+            success: false,
+            message: err.message
+
+        });
 
     }
 
