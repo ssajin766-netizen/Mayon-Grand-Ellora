@@ -56,7 +56,9 @@ router.get(
                     validation: user.validation,
                     isAdmin: user.isAdmin,
                     loginType: user.loginType,
-                    twoFactorEnabled: user.twoFactorEnabled
+                    twoFactorEnabled: user.twoFactorEnabled,
+                    twoFactorMethod: user.twoFactorMethod,
+                    loginHistory: user.loginHistory || []
                 },
                 society: society
                     ? {

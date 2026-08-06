@@ -30,79 +30,17 @@ const societySchema = mongoose.Schema(
             required: true
         },
         noticeboard: Array,
-        emergencyContacts: {
-            plumbingService: {
-                type: String,
-                default: 'Not added by admin'
-            },
-            medicineShop: {
-                type: String,
-                default: 'Not added by admin'
-            },
-            ambulance: {
-                type: String,
-                default: 'Not added by admin'
-            },
-            doctor: {
-                type: String,
-                default: 'Not added by admin'
-            },
-            fireStation: {
-                type: String,
-                default: 'Not added by admin'
-            },
-            guard: {
-                type: String,
-                default: 'Not added by admin'
-            },
-            policeStation: {
-                type: String,
-                default: 'Not added by admin'
-            },
-            electrician: {
-            type: String,
-            default: "Not added by admin"
-            },
-
-            hospital: {
-            type: String,
-            default: "Not added by admin"
-            },
-
-            liftService: {
-            type: String,
-            default: "Not added by admin"
-            },
-
-            waterSupply: {
-            type: String,
-            default: "Not added by admin"
-           },
-           securityOffice: {
-           type: String,
-           default: "Not added by admin"
-           },
-
-           generatorService: {
-           type: String,
-           default: "Not added by admin"
-           },
-
-           gasAgency: {
-           type: String,
-           default: "Not added by admin"
-          },
-
-          electricityBoard: {
-          type: String,
-          default: "Not added by admin"
-         },
-
-         maintenanceOffice: {
-         type: String,
-         default: "Not added by admin"
-        },
-        },
+        // Emergency contacts stored as an array of objects for flexible CRUD operations
+        emergencyContacts: [{
+            type: new mongoose.Schema({
+                name: { type: String, required: true },
+                phone: { type: String, required: true },
+                email: { type: String },
+                address: { type: String },
+                category: { type: String, required: true },
+                enabled: { type: Boolean, default: true }
+            }, { _id: true })
+        }],
         maintenanceBill: {
             societyCharges: {
                 type: Number,

@@ -73,7 +73,17 @@ router.get(
     }
 );
 
-/*
+    // Create Resident
+    router.post(
+        "/residents",
+        isLoggedIn,
+        isApproved,
+        async (req, res) => {
+            const { createResident } = require("../controllers/residentController");
+            return createResident(req, res);
+        }
+    );
+    /*
 --------------------------------------------------
 APPROVE RESIDENT
 --------------------------------------------------
@@ -197,6 +207,39 @@ router.post(
         }
 
     }
+);
+
+// View Resident Details
+router.get(
+  '/residents/:id',
+  isLoggedIn,
+  isApproved,
+  async (req, res) => {
+    const { viewResident } = require('../controllers/residentController');
+    return viewResident(req, res);
+  }
+);
+
+// Update Resident (web form submission)
+router.post(
+  '/residents/:id/update',
+  isLoggedIn,
+  isApproved,
+  async (req, res) => {
+    const { updateResident } = require('../controllers/residentController');
+    return updateResident(req, res);
+  }
+);
+
+router.post(
+  '/residents/:id/delete',
+  isLoggedIn,
+  isApproved,
+  isAdmin,
+  async (req, res) => {
+    const { deleteResident } = require('../controllers/residentController');
+    return deleteResident(req, res);
+  }
 );
 
 module.exports = router;

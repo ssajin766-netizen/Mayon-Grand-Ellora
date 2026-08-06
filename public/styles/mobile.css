@@ -1,0 +1,125 @@
+/* mobile.css - Mobile-first responsive styles with premium aesthetics */
+
+/* Global viewport adjustments */
+html, body {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Glassmorphism header */
+nav.navbar {
+  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.45) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive container */
+.container {
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Summary cards – responsive grid */
+.summary-card {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Action cards */
+.action-card {
+  background: rgba(255,255,255,0.2);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease;
+}
+.action-card:hover {
+  transform: scale(1.02);
+}
+
+/* Profile photo wrapper */
+.profile-photo-wrapper {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 1rem;
+}
+.profile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.camera-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.camera-btn:hover {
+  background: rgba(0,0,0,0.8);
+}
+
+/* Badges */
+.badge {
+  font-size: 0.85rem;
+  padding: 0.45em 0.75em;
+}
+
+/* Mobile breakpoints */
+@media (max-width: 768px) {
+  .summary-card {
+    margin-bottom: 1rem;
+  }
+  .action-card {
+    margin-bottom: 1rem;
+  }
+  .profile-photo-wrapper {
+    width: 120px;
+    height: 120px;
+  }
+  .camera-btn {
+    width: 35px;
+    height: 35px;
+  }
+  .profile-item {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+  .profile-item span {
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* Full-width inputs on small screens */
+@media (max-width: 576px) {
+  input, select, textarea {
+    width: 100% !important;
+  }
+  .btn {
+    width: 100%;
+  }
+}

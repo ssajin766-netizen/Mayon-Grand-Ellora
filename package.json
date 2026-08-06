@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "jest --detectOpenHandles --runInBand"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
   "homepage": "https://github.com/ssajin766-netizen/Mayon-Grand-Ellora",
   "dependencies": {
     "@getbrevo/brevo": "^6.0.2",
+    "@react-native-google-signin/google-signin": "^16.1.4",
     "@sparticuz/chromium": "^149.0.0",
     "axios": "^1.18.1",
     "compression": "^1.8.1",
@@ -32,6 +34,7 @@
     "crypto": "^1.0.1",
     "dotenv": "^8.2.0",
     "ejs": "^3.1.6",
+    "expo-sharing": "^57.0.8",
     "express": "^4.17.1",
     "express-session": "^1.19.0",
     "googleapis": "^173.0.0",
@@ -52,5 +55,22 @@
     "stripe": "^8.137.0",
     "twilio": "^6.0.2",
     "useragent": "^2.3.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "mongodb-memory-server": "^9.0.0",
+    "supertest": "^6.3.3",
+    "typescript": "^7.0.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000,
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/mobile-app/"
+    ]
   }
 }

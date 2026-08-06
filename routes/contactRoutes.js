@@ -210,4 +210,42 @@ router.post(
     }
 );
 
+// DELETE route for removing an emergency contact
+router.delete('/contacts/:id', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      if (req.xhr || req.get('X-Requested-With') === 'XMLHttpRequest') {
+        return res.status(400).json({ success: false, message: 'Invalid contact ID' });
+      }
+      req.flash('error', 'Invalid contact ID');
+      return res.redirect('/contacts');
+    }
+    const result = await society_collection.Society.updateOne(
+      { societyName: req.user.societyName },
+      { $pull: { emergencyContacts: { _id: id } } }
+    );
+    if (result.nModified === 0) {
+      if (req.xhr || req.get('X-Requested-With') === 'XMLHttpRequest') {
+        return res.status(404).json({ success: false, message: 'Contact not found' });
+      }
+      req.flash('error', 'Contact not found');
+      return res.redirect('/contacts');
+    }
+    if (req.xhr || req.get('X-Requested-With') === 'XMLHttpRequest') {
+      return res.json({ success: true });
+    }
+    req.flash('success', 'Contact deleted');
+    return res.redirect('/contacts');
+  } catch (err) {
+    console.error(err);
+    if (req.xhr || req.get('X-Requested-With') === 'XMLHttpRequest') {
+      return res.status(500).json({ success: false, message: 'Server error' });
+    }
+    req.flash('error', 'Server error');
+    return res.redirect('/contacts');
+  }
+});
+
 module.exports = router;

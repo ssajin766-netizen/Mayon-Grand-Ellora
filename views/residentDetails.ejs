@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resident Details – <%= resident.firstName %> <%= resident.lastName %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-color: #0a0a0a;
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --primary: hsl(210, 70%, 60%);
+      --accent: hsl(340, 70%, 60%);
+      --text: #e0e0e0;
+      --muted: #b0b0b0;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 720px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    h1 { margin: 0 0 1rem; font-size: 2rem; color: var(--primary); }
+    .field { margin-bottom: 0.8rem; }
+    .label { font-weight: 600; color: var(--muted); }
+    .value { font-weight: 500; margin-left: 0.5rem; }
+    .actions { margin-top: 2rem; display: flex; gap: 1rem; }
+    .btn { flex: 1; padding: 0.75rem 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s ease; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: hsl(210, 70%, 55%); }
+    .btn-danger { background: var(--accent); color: #fff; }
+    .btn-danger:hover { background: hsl(340, 70%, 55%); }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    /* Modal Styles */
+    .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; }
+    .modal.hidden { display: none; }
+    .modal-content { background: var(--glass-bg); backdrop-filter: blur(12px) saturate(180%); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1.5rem; max-width: 400px; text-align: center; }
+    .modal-title { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--primary); }
+    .modal-message { margin-bottom: 1rem; color: var(--text); }
+    .modal-actions { display: flex; gap: 0.5rem; justify-content: center; }
+    .modal-btn { flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .modal-btn-cancel { background: var(--muted); color: #000; }
+    .modal-btn-delete { background: var(--accent); color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Resident Details</h1>
+    <div class="field"><span class="label">Name:</span><span class="value"><%= resident.firstName %> <%= resident.lastName %></span></div>
+    <div class="field"><span class="label">Email:</span><span class="value"><%= resident.email %></span></div>
+    <div class="field"><span class="label">Phone:</span><span class="value"><%= resident.phone %></span></div>
+    <div class="field"><span class="label">Unit:</span><span class="value"><%= resident.unitNumber %></span></div>
+    <div class="field"><span class="label">Category:</span><span class="value"><%= resident.category %></span></div>
+    <div class="field"><span class="label">Status:</span><span class="value"><%= resident.validation %></span></div>
+    <form action="/residents/<%= resident._id %>/update" method="POST" class="actions">
+      <button type="submit" class="btn btn-primary">Edit Resident</button>
+      <a href="/residents" class="btn btn-danger">Back to List</a>
+    </form>
+    <div class="actions" style="margin-top:1rem;">
+      <button type="button" class="btn btn-danger" id="openDeleteModal">Delete Resident</button>
+    </div>
+    <div id="deleteModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <div class="modal-title">Delete Resident</div>
+        <div class="modal-message">Are you sure you want to delete <strong><%= resident.firstName %> <%= resident.lastName %> (Unit <%= resident.unitNumber %>)</strong>?<br>This action cannot be undone.</div>
+        <div class="modal-actions">
+          <button class="modal-btn modal-btn-cancel" id="cancelDelete">Cancel</button>
+          <form action="/residents/<%= resident._id %>/delete" method="POST" style="margin:0;">
+            <button type="submit" class="modal-btn modal-btn-delete">Delete Resident</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const openBtn = document.getElementById('openDeleteModal');
+    const modal = document.getElementById('deleteModal');
+    const cancelBtn = document.getElementById('cancelDelete');
+    openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+    cancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+  </script>
+</body>
+</html>

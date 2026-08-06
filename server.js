@@ -51,19 +51,36 @@ const dashboardApi = require("./routes/api/dashboardApi");
 
 const app = express();
 
-app.use(cors({
-  origin: [
-    "http://localhost:8081",
-    "http://localhost:19006",
-    "http://localhost:3000",
-    "https://e-society-erp9.onrender.com"
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost:8081",
+  "http://127.0.0.1:8081",
+  "http://localhost:19006",
+  "http://127.0.0.1:19006",
+  "https://e-society-erp9.onrender.com"
+];
 
-app.options("*", cors());
+app.use(cors({
+  origin: function (origin, callback) {
+
+    console.log("Origin:", origin);
+
+    // Allow requests with no Origin (same-origin navigation, Postman, curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.log("Blocked Origin:", origin);
+
+    return callback(null, true);   // <-- TEMPORARY for debugging
+  },
+  credentials: true
+}));
 
 /*
 --------------------------------------------------
@@ -142,18 +159,15 @@ app.use(
 
         }),
 
-        cookie: {
-
+      cookie: {
     httpOnly: true,
-
     secure: process.env.NODE_ENV === "production",
-
-    sameSite: "lax",
-
+    sameSite:
+        process.env.NODE_ENV === "production"
+            ? "none"
+            : "lax",
     maxAge: 1000 * 60 * 60 * 24,
-
     path: "/"
-
 }
 
     })
@@ -463,23 +477,14 @@ GLOBAL ERROR HANDLER
 */
 
 app.use((err, req, res, next) => {
-
+    console.error("========== ERROR ==========");
+    console.error(err);
     console.error(err.stack);
 
-    res.status(500).render("failure", {
-
-        message: "Internal Server Error",
-
-        href: "/",
-
-        messageSecondary: "Return Home",
-
-        hrefSecondary: "/",
-
-        buttonSecondary: "Home"
-
-    });
-
+    res.status(500).send(`
+        <h1>Internal Server Error</h1>
+        <pre>${err.stack}</pre>
+    `);
 });
 
 /*

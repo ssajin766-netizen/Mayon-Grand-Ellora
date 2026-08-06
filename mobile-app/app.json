@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Mayon Grand Ellora",
+    "slug": "mayon-grand-ellora",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "mayon-ellora",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0a"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/<your-project-id>"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mayon.ellora",
+      "buildNumber": "1.0.0"
+    },
+    "android": {
+      "package": "com.mayongrandellora.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0a0a0a"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      ["expo-notifications", {"icon": "./assets/icon.png", "color": "#ffffff"}]
+    ]
+  }
+}

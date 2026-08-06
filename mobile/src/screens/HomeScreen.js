@@ -1,113 +1,51 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  Image
+  StyleSheet, View, Text, TouchableOpacity, SafeAreaView,
+  ScrollView, Image, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AuthContext } from '../context/AuthContext';
 import { COLORS } from '../theme/colors';
 
+// Dashboard cards matching home.ejs exactly
+const DASHBOARD_CARDS = [
+  { id: 'residents', title: 'Residents', desc: 'View all residents and apartment owners.', icon: 'people', color: '#0d6efd', screen: 'Residents', image: require('../assets/members.jpg') },
+  { id: 'noticeboard', title: 'Noticeboard', desc: 'Read the latest society announcements.', icon: 'megaphone', color: '#ffc107', screen: 'Noticeboard', image: require('../assets/notice.jpg') },
+  { id: 'bills', title: 'Maintenance Bills', desc: 'View and pay monthly maintenance bills.', icon: 'receipt', color: '#198754', screen: 'Bill', image: require('../assets/bill.jpg') },
+  { id: 'helpdesk', title: 'Helpdesk', desc: 'Raise and manage maintenance complaints.', icon: 'headset', color: '#dc3545', screen: 'Helpdesk', image: require('../assets/helpdesk.jpg') },
+  { id: 'emergency', title: 'Emergency', desc: 'Access important emergency contact numbers.', icon: 'call', color: '#0dcaf0', screen: 'Contacts', image: require('../assets/contact.jpg') },
+  { id: 'profile', title: 'My Profile', desc: 'View and update your personal information.', icon: 'person-circle', color: '#6c757d', screen: 'Profile', image: require('../assets/profile.jpg') },
+];
+
 export default function HomeScreen({ navigation }) {
-  const { user, logout } = useContext(AuthContext);
-
-  const modules = [
-    {
-      id: 'notices',
-      title: 'Society Notices',
-      subtitle: 'View announcements & updates',
-      icon: 'megaphone',
-      color: '#4F46E5',
-      bgColor: '#EEF2FF',
-      screen: 'Notices',
-    },
-    {
-      id: 'bills',
-      title: 'Maintenance Bills',
-      subtitle: 'Download & pay monthly bills',
-      icon: 'receipt',
-      color: '#10B981',
-      bgColor: '#ECFDF5',
-      screen: 'Bills',
-    },
-    {
-      id: 'complaints',
-      title: 'Complaints & Helpdesk',
-      subtitle: 'Raise issues & track status',
-      icon: 'chatbox-ellipses',
-      color: '#F59E0B',
-      bgColor: '#FEF3C7',
-      screen: 'Complaints',
-    },
-    {
-      id: 'contacts',
-      title: 'Emergency Contacts',
-      subtitle: 'Police, Electrician, Security',
-      icon: 'call',
-      color: '#EF4444',
-      bgColor: '#FEE2E2',
-      screen: 'Contacts',
-    },
-  ];
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* User Banner Card */}
-        <View style={styles.userCard}>
-          <View style={styles.userInfo}>
-            <Text style={styles.welcomeLabel}>WELCOME BACK</Text>
-            <Text style={styles.userName}>
-              {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username : 'Resident'}
-            </Text>
-            <View style={styles.societyBadge}>
-              <Ionicons name="home" size={14} color={COLORS.primary} />
-              <Text style={styles.societyText}>
-                {user?.societyName && user?.societyName !== 'Pending'
-                  ? `${user.societyName} (Flat ${user.flatNumber || '-'})`
-                  : 'Mayon Grand Ellora'}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate('Profile')}>
-            <Ionicons name="person-circle" size={44} color={COLORS.primary} />
-          </TouchableOpacity>
+        {/* Header - matches home.ejs */}
+        <View style={styles.header}>
+          <Ionicons name="business" size={28} color="#0d6efd" />
+          <Text style={styles.headerTitle}>Welcome to Mayon Grand Ellora</Text>
+          <Text style={styles.headerSub}>Manage your apartment services quickly and securely.</Text>
         </View>
 
-        {/* Quick Action Grid */}
-        <Text style={styles.sectionTitle}>Dashboard Services</Text>
+        {/* Dashboard Cards Grid - matches home.ejs */}
         <View style={styles.grid}>
-          {modules.map((mod) => (
+          {DASHBOARD_CARDS.map((card) => (
             <TouchableOpacity
-              key={mod.id}
+              key={card.id}
               style={styles.card}
-              onPress={() => navigation.navigate(mod.screen)}
+              onPress={() => navigation.navigate(card.screen)}
+              activeOpacity={0.85}
             >
-              <View style={[styles.iconContainer, { backgroundColor: mod.bgColor }]}>
-                <Ionicons name={mod.icon} size={28} color={mod.color} />
+              <Image source={card.image} style={styles.cardImage} resizeMode="cover" />
+              <View style={styles.cardBody}>
+                <View style={[styles.dashIcon, { backgroundColor: card.color }]}>
+                  <Ionicons name={card.icon} size={26} color="#fff" />
+                </View>
+                <Text style={styles.cardTitle}>{card.title}</Text>
+                <Text style={styles.cardDesc}>{card.desc}</Text>
               </View>
-              <Text style={styles.cardTitle}>{mod.title}</Text>
-              <Text style={styles.cardSubtitle}>{mod.subtitle}</Text>
             </TouchableOpacity>
           ))}
-        </View>
-
-        {/* Status Banner */}
-        <View style={styles.statusCard}>
-          <Ionicons name="shield-checkmark" size={24} color={COLORS.primary} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.statusTitle}>Account Status: Verified</Text>
-            <Text style={styles.statusDesc}>
-              Logged in via {user?.phoneNumber ? 'Phone OTP' : 'Google Auth'}
-            </Text>
-          </View>
-          <TouchableOpacity onPress={logout} style={styles.logoutMiniBtn}>
-            <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -115,115 +53,23 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  content: {
-    padding: 20,
-  },
-  userCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  welcomeLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.primary,
-    letterSpacing: 1,
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginVertical: 2,
-  },
-  societyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
-  },
-  societyText: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-  },
-  profileBtn: {
-    paddingLeft: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 14,
-  },
-  grid: {
-    gap: 14,
-    marginBottom: 24,
-  },
+  container: { flex: 1, backgroundColor: '#f5f7fb' },
+  content: { padding: 16, paddingBottom: 30 },
+  header: { alignItems: 'center', marginBottom: 24, marginTop: 8 },
+  headerTitle: { fontSize: 22, fontWeight: '700', color: '#212529', textAlign: 'center', marginTop: 8 },
+  headerSub: { fontSize: 14, color: '#6c757d', textAlign: 'center', marginTop: 4 },
+  grid: { gap: 16 },
   card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 18,
-    padding: 18,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08,
+    shadowRadius: 12, elevation: 3,
   },
-  iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
+  cardImage: { width: '100%', height: 180 },
+  cardBody: { padding: 20, alignItems: 'center' },
+  dashIcon: {
+    width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center',
+    marginTop: -50, borderWidth: 4, borderColor: '#fff',
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  statusCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 16,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  statusTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  statusDesc: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  logoutMiniBtn: {
-    padding: 8,
-  },
+  cardTitle: { fontSize: 18, fontWeight: '700', color: '#212529', marginTop: 12 },
+  cardDesc: { fontSize: 14, color: '#6c757d', textAlign: 'center', marginTop: 4 },
 });

@@ -18,67 +18,37 @@ const {
 GET ALL RESIDENTS
 =================================================
 */
-
 router.get(
     "/residents",
     isLoggedIn,
     isApproved,
     async (req, res) => {
-
-        try {
-
-            const residents = await User.find({
-
-                societyName: req.user.societyName
-
-            })
-            .select(
-                "firstName lastName username phoneNumber flatNumber validation isAdmin profileImage"
-            )
-            .sort({
-                flatNumber: 1
-            });
-
-            const approvedResidents = residents.filter(
-                user => user.validation === "approved"
-            );
-
-            const appliedResidents = residents.filter(
-                user => user.validation === "applied"
-            );
-
-            return res.json({
-
-                success: true,
-
-                societyName: req.user.societyName,
-
-                approvedCount: approvedResidents.length,
-
-                appliedCount: appliedResidents.length,
-
-                approvedResidents,
-
-                appliedResidents
-
-            });
-
-        } catch (err) {
-
-            console.error(err);
-
-            return res.status(500).json({
-
-                success: false,
-
-                message: "Unable to fetch residents."
-
-            });
-
-        }
-
+        const { listResidents } = require("../../controllers/api/residentApiController");
+        return listResidents(req, res);
     }
 );
+
+// GET resident details (API)
+router.get(
+    "/residents/:id",
+    isLoggedIn,
+    isApproved,
+    async (req, res) => {
+        const { getResident } = require('../../controllers/api/residentApiController');
+        return getResident(req, res);
+    }
+);
+
+router.post(
+  '/residents',
+  isLoggedIn,
+  isApproved,
+  async (req, res) => {
+    const { createResident } = require('../../controllers/api/residentApiController');
+    return createResident(req, res);
+  }
+);
+
 
 /*
 =================================================
@@ -329,88 +299,7 @@ GET RESIDENT DETAILS
 =================================================
 */
 
-router.get(
-    "/residents/:id",
-    isLoggedIn,
-    isApproved,
-    async (req, res) => {
-
-        try {
-
-            const { id } = req.params;
-
-            const resident = await User.findOne({
-
-                _id: id,
-
-                societyName: req.user.societyName
-
-            }).select("-hash -salt");
-
-            if (!resident) {
-
-                return res.status(404).json({
-
-                    success: false,
-
-                    message: "Resident not found."
-
-                });
-
-            }
-
-            return res.json({
-
-                success: true,
-
-                resident: {
-
-                    _id: resident._id,
-
-                    firstName: resident.firstName,
-
-                    lastName: resident.lastName,
-
-                    username: resident.username,
-
-                    phoneNumber: resident.phoneNumber,
-
-                    flatNumber: resident.flatNumber,
-
-                    societyName: resident.societyName,
-
-                    validation: resident.validation,
-
-                    isAdmin: resident.isAdmin,
-
-                    loginType: resident.loginType,
-
-                    profileImage: resident.profileImage,
-
-                    createdAt: resident.createdAt,
-
-                    updatedAt: resident.updatedAt
-
-                }
-
-            });
-
-        } catch (err) {
-
-            console.error(err);
-
-            return res.status(500).json({
-
-                success: false,
-
-                message: "Unable to fetch resident details."
-
-            });
-
-        }
-
-    }
-);
+// Duplicate GET resident details route removed
 
 /*
 =================================================
@@ -535,136 +424,13 @@ DELETE RESIDENT
 router.delete(
     "/residents/:id",
     isLoggedIn,
+    isApproved,
     isAdmin,
     async (req, res) => {
-
-        try {
-
-            const { id } = req.params;
-
-            const resident = await User.findOne({
-
-                _id: id,
-                societyName: req.user.societyName
-
-            });
-
-            if (!resident) {
-
-                return res.status(404).json({
-
-                    success: false,
-                    message: "Resident not found."
-
-                });
-
-            }
-
-            // Prevent admin from deleting themselves
-            if (resident._id.toString() === req.user._id.toString()) {
-
-                return res.status(400).json({
-
-                    success: false,
-                    message: "You cannot delete your own account."
-
-                });
-
-            }
-
-            await User.findByIdAndDelete(id);
-
-            /*
-            --------------------------
-            Email Notification
-            --------------------------
-            */
-
-            try {
-
-                await sendMail(
-
-                    resident.username,
-
-                    "Resident Account Removed",
-
-                    `
-                    <h2>Account Removed</h2>
-
-                    <p>Your resident account has been removed from <strong>Mayon Grand Ellora</strong>.</p>
-
-                    <p>If you believe this is a mistake, please contact the society administrator.</p>
-
-                    <br>
-
-                    <p><strong>Mayon Grand Ellora Team</strong></p>
-                    `
-
-                );
-
-            } catch (err) {
-
-                console.log("Email Error:", err.message);
-
-            }
-
-            /*
-            --------------------------
-            WhatsApp Notification
-            --------------------------
-            */
-
-            try {
-
-                await sendWhatsApp(
-
-                    `+91${resident.phoneNumber}`,
-
-                    "Your Mayon Grand Ellora account has been removed."
-
-                );
-
-                await WhatsAppLog.create({
-
-                    residentId: resident._id,
-
-                    mobileNumber: resident.phoneNumber,
-
-                    message: "Resident account removed.",
-
-                    status: "Sent"
-
-                });
-
-            } catch (err) {
-
-                console.log("WhatsApp Error:", err.message);
-
-            }
-
-            return res.json({
-
-                success: true,
-
-                message: "Resident deleted successfully."
-
-            });
-
-        } catch (err) {
-
-            console.error(err);
-
-            return res.status(500).json({
-
-                success: false,
-
-                message: "Unable to delete resident."
-
-            });
-
-        }
-
+        const { deleteResident } = require("../../controllers/api/residentApiController");
+        return deleteResident(req, res);
     }
 );
+
 
 module.exports = router;

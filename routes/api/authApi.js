@@ -61,7 +61,6 @@ router.post("/login", (req, res, next) => {
     })(req, res, next);
 
 });
-
 /*
 ==================================================
 GOOGLE SIGN-IN API (MOBILE)
@@ -137,24 +136,34 @@ router.post("/google", async (req, res, next) => {
         }
 
         req.login(user, (err) => {
-            if (err) return next(err);
 
-            return res.json({
-                success: true,
-                message: "Google login successful",
-                user: {
-                    id: user._id,
-                    username: user.username,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    phoneNumber: user.phoneNumber,
-                    societyName: user.societyName,
-                    flatNumber: user.flatNumber,
-                    validation: user.validation,
-                    isAdmin: user.isAdmin
-                }
-            });
+    if (err) return next(err);
+
+    req.session.save((err) => {
+
+        if (err) {
+            return next(err);
+        }
+
+        return res.json({
+            success: true,
+            message: "Google login successful",
+            user: {
+                id: user._id,
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phoneNumber: user.phoneNumber,
+                societyName: user.societyName,
+                flatNumber: user.flatNumber,
+                validation: user.validation,
+                isAdmin: user.isAdmin
+            }
         });
+
+    });
+
+});
     } catch (err) {
         console.error("Mobile Google Login Error:", err);
         return res.status(500).json({
@@ -186,6 +195,15 @@ CURRENT USER SESSION (/api/auth/me)
 ==================================================
 */
 router.get("/me", (req, res) => {
+
+    console.log("SessionID:", req.sessionID);
+
+    console.log("Passport:", req.session.passport);
+
+    console.log("Authenticated:", req.isAuthenticated());
+
+    console.log("User:", req.user);
+
     if (!req.isAuthenticated()) {
         return res.status(401).json({
             success: false,
