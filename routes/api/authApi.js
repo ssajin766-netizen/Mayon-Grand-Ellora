@@ -172,10 +172,9 @@ router.post("/google", async (req, res, next) => {
         });
     }
 });
-
 /*
 ==================================================
-PHONE OTP LOGIN API (MOBILE / FLUTTER / REACT NATIVE)
+PHONE OTP
 ==================================================
 */
 
@@ -183,6 +182,7 @@ router.post(
     "/send-phone-otp",
     phoneOtpController.sendOtpApi
 );
+
 router.post(
     "/resend-otp",
     phoneOtpController.resendOtpApi
@@ -191,6 +191,18 @@ router.post(
 router.post(
     "/verify-phone-otp",
     phoneOtpController.verifyOtpApi
+);
+
+
+/*
+==================================================
+PHONE REGISTRATION
+==================================================
+*/
+
+router.post(
+    "/complete-phone-registration",
+    phoneOtpController.completePhoneRegistration
 );
 
 /*

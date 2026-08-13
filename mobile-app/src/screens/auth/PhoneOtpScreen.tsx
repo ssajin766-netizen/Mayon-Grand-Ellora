@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, {
+  useState,
+  useEffect,
+} from 'react';
 
 import {
   View,
@@ -18,9 +21,14 @@ import {
   ActivityIndicator,
 } from 'react-native-paper';
 
-import { useRoute } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 
-import { useAppDispatch } from '../../store/hooks';
+import {
+  useAppDispatch,
+} from '../../store/hooks';
 
 import {
   setAuthenticated,
@@ -29,7 +37,10 @@ import {
 
 import api from '../../services/api';
 
-import { useWebView } from '../../context/WebViewContext';
+import {
+  useWebView,
+} from '../../context/WebViewContext';
+
 
 // ==================================================
 // BACKGROUND IMAGE
@@ -38,20 +49,28 @@ import { useWebView } from '../../context/WebViewContext';
 const BACKGROUND_IMAGE =
   require('../../../assets/night.png');
 
+
 // ==================================================
 // OTP SCREEN
 // ==================================================
 
 const PhoneOtpScreen = () => {
 
-  const route = useRoute();
+  const navigation =
+    useNavigation<any>();
 
-  const dispatch = useAppDispatch();
+  const route =
+    useRoute<any>();
 
-  const { phone } =
-    route.params as {
-      phone: string;
-    };
+  const dispatch =
+    useAppDispatch();
+
+  const {
+    phone,
+  } = route.params as {
+    phone: string;
+  };
+
 
   const [otp, setOtp] =
     useState('');
@@ -62,9 +81,11 @@ const PhoneOtpScreen = () => {
   const [seconds, setSeconds] =
     useState(60);
 
+
   const {
     navigate: navigateWebView,
   } = useWebView();
+
 
   // ==================================================
   // OTP TIMER
@@ -72,261 +93,360 @@ const PhoneOtpScreen = () => {
 
   useEffect(() => {
 
-    if (seconds <= 0) {
+    if (
+      seconds <= 0
+    ) {
       return;
     }
 
-    const timer = setInterval(() => {
+    const timer =
+      setInterval(() => {
 
-      setSeconds(
-        previous =>
-          previous - 1
-      );
+        setSeconds(
+          previous =>
+            previous > 0
+              ? previous - 1
+              : 0
+        );
 
-    }, 1000);
+      }, 1000);
+
 
     return () =>
       clearInterval(timer);
 
   }, [seconds]);
 
+
   // ==================================================
   // VERIFY OTP
   // ==================================================
 
-  const verifyOtp = async () => {
+  const verifyOtp =
+    async () => {
 
-    if (!otp) {
-
-      Alert.alert(
-        'Error',
-        'Please enter the OTP'
-      );
-
-      return;
-    }
-
-    if (otp.length !== 6) {
-
-      Alert.alert(
-        'Error',
-        'Please enter the 6-digit OTP'
-      );
-
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-
-      const resp =
-        await api.post(
-          '/api/auth/verify-phone-otp',
-          {
-            phoneNumber: phone,
-            otp,
-          }
-        );
-
-      // ==================================================
-      // DEBUG
-      // ==================================================
-
-      console.log(
-        '========== OTP VERIFY RESPONSE =========='
-      );
-
-      console.log(
-        'Success:',
-        resp.data?.success
-      );
-
-      console.log(
-        'User received:',
-        !!resp.data?.user
-      );
-
-      console.log(
-        'Token received:',
-        !!resp.data?.token
-      );
-
-      console.log(
-        'Token length:',
-        resp.data?.token
-          ? resp.data.token.length
-          : 0
-      );
-
-      console.log(
-        '=========================================='
-      );
-
-      // ==================================================
-      // VERIFY RESPONSE
-      // ==================================================
-
-      if (!resp.data?.success) {
+      if (!otp) {
 
         Alert.alert(
           'Error',
-          resp.data?.message ||
-            'OTP verification failed'
+          'Please enter the OTP'
         );
 
         return;
       }
 
-      // ==================================================
-      // WEBVIEW TOKEN
-      // ==================================================
 
-      if (!resp.data?.token) {
-
-        console.error(
-          'OTP verification succeeded but WebView token is missing'
-        );
+      if (
+        otp.length !== 6
+      ) {
 
         Alert.alert(
-          'Login Error',
-          'Authentication token was not received. Please try again.'
+          'Error',
+          'Please enter the 6-digit OTP'
         );
 
         return;
       }
 
-      // ==================================================
-      // CREATE SESSION URL
-      // ==================================================
 
-      const sessionUrl =
-        `/api/auth/mobile-webview-session?token=${encodeURIComponent(
-          resp.data.token
-        )}`;
+      setLoading(true);
 
-      console.log(
-        'WEBVIEW SESSION URL:',
-        sessionUrl.replace(
-          /token=[^&]+/,
-          'token=[REDACTED]'
-        )
-      );
 
-      // ==================================================
-      // IMPORTANT
-      //
-      // Store the WebView session URL BEFORE
-      // switching Redux authentication state.
-      // ==================================================
+      try {
 
-      navigateWebView(
-        sessionUrl
-      );
+        const resp =
+          await api.post(
+            '/api/auth/verify-phone-otp',
+            {
+              phoneNumber:
+                phone,
 
-      // ==================================================
-      // SAVE USER
-      // ==================================================
+              otp,
+            }
+          );
 
-      if (resp.data?.user) {
 
-        dispatch(
-          setUser(
-            resp.data.user
+        console.log(
+          '========== OTP VERIFY RESPONSE =========='
+        );
+
+        console.log(
+          'Success:',
+          resp.data?.success
+        );
+
+        console.log(
+          'Registration Required:',
+          resp.data
+            ?.registrationRequired
+        );
+
+        console.log(
+          'User received:',
+          !!resp.data?.user
+        );
+
+        console.log(
+          'Token received:',
+          !!resp.data?.token
+        );
+
+        console.log(
+          '=========================================='
+        );
+
+
+        // ==================================================
+        // ERROR
+        // ==================================================
+
+        if (
+          !resp.data?.success
+        ) {
+
+          Alert.alert(
+            'Error',
+            resp.data?.message ||
+              'OTP verification failed'
+          );
+
+          return;
+        }
+
+
+        // ==================================================
+        // NEW USER
+        // ==================================================
+        //
+        // OTP has already been verified.
+        //
+        // Do NOT ask for OTP again.
+        //
+        // Open registration details screen.
+        //
+
+        if (
+          resp.data
+            ?.registrationRequired
+        ) {
+
+          if (
+            !resp.data?.registrationToken
+          ) {
+
+            Alert.alert(
+              'Registration Error',
+              'Registration token was not received. Please try again.'
+            );
+
+            return;
+          }
+
+
+          navigation.navigate(
+            'RegisterDetails',
+            {
+
+              phone:
+                resp.data.phoneNumber ||
+                phone,
+
+              registrationToken:
+                resp.data.registrationToken,
+
+            }
+          );
+
+
+          return;
+        }
+
+
+        // ==================================================
+        // EXISTING USER
+        // ==================================================
+
+        if (
+          !resp.data?.token
+        ) {
+
+          console.error(
+            'OTP verification succeeded but WebView token is missing'
+          );
+
+          Alert.alert(
+            'Login Error',
+            'Authentication token was not received. Please try again.'
+          );
+
+          return;
+        }
+
+
+        // ==================================================
+        // CREATE WEBVIEW SESSION URL
+        // ==================================================
+
+        const sessionUrl =
+          `/api/auth/mobile-webview-session?token=${encodeURIComponent(
+            resp.data.token
+          )}`;
+
+
+        console.log(
+          'WEBVIEW SESSION URL:',
+          sessionUrl.replace(
+            /token=[^&]+/,
+            'token=[REDACTED]'
           )
         );
+
+
+        // ==================================================
+        // STORE WEBVIEW URL FIRST
+        // ==================================================
+
+        navigateWebView(
+          sessionUrl
+        );
+
+
+        // ==================================================
+        // SAVE USER
+        // ==================================================
+
+        if (
+          resp.data?.user
+        ) {
+
+          dispatch(
+            setUser(
+              resp.data.user
+            )
+          );
+
+        }
+
+
+        // ==================================================
+        // AUTHENTICATE APP
+        // ==================================================
+
+        dispatch(
+          setAuthenticated(
+            true
+          )
+        );
+
+
       }
 
-      // ==================================================
-      // AUTHENTICATE APP
-      // ==================================================
+      catch (
+        error: any
+      ) {
 
-      dispatch(
-        setAuthenticated(true)
-      );
+        console.error(
+          '========== OTP VERIFY ERROR =========='
+        );
 
-    } catch (error: any) {
+        console.error(
+          'Message:',
+          error?.message
+        );
 
-      console.error(
-        '========== OTP VERIFY ERROR =========='
-      );
+        console.error(
+          'Status:',
+          error?.response?.status
+        );
 
-      console.error(
-        'Message:',
-        error?.message
-      );
+        console.error(
+          'Response:',
+          error?.response?.data
+        );
 
-      console.error(
-        'Status:',
-        error?.response?.status
-      );
+        console.error(
+          '======================================'
+        );
 
-      console.error(
-        'Response:',
-        error?.response?.data
-      );
 
-      console.error(
-        '======================================'
-      );
+        Alert.alert(
+          'Error',
+          error?.response?.data?.message ||
+            error?.message ||
+            'Network error while verifying OTP'
+        );
 
-      Alert.alert(
-        'Error',
-        error?.response?.data?.message ||
-          error?.message ||
-          'Network error while verifying OTP'
-      );
+      }
 
-    } finally {
+      finally {
 
-      setLoading(false);
+        setLoading(false);
 
-    }
-  };
+      }
+
+    };
+
 
   // ==================================================
   // RESEND OTP
   // ==================================================
 
-  const resendOtp = async () => {
+  const resendOtp =
+    async () => {
 
-    if (seconds > 0) {
-      return;
-    }
+      if (
+        seconds > 0 ||
+        loading
+      ) {
+        return;
+      }
 
-    try {
 
-      await api.post(
-        '/api/auth/resend-otp',
-        {
-          phoneNumber: phone,
-        }
-      );
+      try {
 
-      setOtp('');
+        await api.post(
+          '/api/auth/resend-otp',
+          {
+            phoneNumber:
+              phone,
+          }
+        );
 
-      setSeconds(60);
 
-      Alert.alert(
-        'OTP Sent',
-        'A new OTP has been sent to your phone.'
-      );
+        setOtp('');
 
-    } catch (error: any) {
+        setSeconds(60);
 
-      console.error(
-        'Resend OTP error:',
-        error?.response?.data ||
-          error?.message
-      );
 
-      Alert.alert(
-        'Error',
-        error?.response?.data?.message ||
-          'Unable to resend OTP'
-      );
-    }
-  };
+        Alert.alert(
+          'OTP Sent',
+          'A new OTP has been sent to your phone.'
+        );
+
+
+      }
+
+      catch (
+        error: any
+      ) {
+
+        console.error(
+          'Resend OTP error:',
+          error?.response?.data ||
+            error?.message
+        );
+
+
+        Alert.alert(
+          'Error',
+          error?.response?.data?.message ||
+            'Unable to resend OTP'
+        );
+
+      }
+
+    };
+
 
   // ==================================================
   // UI
@@ -356,7 +476,9 @@ const PhoneOtpScreen = () => {
               styles.scrollContent
             }
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={
+              false
+            }
           >
 
             <View style={styles.card}>
@@ -376,6 +498,7 @@ const PhoneOtpScreen = () => {
                 Resident Portal
               </Text>
 
+
               {/* TITLE */}
 
               <Text
@@ -385,6 +508,7 @@ const PhoneOtpScreen = () => {
                 Enter OTP
               </Text>
 
+
               <Text
                 style={styles.subtitle}
               >
@@ -392,11 +516,13 @@ const PhoneOtpScreen = () => {
                 verification code
               </Text>
 
+
               <Text
                 style={styles.phone}
               >
                 {phone}
               </Text>
+
 
               {/* OTP INPUT */}
 
@@ -404,7 +530,9 @@ const PhoneOtpScreen = () => {
                 placeholder="Enter 6-digit OTP"
                 placeholderTextColor="#999"
                 value={otp}
-                onChangeText={setOtp}
+                onChangeText={
+                  setOtp
+                }
                 style={styles.input}
                 keyboardType="number-pad"
                 maxLength={6}
@@ -416,6 +544,7 @@ const PhoneOtpScreen = () => {
                   verifyOtp
                 }
               />
+
 
               {/* VERIFY */}
 
@@ -446,8 +575,12 @@ const PhoneOtpScreen = () => {
 
                 <Button
                   mode="contained"
-                  onPress={verifyOtp}
-                  style={styles.button}
+                  onPress={
+                    verifyOtp
+                  }
+                  style={
+                    styles.button
+                  }
                   contentStyle={
                     styles.buttonContent
                   }
@@ -459,12 +592,15 @@ const PhoneOtpScreen = () => {
 
               )}
 
+
               {/* TIMER */}
 
               <Text
                 style={styles.timer}
               >
+
                 {seconds > 0
+
                   ? `Resend OTP in ${String(
                       Math.floor(
                         seconds / 60
@@ -478,8 +614,13 @@ const PhoneOtpScreen = () => {
                       2,
                       '0'
                     )}`
-                  : 'You can request a new OTP'}
+
+                  : 'You can request a new OTP'
+
+                }
+
               </Text>
+
 
               {/* RESEND */}
 
@@ -513,6 +654,7 @@ const PhoneOtpScreen = () => {
 
               </TouchableOpacity>
 
+
               {/* SECURITY */}
 
               <Text
@@ -533,219 +675,189 @@ const PhoneOtpScreen = () => {
       </View>
 
     </ImageBackground>
+
   );
+
 };
+
 
 // ==================================================
 // STYLES
 // ==================================================
 
-const styles = StyleSheet.create({
+const styles =
+  StyleSheet.create({
 
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-
-  overlay: {
-    flex: 1,
-    backgroundColor:
-      'rgba(0, 0, 0, 0.48)',
-  },
-
-  keyboard: {
-    flex: 1,
-  },
-
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-  },
-
-  card: {
-    width: '100%',
-    maxWidth: 420,
-
-    paddingHorizontal: 26,
-    paddingVertical: 30,
-
-    borderRadius: 24,
-
-    backgroundColor:
-      'rgba(15, 15, 15, 0.86)',
-
-    borderWidth: 1,
-
-    borderColor:
-      'rgba(255, 157, 0, 0.35)',
-
-    shadowColor: '#000',
-
-    shadowOffset: {
-      width: 0,
-      height: 10,
+    background: {
+      flex: 1,
+      width: '100%',
+      height: '100%',
     },
 
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
+    overlay: {
+      flex: 1,
+      backgroundColor:
+        'rgba(0, 0, 0, 0.48)',
+    },
 
-    elevation: 12,
-  },
+    keyboard: {
+      flex: 1,
+    },
 
-  brand: {
-    color: '#ff9d00',
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 30,
+    },
 
-    textAlign: 'center',
+    card: {
+      width: '100%',
+      maxWidth: 420,
 
-    fontWeight: 'bold',
+      paddingHorizontal: 26,
+      paddingVertical: 30,
 
-    marginBottom: 4,
-  },
+      borderRadius: 24,
 
-  brandSubtitle: {
-    color: '#ddd',
+      backgroundColor:
+        'rgba(15, 15, 15, 0.86)',
 
-    textAlign: 'center',
+      borderWidth: 1,
 
-    fontSize: 13,
+      borderColor:
+        'rgba(255, 157, 0, 0.35)',
 
-    marginBottom: 28,
+      shadowColor: '#000',
 
-    letterSpacing: 1,
-  },
+      shadowOffset: {
+        width: 0,
+        height: 10,
+      },
 
-  title: {
-    color: '#fff',
+      shadowOpacity: 0.35,
 
-    textAlign: 'center',
+      shadowRadius: 20,
 
-    fontWeight: '600',
+      elevation: 12,
+    },
 
-    marginBottom: 8,
-  },
+    brand: {
+      color: '#ff9d00',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      marginBottom: 4,
+    },
 
-  subtitle: {
-    color: '#bbb',
+    brandSubtitle: {
+      color: '#ddd',
+      textAlign: 'center',
+      fontSize: 13,
+      marginBottom: 28,
+      letterSpacing: 1,
+    },
 
-    textAlign: 'center',
+    title: {
+      color: '#fff',
+      textAlign: 'center',
+      fontWeight: '600',
+      marginBottom: 8,
+    },
 
-    fontSize: 14,
+    subtitle: {
+      color: '#bbb',
+      textAlign: 'center',
+      fontSize: 14,
+      marginBottom: 8,
+    },
 
-    marginBottom: 8,
-  },
+    phone: {
+      color: '#ffb13b',
+      textAlign: 'center',
+      fontSize: 15,
+      fontWeight: '600',
+      marginBottom: 22,
+    },
 
-  phone: {
-    color: '#ffb13b',
+    input: {
+      width: '100%',
+      height: 56,
 
-    textAlign: 'center',
+      backgroundColor:
+        'rgba(255, 255, 255, 0.10)',
 
-    fontSize: 15,
+      color: '#fff',
 
-    fontWeight: '600',
+      borderRadius: 12,
 
-    marginBottom: 22,
-  },
+      borderWidth: 1,
 
-  input: {
-    width: '100%',
+      borderColor:
+        'rgba(255, 255, 255, 0.18)',
 
-    height: 56,
+      paddingHorizontal: 16,
 
-    backgroundColor:
-      'rgba(255, 255, 255, 0.10)',
+      marginBottom: 18,
 
-    color: '#fff',
+      fontSize: 22,
 
-    borderRadius: 12,
+      fontWeight: '600',
 
-    borderWidth: 1,
+      letterSpacing: 8,
+    },
 
-    borderColor:
-      'rgba(255, 255, 255, 0.18)',
+    button: {
+      width: '100%',
+      borderRadius: 12,
+      marginBottom: 16,
+    },
 
-    paddingHorizontal: 16,
+    buttonContent: {
+      height: 52,
+    },
 
-    marginBottom: 18,
+    loadingContainer: {
+      height: 52,
+      width: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'row',
+      marginBottom: 16,
+    },
 
-    fontSize: 22,
+    loadingText: {
+      color: '#ff9d00',
+      marginLeft: 10,
+      fontSize: 14,
+    },
 
-    fontWeight: '600',
+    timer: {
+      color: '#aaa',
+      textAlign: 'center',
+      fontSize: 13,
+      marginBottom: 10,
+    },
 
-    letterSpacing: 8,
-  },
+    resendButton: {
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
 
-  button: {
-    width: '100%',
+    resendText: {
+      color: '#ff9d00',
+      fontSize: 15,
+      fontWeight: '600',
+    },
 
-    borderRadius: 12,
+    securityText: {
+      color: '#777',
+      textAlign: 'center',
+      fontSize: 11,
+      marginTop: 18,
+    },
 
-    marginBottom: 16,
-  },
+  });
 
-  buttonContent: {
-    height: 52,
-  },
-
-  loadingContainer: {
-    height: 52,
-
-    width: '100%',
-
-    justifyContent: 'center',
-
-    alignItems: 'center',
-
-    flexDirection: 'row',
-
-    marginBottom: 16,
-  },
-
-  loadingText: {
-    color: '#ff9d00',
-
-    marginLeft: 10,
-
-    fontSize: 14,
-  },
-
-  timer: {
-    color: '#aaa',
-
-    textAlign: 'center',
-
-    fontSize: 13,
-
-    marginBottom: 10,
-  },
-
-  resendButton: {
-    alignItems: 'center',
-
-    paddingVertical: 8,
-  },
-
-  resendText: {
-    color: '#ff9d00',
-
-    fontSize: 15,
-
-    fontWeight: '600',
-  },
-
-  securityText: {
-    color: '#777',
-
-    textAlign: 'center',
-
-    fontSize: 11,
-
-    marginTop: 18,
-  },
-
-});
 
 export default PhoneOtpScreen;

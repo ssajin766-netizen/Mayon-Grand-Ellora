@@ -247,14 +247,14 @@ const PhoneLoginScreen = () => {
                 variant="headlineSmall"
                 style={styles.title}
               >
-                Welcome Back
+                Welcome
               </Text>
 
               <Text
                 style={styles.subtitle}
               >
-                Login using your registered
-                mobile number
+                Enter your mobile number to
+                login or create an account
               </Text>
 
               {/* ==================================================
@@ -320,6 +320,8 @@ const PhoneLoginScreen = () => {
 
               )}
 
+              
+
               {/* ==================================================
                   SECURITY MESSAGE
               ================================================== */}
@@ -327,8 +329,8 @@ const PhoneLoginScreen = () => {
               <Text
                 style={styles.securityText}
               >
-                Your login is protected with
-                OTP verification.
+                Your phone number will be
+                 verified using OTP.
               </Text>
 
             </View>

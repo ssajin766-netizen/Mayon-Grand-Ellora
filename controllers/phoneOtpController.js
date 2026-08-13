@@ -459,205 +459,1351 @@ req.login(user, (err) => {
 
 };
 /*
---------------------------------------------------
-FLUTTER API - SEND OTP
---------------------------------------------------
+==================================================
+MOBILE PHONE OTP FLOW
+==================================================
+
+This flow supports BOTH:
+
+1. Existing approved users -> Login
+2. New users -> Registration details
+
+The OTP is verified only once.
 */
 
-exports.sendOtpApi = async (req, res) => {
 
-    try {
+// ==================================================
+// TEMPORARY REGISTRATION TOKENS
+// ==================================================
+//
+// A new phone is verified first.
+// We then issue a short-lived registration token.
+//
+// This is NOT a login token.
+//
+// It can only be used by:
+// POST /api/auth/complete-phone-registration
+//
+// TTL: 15 minutes
+//
 
-        let { phoneNumber } = req.body;
+const mobileRegistrationTokens =
+    new Map();
 
-        phoneNumber = (phoneNumber || "").trim();
 
-        if (!phoneNumber) {
+function generateRegistrationToken(
+    phoneNumber
+) {
 
-            return res.status(400).json({
-                success: false,
-                message: "Phone number is required."
-            });
+    const token =
+        crypto.randomBytes(32).toString('hex');
 
-        }
+    const expiresAt =
+        Date.now() +
+        15 * 60 * 1000;
 
-        const user = await User.findOne({ phoneNumber });
-
-        if (!user) {
-
-            return res.status(404).json({
-                success: false,
-                message: "Phone number not registered."
-            });
-
-        }
-
-        // Use shared helper to send OTP via Twilio Verify and update expiry
-        await sendOtpToUser(user);
-
-        return res.json({
-
-            success: true,
-            message: "OTP sent successfully."
-
-        });
-
-    }
-
-    catch (err) {
-
-        console.error(err);
-
-        return res.status(500).json({
-
-            success: false,
-            message: err.message
-
-        });
-
-    }
-
-};
-
-/*
---------------------------------------------------
-FLUTTER API - RESEND OTP
---------------------------------------------------
-*/
-
-exports.resendOtpApi = async (req, res) => {
-
-    try {
-
-        const { phoneNumber } = req.body;
-
-        // Try to find the user – if it doesn't exist we can still send an OTP
-        const user = await User.findOne({ phoneNumber });
-        if (!user) {
-          // No user yet (e.g., first‑time login). Send verification directly.
-          await sendVerification(phoneNumber);
-          return res.json({
-            success: true,
-            message: "OTP resent successfully."
-          });
-        }
-
-        await sendOtpToUser(user);
-
-        return res.json({
-
-            success: true,
-            message: "OTP resent successfully."
-
-        });
-
-    } catch (err) {
-
-        console.error(err);
-
-        return res.status(500).json({
-
-            success: false,
-            message: err.message
-
-        });
-
-    }
-
-};
-
-/*
---------------------------------------------------
-FLUTTER API - VERIFY OTP
---------------------------------------------------
-*/
-
-exports.verifyOtpApi = async (req, res, next) => {
-
-    try {
-
-        const { phoneNumber, otp } = req.body;
-
-        if (!phoneNumber || !otp) {
-
-            return res.status(400).json({
-
-                success: false,
-                message: "Phone number and OTP are required."
-
-            });
-
-        }
-
-        const result = await checkVerification(
+    mobileRegistrationTokens.set(
+        token,
+        {
             phoneNumber,
-            otp
+            expiresAt,
+        }
+    );
+
+    setTimeout(
+        () => {
+            mobileRegistrationTokens.delete(
+                token
+            );
+        },
+        15 * 60 * 1000
+    );
+
+    return token;
+}
+
+
+function validateRegistrationToken(
+    token
+) {
+
+    if (!token) {
+        return null;
+    }
+
+    const entry =
+        mobileRegistrationTokens.get(
+            token
         );
 
-        if (result.status !== "approved") {
+    if (!entry) {
+        return null;
+    }
 
-            return res.status(401).json({
+    if (
+        Date.now() >
+        entry.expiresAt
+    ) {
 
-                success: false,
-                message: "Invalid OTP"
+        mobileRegistrationTokens.delete(
+            token
+        );
+
+        return null;
+    }
+
+    return entry;
+}
+
+
+/*
+==================================================
+NORMALIZE PHONE
+==================================================
+*/
+
+function normalizeMobilePhone(
+    phoneNumber
+) {
+
+    let phone =
+        (phoneNumber || '')
+            .trim()
+            .replace(/\s+/g, '');
+
+    /*
+    ----------------------------------------------
+    Indian 10 digit number
+    ----------------------------------------------
+    */
+
+    if (
+        /^[6-9]\d{9}$/.test(phone)
+    ) {
+
+        phone =
+            '+91' +
+            phone;
+
+    }
+
+    /*
+    ----------------------------------------------
+    91XXXXXXXXXX
+    ----------------------------------------------
+    */
+
+    else if (
+        /^91[6-9]\d{9}$/.test(phone)
+    ) {
+
+        phone =
+            '+' +
+            phone;
+
+    }
+
+    return phone;
+}
+
+
+/*
+==================================================
+SEND PHONE OTP
+==================================================
+
+Existing approved user:
+    send OTP
+
+New user:
+    send OTP
+
+Pending/rejected user:
+    do NOT send login OTP
+==================================================
+*/
+
+exports.sendOtpApi =
+    async (req, res) => {
+
+        try {
+
+            const phoneNumber =
+                normalizeMobilePhone(
+                    req.body.phoneNumber
+                );
+
+
+            if (!phoneNumber) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Phone number is required.'
+
+                });
+
+            }
+
+
+            /*
+            --------------------------------------
+            VALIDATE PHONE
+            --------------------------------------
+            */
+
+            if (
+                !/^\+[1-9]\d{8,14}$/.test(
+                    phoneNumber
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Please enter a valid phone number.'
+
+                });
+
+            }
+
+
+            /*
+            --------------------------------------
+            FIND USER
+            --------------------------------------
+            */
+
+            const user =
+                await User.findOne({
+                    phoneNumber
+                });
+
+
+            /*
+            --------------------------------------
+            NEW USER
+            --------------------------------------
+            */
+
+            if (!user) {
+
+                console.log(
+                    'New mobile registration OTP:',
+                    phoneNumber
+                );
+
+
+                await sendVerification(
+                    phoneNumber
+                );
+
+
+                return res.json({
+
+                    success: true,
+
+                    registration: true,
+
+                    message:
+                        'OTP sent successfully.'
+
+                });
+
+            }
+
+
+            /*
+            --------------------------------------
+            REJECTED USER
+            --------------------------------------
+            */
+
+            if (
+                user.validation ===
+                'rejected'
+            ) {
+
+                return res.status(403).json({
+
+                    success: false,
+
+                    message:
+                        'Your account has been rejected. Please contact the society administrator.'
+
+                });
+
+            }
+
+
+            /*
+            --------------------------------------
+            PENDING USER
+            --------------------------------------
+            */
+
+            if (
+                user.validation !==
+                'approved'
+            ) {
+
+                return res.status(403).json({
+
+                    success: false,
+
+                    message:
+                        'Your account is waiting for administrator approval.'
+
+                });
+
+            }
+
+
+            /*
+            --------------------------------------
+            EXISTING APPROVED USER
+            --------------------------------------
+            */
+
+            await sendOtpToUser(
+                user
+            );
+
+
+            return res.json({
+
+                success: true,
+
+                registration: false,
+
+                message:
+                    'OTP sent successfully.'
 
             });
 
         }
 
-        const user = await User.findOne({ phoneNumber });
+        catch (err) {
 
-        if (!user) {
+            console.error(
+                'SEND PHONE OTP ERROR:',
+                err
+            );
 
-            return res.status(404).json({
+
+            return res.status(500).json({
 
                 success: false,
-                message: "User not found"
+
+                message:
+                    err.message ||
+                    'Unable to send OTP.'
 
             });
 
         }
 
-        // Update login details
-        user.lastLogin = new Date();
-        user.lastLoginIp = req.ip;
-        user.loginType = "phone";
-        user.isPhoneVerified = true;
+    };
 
-        user.addLoginHistory({
 
-            loginTime: new Date(),
-            loginMethod: "Phone",
-            status: "Success",
-            ip: req.ip,
-            browser: req.headers["user-agent"] || "",
-            device: "",
-            location: ""
+/*
+==================================================
+RESEND PHONE OTP
+==================================================
+*/
 
-        });
+exports.resendOtpApi =
+    async (req, res) => {
 
-        await user.save();
+        try {
 
-        const token = generateWebViewToken(user._id.toString());
-        return res.json({
-            success: true,
-            message: "Verification successful.",
-            token: token
-        });
+            const phoneNumber =
+                normalizeMobilePhone(
+                    req.body.phoneNumber
+                );
 
-    }
 
-    catch (err) {
+            if (!phoneNumber) {
 
-        console.error(err);
+                return res.status(400).json({
 
-        return res.status(500).json({
+                    success: false,
 
-            success: false,
-            message: err.message
+                    message:
+                        'Phone number is required.'
 
-        });
+                });
 
-    }
+            }
 
-};
+
+            if (
+                !/^\+[1-9]\d{8,14}$/.test(
+                    phoneNumber
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Invalid phone number.'
+
+                });
+
+            }
+
+
+            const user =
+                await User.findOne({
+                    phoneNumber
+                });
+
+
+            /*
+            --------------------------------------
+            NEW USER
+            --------------------------------------
+            */
+
+            if (!user) {
+
+                await sendVerification(
+                    phoneNumber
+                );
+
+
+                return res.json({
+
+                    success: true,
+
+                    registration: true,
+
+                    message:
+                        'OTP resent successfully.'
+
+                });
+
+            }
+
+
+            /*
+            --------------------------------------
+            REJECTED
+            --------------------------------------
+            */
+
+            if (
+                user.validation ===
+                'rejected'
+            ) {
+
+                return res.status(403).json({
+
+                    success: false,
+
+                    message:
+                        'Your account has been rejected. Please contact the society administrator.'
+
+                });
+
+            }
+
+
+            /*
+            --------------------------------------
+            PENDING
+            --------------------------------------
+            */
+
+            if (
+                user.validation !==
+                'approved'
+            ) {
+
+                return res.status(403).json({
+
+                    success: false,
+
+                    message:
+                        'Your account is waiting for administrator approval.'
+
+                });
+
+            }
+
+
+            /*
+            --------------------------------------
+            EXISTING APPROVED USER
+            --------------------------------------
+            */
+
+            await sendOtpToUser(
+                user
+            );
+
+
+            return res.json({
+
+                success: true,
+
+                registration: false,
+
+                message:
+                    'OTP resent successfully.'
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(
+                'RESEND PHONE OTP ERROR:',
+                err
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    err.message ||
+                    'Unable to resend OTP.'
+
+            });
+
+        }
+
+    };
+
+
+/*
+==================================================
+VERIFY PHONE OTP
+==================================================
+
+Existing approved user:
+    return WebView token
+
+New user:
+    return registration token
+==================================================
+*/
+
+exports.verifyOtpApi =
+    async (req, res) => {
+
+        try {
+
+            const phoneNumber =
+                normalizeMobilePhone(
+                    req.body.phoneNumber
+                );
+
+            const otp =
+                String(
+                    req.body.otp || ''
+                ).trim();
+
+
+            if (
+                !phoneNumber ||
+                !otp
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Phone number and OTP are required.'
+
+                });
+
+            }
+
+
+            if (
+                !/^\+[1-9]\d{8,14}$/.test(
+                    phoneNumber
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Invalid phone number.'
+
+                });
+
+            }
+
+
+            /*
+            --------------------------------------
+            VERIFY TWILIO OTP
+            --------------------------------------
+            */
+
+            const result =
+                await checkVerification(
+                    phoneNumber,
+                    otp
+                );
+
+
+            if (
+                result.status !==
+                'approved'
+            ) {
+
+                return res.status(401).json({
+
+                    success: false,
+
+                    message:
+                        'Invalid or expired OTP.'
+
+                });
+
+            }
+
+
+            /*
+            --------------------------------------
+            FIND USER
+            --------------------------------------
+            */
+
+            const user =
+                await User.findOne({
+                    phoneNumber
+                });
+
+
+            /*
+            ======================================
+            NEW USER
+            ======================================
+            */
+
+            if (!user) {
+
+                const registrationToken =
+                    generateRegistrationToken(
+                        phoneNumber
+                    );
+
+
+                return res.json({
+
+                    success: true,
+
+                    registrationRequired:
+                        true,
+
+                    registrationToken,
+
+                    phoneNumber,
+
+                    message:
+                        'Phone verified. Please complete your registration.'
+
+                });
+
+            }
+
+
+            /*
+            ======================================
+            REJECTED
+            ======================================
+            */
+
+            if (
+                user.validation ===
+                'rejected'
+            ) {
+
+                return res.status(403).json({
+
+                    success: false,
+
+                    message:
+                        'Your account has been rejected. Please contact the society administrator.'
+
+                });
+
+            }
+
+
+            /*
+            ======================================
+            PENDING APPROVAL
+            ======================================
+            */
+
+            if (
+                user.validation !==
+                'approved'
+            ) {
+
+                return res.status(403).json({
+
+                    success: false,
+
+                    message:
+                        'Your account is waiting for administrator approval.'
+
+                });
+
+            }
+
+
+            /*
+            ======================================
+            EXISTING APPROVED USER
+            ======================================
+            */
+
+            user.lastLogin =
+                new Date();
+
+            user.lastLoginIp =
+                req.ip;
+
+            user.loginType =
+                'phone';
+
+            user.isPhoneVerified =
+                true;
+
+
+            user.addLoginHistory({
+
+                loginTime:
+                    new Date(),
+
+                loginMethod:
+                    'Phone',
+
+                status:
+                    'Success',
+
+                ip:
+                    req.ip,
+
+                browser:
+                    req.headers[
+                        'user-agent'
+                    ] || '',
+
+                device:
+                    'Mobile App',
+
+                location:
+                    ''
+
+            });
+
+
+            await user.save();
+
+
+            /*
+            --------------------------------------
+            GENERATE WEBVIEW TOKEN
+            --------------------------------------
+            */
+
+            const token =
+                generateWebViewToken(
+                    user._id.toString()
+                );
+
+
+            return res.json({
+
+                success: true,
+
+                registrationRequired:
+                    false,
+
+                message:
+                    'Verification successful.',
+
+                token,
+
+                user: {
+
+                    id:
+                        user._id,
+
+                    username:
+                        user.username,
+
+                    firstName:
+                        user.firstName,
+
+                    lastName:
+                        user.lastName,
+
+                    phoneNumber:
+                        user.phoneNumber,
+
+                    societyName:
+                        user.societyName,
+
+                    flatNumber:
+                        user.flatNumber,
+
+                    validation:
+                        user.validation,
+
+                    isAdmin:
+                        user.isAdmin
+
+                }
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(
+                'VERIFY PHONE OTP ERROR:',
+                err
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    err.message ||
+                    'Unable to verify OTP.'
+
+            });
+
+        }
+
+    };
+
+
+/*
+==================================================
+COMPLETE NEW USER REGISTRATION
+==================================================
+
+Called only AFTER phone OTP has been
+successfully verified.
+
+Registration fields:
+
+- First Name
+- Last Name
+- Email
+- Society Name
+- Flat Number
+
+Phone number comes ONLY from the verified
+registration token.
+==================================================
+*/
+
+exports.completePhoneRegistration =
+    async (req, res) => {
+
+        try {
+
+            const {
+                registrationToken,
+                firstName,
+                lastName,
+                email,
+                societyName,
+                flatNumber
+            } = req.body;
+
+
+            /*
+            ==========================================
+            VALIDATE REGISTRATION TOKEN
+            ==========================================
+            */
+
+            const registration =
+                validateRegistrationToken(
+                    registrationToken
+                );
+
+
+            if (!registration) {
+
+                return res.status(401).json({
+
+                    success: false,
+
+                    message:
+                        'Registration session expired. Please verify your phone again.'
+
+                });
+
+            }
+
+
+            /*
+            ==========================================
+            PHONE FROM VERIFIED TOKEN
+            ==========================================
+
+            DO NOT trust phoneNumber from the app.
+            */
+
+            const phoneNumber =
+                registration.phoneNumber;
+
+
+            /*
+            ==========================================
+            CLEAN INPUT
+            ==========================================
+            */
+
+            const cleanFirstName =
+                (firstName || '').trim();
+
+            const cleanLastName =
+                (lastName || '').trim();
+
+            const cleanEmail =
+                (email || '')
+                    .trim()
+                    .toLowerCase();
+
+            const cleanSocietyName =
+                (societyName || '').trim();
+
+            const cleanFlatNumber =
+                (flatNumber || '').trim();
+
+
+            /*
+            ==========================================
+            REQUIRED FIELD VALIDATION
+            ==========================================
+            */
+
+            if (!cleanFirstName) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'First name is required.'
+
+                });
+
+            }
+
+
+            if (!cleanLastName) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Last name is required.'
+
+                });
+
+            }
+
+
+            if (!cleanEmail) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Email address is required.'
+
+                });
+
+            }
+
+
+            /*
+            ==========================================
+            EMAIL VALIDATION
+            ==========================================
+            */
+
+            const emailRegex =
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+            if (
+                !emailRegex.test(
+                    cleanEmail
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Please enter a valid email address.'
+
+                });
+
+            }
+
+
+            if (!cleanSocietyName) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Society name is required.'
+
+                });
+
+            }
+
+
+            if (!cleanFlatNumber) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Flat number is required.'
+
+                });
+
+            }
+
+
+            /*
+            ==========================================
+            CHECK SOCIETY
+            ==========================================
+            */
+
+            const Society =
+                require('../models/societyModel')
+                    .Society;
+
+
+            const society =
+                await Society.findOne({
+
+                    societyName:
+                        cleanSocietyName
+
+                });
+
+
+            if (!society) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        'Society is not registered. Please check the society name.'
+
+                });
+
+            }
+
+
+            /*
+            ==========================================
+            CHECK PHONE AGAIN
+            ==========================================
+            */
+
+            const existingPhoneUser =
+                await User.findOne({
+
+                    phoneNumber
+
+                });
+
+
+            if (existingPhoneUser) {
+
+                return res.status(409).json({
+
+                    success: false,
+
+                    message:
+                        'This phone number is already registered.'
+
+                });
+
+            }
+
+
+            /*
+            ==========================================
+            CHECK EMAIL / USERNAME
+            ==========================================
+
+            Your existing application uses
+            Passport Local Mongoose username
+            as the email address.
+
+            Therefore email is stored as username.
+            */
+
+            const existingEmailUser =
+                await User.findOne({
+
+                    username:
+                        cleanEmail
+
+                });
+
+
+            if (existingEmailUser) {
+
+                return res.status(409).json({
+
+                    success: false,
+
+                    message:
+                        'This email address is already registered.'
+
+                });
+
+            }
+
+
+            /*
+            ==========================================
+            GENERATE MOBILE USERNAME
+            ==========================================
+
+            IMPORTANT:
+
+            The current phone-login implementation
+            uses:
+
+                919xxxxxxxxxx@phone.esociety
+
+            as the username.
+
+            However, because registration now collects
+            email, we use the EMAIL as username.
+
+            Phone remains the OTP login identity.
+            */
+
+            const username =
+                cleanEmail;
+
+
+            /*
+            ==========================================
+            CREATE RANDOM PASSWORD
+            ==========================================
+
+            Phone OTP is the authentication method.
+
+            Passport Local Mongoose still needs a
+            password hash when creating the User.
+            */
+
+            const temporaryPassword =
+                crypto
+                    .randomBytes(32)
+                    .toString('hex');
+
+
+            /*
+            ==========================================
+            CREATE USER
+            ==========================================
+            */
+
+            const user =
+                await User.register(
+
+                    {
+
+                        username,
+
+                        phoneNumber,
+
+                        firstName:
+                            cleanFirstName,
+
+                        lastName:
+                            cleanLastName,
+
+                        societyName:
+                            cleanSocietyName,
+
+                        flatNumber:
+                            cleanFlatNumber,
+
+                        validation:
+                            'applied',
+
+                        isAdmin:
+                            false,
+
+                        loginType:
+                            'phone',
+
+                        isPhoneVerified:
+                            true,
+
+                        isEmailVerified:
+                            false,
+
+                        twoFactorEnabled:
+                            false,
+
+                        lastLogin:
+                            null,
+
+                        lastLoginIp:
+                            ''
+
+                    },
+
+                    temporaryPassword
+
+                );
+
+
+            /*
+            ==========================================
+            CONSUME REGISTRATION TOKEN
+            ==========================================
+            */
+
+            mobileRegistrationTokens.delete(
+                registrationToken
+            );
+
+
+            /*
+            ==========================================
+            SUCCESS RESPONSE
+            ==========================================
+            */
+
+            return res.status(201).json({
+
+                success: true,
+
+                approved: false,
+
+                message:
+                    'Registration successful. Your account is waiting for administrator approval.',
+
+                user: {
+
+                    id:
+                        user._id,
+
+                    username:
+                        user.username,
+
+                    email:
+                        user.username,
+
+                    firstName:
+                        user.firstName,
+
+                    lastName:
+                        user.lastName,
+
+                    phoneNumber:
+                        user.phoneNumber,
+
+                    societyName:
+                        user.societyName,
+
+                    flatNumber:
+                        user.flatNumber,
+
+                    validation:
+                        user.validation,
+
+                    isAdmin:
+                        user.isAdmin
+
+                }
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.error(
+                'COMPLETE PHONE REGISTRATION ERROR:',
+                err
+            );
+
+
+            /*
+            ==========================================
+            DUPLICATE KEY
+            ==========================================
+            */
+
+            if (
+                err.code === 11000
+            ) {
+
+                return res.status(409).json({
+
+                    success: false,
+
+                    message:
+                        'An account with this email or phone number already exists.'
+
+                });
+
+            }
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    err.message ||
+                    'Unable to complete registration.'
+
+            });
+
+        }
+
+    };
