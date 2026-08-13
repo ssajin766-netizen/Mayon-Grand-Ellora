@@ -102,9 +102,9 @@
 
         <button
             id="resendBtn"
+            type="button"
             class="btn btn-light w-100 mt-3"
-            disabled
-            onclick="location.href='/loginPhone'">
+            disabled>
 
             <i class="fas fa-redo me-2"></i>
 
@@ -127,6 +127,7 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', () => {
 
 const boxes=document.querySelectorAll(".otp-box");
 
@@ -135,6 +136,9 @@ const hidden=document.getElementById("otp");
 const form=document.getElementById("otpForm");
 
 const btn=document.getElementById("verifyBtn");
+// New element references for timer and resend button
+const timer = document.getElementById("timer");
+const resend = document.getElementById("resendBtn");
 
 boxes.forEach((box,index)=>{
 
@@ -177,54 +181,49 @@ boxes.forEach((box,index)=>{
 
 });
 
-document.addEventListener("paste",function(e){
+let interval;
 
-    const text=e.clipboardData.getData("text").replace(/\D/g,"");
+function startTimer() {
+    let seconds = 60;
+    timer.innerText = seconds;
+    resend.disabled = true;
+    resend.classList.remove("btn-success");
+    resend.classList.add("btn-light");
+    clearInterval(interval);
+    interval = setInterval(() => {
+        seconds--;
+        timer.innerText = seconds;
+        if (seconds <= 0) {
+            clearInterval(interval);
+            timer.innerText = "0";
+            resend.disabled = false;
+            resend.classList.remove("btn-light");
+            resend.classList.add("btn-success");
+        }
+    }, 1000);
+}
 
-    if(text.length===6){
+startTimer();
 
-        boxes.forEach((b,i)=>{
-
-            b.value=text[i];
-
+resend.addEventListener("click", async () => {
+    try {
+        const response = await fetch("/phone/resend", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phoneNumber: "<%= phoneNumber %>" })
         });
-
-        hidden.value=text;
-
-        form.submit();
-
+        const data = await response.json();
+        if (!data.success) {
+            return alert(data.message);
+        }
+        alert("OTP sent successfully.");
+        startTimer();
+    } catch (err) {
+        alert("Unable to resend OTP.");
     }
-
 });
 
-let seconds=60;
-
-const timer=document.getElementById("timer");
-
-const resend=document.getElementById("resendBtn");
-
-const interval=setInterval(()=>{
-
-    seconds--;
-
-    timer.innerText=seconds;
-
-    if(seconds<=0){
-
-        clearInterval(interval);
-
-        resend.disabled=false;
-
-        resend.classList.remove("btn-light");
-
-        resend.classList.add("btn-success");
-
-        timer.innerText="0";
-
-    }
-
-},1000);
-
+});
 </script>
 
 <style>

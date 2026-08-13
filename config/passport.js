@@ -185,11 +185,11 @@ passport.use(
 
                     isAdmin: false,
 
-                    societyName: "",
+                    societyName: "Pending",
 
-                    flatNumber: "",
+                    flatNumber: "Pending",
 
-                    phoneNumber: "",
+                    phoneNumber:"Pending",
 
                     firstName:
 

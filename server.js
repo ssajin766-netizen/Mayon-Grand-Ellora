@@ -51,6 +51,11 @@ const dashboardApi = require("./routes/api/dashboardApi");
 
 const app = express();
 
+app.use((req, res, next) => {
+    res.locals.currentPath = req.path;
+    next();
+});
+
 const allowedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
@@ -184,6 +189,26 @@ PASSPORT
 app.use(passport.initialize());
 
 app.use(passport.session());
+
+app.use((req, res, next) => {
+    if (req.path === "/login" || req.path === "/home") {
+        console.log("========== SESSION CHECK ==========");
+        console.log("PATH:", req.path);
+        console.log("SESSION ID:", req.sessionID);
+        console.log("AUTH:", req.isAuthenticated());
+        console.log(
+            "USER:",
+            req.user ? req.user.username : "NONE"
+        );
+        console.log(
+            "COOKIE:",
+            req.headers.cookie || "NO COOKIE"
+        );
+        console.log("==================================");
+    }
+
+    next();
+});
 
 /*
 --------------------------------------------------

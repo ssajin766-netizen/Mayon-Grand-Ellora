@@ -4,6 +4,7 @@ import { Card, Button, Chip, Avatar, Divider } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import api from '../services/api';
 import * as FileSystem from 'expo-file-system';
+import RazorpayCheckout from 'react-native-razorpay';
 import * as Sharing from 'expo-sharing';
 
 interface ChargeItem {
@@ -57,16 +58,55 @@ const BillDetailScreen = () => {
     if (!bill) return;
     setPaying(true);
     try {
-      const resp = await api.post(`/bills/${bill.id}/pay`);
-      if (resp.data.success) {
-        Alert.alert('Success', 'Payment completed');
-        // Refresh bill to get updated status
+      // 1️⃣ Verify session
+      await api.get('/api/auth/me');
+      // 2️⃣ Create order
+      const orderRes = await api.post('/api/payment/create-order');
+      if (!orderRes.data.success) {
+        throw new Error(orderRes.data.message || 'Order creation failed');
+      }
+      const { order, key } = orderRes.data;
+
+      // 3️⃣ Open Razorpay Checkout
+      const options = {
+        description: `Bill #${bill.billNumber}`,
+        image: bill.logoUrl,
+        currency: 'INR',
+        key: key,
+        amount: String(order.amount), // amount in paise
+        name: bill.societyName,
+        order_id: order.id,
+        prefill: {
+          name: bill.residentName,
+        },
+        theme: { color: '#ff8c00' },
+      };
+      const paymentData = await RazorpayCheckout.open(options);
+
+      // 4️⃣ Verify payment
+      const verifyRes = await api.post('/payment/payment-success', {
+        razorpay_order_id: paymentData.razorpay_order_id,
+        razorpay_payment_id: paymentData.razorpay_payment_id,
+        razorpay_signature: paymentData.razorpay_signature,
+      });
+
+      if (verifyRes.data.success) {
+        Alert.alert('Payment Successful', `Invoice: ${verifyRes.data.invoice}`);
         fetchBill();
       } else {
-        Alert.alert('Payment Failed', resp.data.message || 'Unknown error');
+        throw new Error(verifyRes.data.message || 'Verification failed');
       }
-    } catch (e) {
-      Alert.alert('Error', 'Payment request failed');
+    } catch (e: any) {
+      if (e?.code === 0 || e?.description === 'Payment cancelled') {
+        Alert.alert('Payment Cancelled', 'You cancelled the payment.');
+        return;
+      }
+      if (e?.response?.status === 401) {
+        // Session invalid, redirect to login
+        navigation.navigate('PhoneLogin' as any);
+        return;
+      }
+      Alert.alert('Payment Failed', e?.response?.data?.message || e?.message || 'Unable to complete payment.');
     } finally {
       setPaying(false);
     }

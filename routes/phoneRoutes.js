@@ -55,7 +55,7 @@ RESEND OTP
 
 router.post(
     "/phone/resend",
-    phoneOtpController.sendOTP
+    phoneOtpController.resendOTP
 );
 
 /*

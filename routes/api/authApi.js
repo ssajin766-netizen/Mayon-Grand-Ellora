@@ -183,6 +183,10 @@ router.post(
     "/send-phone-otp",
     phoneOtpController.sendOtpApi
 );
+router.post(
+    "/resend-otp",
+    phoneOtpController.resendOtpApi
+);
 
 router.post(
     "/verify-phone-otp",
@@ -244,4 +248,27 @@ router.post("/logout", (req, res) => {
     });
 });
 
+router.post('/push-token', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ success: false, message: 'Not authenticated' });
+  }
+  const { expoToken, platform } = req.body;
+  if (!expoToken || !platform) {
+    return res.status(400).json({ success: false, message: 'expoToken and platform are required' });
+  }
+  try {
+    const User = require('../../models/userModel').User;
+    await User.findByIdAndUpdate(req.user._id, {
+      $set: {
+        'pushNotification.expoToken': expoToken,
+        'pushNotification.platform': platform,
+        'pushNotification.updatedAt': new Date()
+      }
+    });
+    return res.json({ success: true, message: 'Push token saved' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
 module.exports = router;

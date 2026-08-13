@@ -4,6 +4,26 @@ const {
     sendVerification,
     checkVerification
 } = require("../services/twilioVerify");
+const { sendOtpToUser } = require("../services/otpService");
+
+// In‑memory map for one‑time WebView tokens (60 s TTL)
+const crypto = require('crypto');
+const webViewTokens = new Map();
+function generateWebViewToken(userId) {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = Date.now() + 60 * 1000;
+  webViewTokens.set(token, { userId, expiresAt });
+  setTimeout(() => webViewTokens.delete(token), 60 * 1000);
+  return token;
+}
+function validateWebViewToken(token) {
+  const entry = webViewTokens.get(token);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) { webViewTokens.delete(token); return null; }
+  webViewTokens.delete(token);
+  return entry.userId;
+}
+exports.validateWebViewToken = validateWebViewToken;
 
 /*
 --------------------------------------------------
@@ -114,6 +134,36 @@ exports.sendOTP = async (req, res) => {
 
 };
 
+// --------------------------------------------------
+// RESEND OTP (AJAX)
+// --------------------------------------------------
+exports.resendOTP = async (req, res) => {
+    try {
+        const { phoneNumber } = req.body;
+
+        if (!phoneNumber) {
+            return res.status(400).json({
+                success: false,
+                message: "Phone number is required"
+            });
+        }
+
+        // Re-use Twilio Verify to send a fresh OTP
+        await sendVerification(phoneNumber);
+
+        return res.json({
+            success: true,
+            message: "OTP resent successfully"
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: "Unable to resend OTP"
+        });
+    }
+};
+
 /*
 --------------------------------------------------
 VERIFY OTP PAGE
@@ -129,9 +179,8 @@ exports.verifyPhonePage = (req, res) => {
     }
 
     res.render("verifyPhoneOtp", {
-
-        hideNavbar: true
-
+        hideNavbar: true,
+        phoneNumber: req.session.phoneNumber
     });
 
 };
@@ -259,9 +308,9 @@ else {
 
                 validation: "applied",
 
-                societyName: "",
+                societyName: "Pending",
 
-                flatNumber: "",
+                flatNumber: "Pending",
 
                 isAdmin: false,
 
@@ -343,78 +392,72 @@ else {
 
         });
 
-        /*
-        ------------------------------------------
-        SAVE USER
-        ------------------------------------------
-        */
+// ------------------------------------------
+// SAVE USER
+// ------------------------------------------
 
-        await user.save();
+await user.save();
 
-        /*
-        ------------------------------------------
-        LOGIN USER
-        ------------------------------------------
-        */
+// ------------------------------------------
+// LOGIN USER INTO EXPRESS SESSION
+// ------------------------------------------
 
-        req.login(user, (err) => {
+req.login(user, (err) => {
 
-            if (err) {
+    if (err) {
 
-                console.error(err);
-
-                req.flash(
-
-                    "error",
-
-                    "Login failed."
-
-                );
-
-                return res.redirect("/login");
-
-            }
-
-           delete req.session.phoneNumber;
-           delete req.session.phoneLoginUser;
-           delete req.session.pendingUser;
-
-            req.session.save(() => {
-
-                req.flash(
-
-                    "success",
-
-                    "Logged in successfully."
-
-                );
-
-                return res.redirect("/home");
-
-            });
-
-        });
-
-    }
-
-    catch (err) {
-
-        console.error(err);
+        console.error("Passport login error:", err);
 
         req.flash(
-
             "error",
-
-            "OTP verification failed."
-
+            "Unable to create login session."
         );
 
         return res.redirect("/verifyPhoneOtp");
-
     }
 
-};
+    // ------------------------------------------
+    // SAVE SESSION
+    // ------------------------------------------
 
+    req.session.save((err) => {
+
+        if (err) {
+
+            console.error("Session save error:", err);
+
+            req.flash(
+                "error",
+                "Unable to save login session."
+            );
+
+            return res.redirect("/verifyPhoneOtp");
+        }
+
+        console.log("================================");
+        console.log("PHONE LOGIN SUCCESS");
+        console.log("USER:", user.username);
+        console.log("SESSION:", req.sessionID);
+        console.log("AUTH:", req.isAuthenticated());
+        console.log("================================");
+
+        return res.redirect("/home");
+    });
+});
+
+} catch (err) {
+
+    console.error("Phone OTP verification error:", err);
+
+    req.flash(
+        "error",
+        err.message || "Unable to verify OTP."
+    );
+
+    return res.redirect("/verifyPhoneOtp");
+}
+
+};
 /*
 --------------------------------------------------
 FLUTTER API - SEND OTP
@@ -449,7 +492,8 @@ exports.sendOtpApi = async (req, res) => {
 
         }
 
-        await sendVerification(phoneNumber);
+        // Use shared helper to send OTP via Twilio Verify and update expiry
+        await sendOtpToUser(user);
 
         return res.json({
 
@@ -461,6 +505,53 @@ exports.sendOtpApi = async (req, res) => {
     }
 
     catch (err) {
+
+        console.error(err);
+
+        return res.status(500).json({
+
+            success: false,
+            message: err.message
+
+        });
+
+    }
+
+};
+
+/*
+--------------------------------------------------
+FLUTTER API - RESEND OTP
+--------------------------------------------------
+*/
+
+exports.resendOtpApi = async (req, res) => {
+
+    try {
+
+        const { phoneNumber } = req.body;
+
+        // Try to find the user – if it doesn't exist we can still send an OTP
+        const user = await User.findOne({ phoneNumber });
+        if (!user) {
+          // No user yet (e.g., first‑time login). Send verification directly.
+          await sendVerification(phoneNumber);
+          return res.json({
+            success: true,
+            message: "OTP resent successfully."
+          });
+        }
+
+        await sendOtpToUser(user);
+
+        return res.json({
+
+            success: true,
+            message: "OTP resent successfully."
+
+        });
+
+    } catch (err) {
 
         console.error(err);
 
@@ -547,31 +638,11 @@ exports.verifyOtpApi = async (req, res, next) => {
 
         await user.save();
 
-        req.login(user, err => {
-
-            if (err) return next(err);
-
-            return res.json({
-
-                success: true,
-                message: "Login successful",
-
-                user: {
-
-                    id: user._id,
-                    username: user.username,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    phoneNumber: user.phoneNumber,
-                    societyName: user.societyName,
-                    flatNumber: user.flatNumber,
-                    validation: user.validation,
-                    isAdmin: user.isAdmin
-
-                }
-
-            });
-
+        const token = generateWebViewToken(user._id.toString());
+        return res.json({
+            success: true,
+            message: "Verification successful.",
+            token: token
         });
 
     }

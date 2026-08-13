@@ -68,9 +68,19 @@ const paymentHistorySchema = new mongoose.Schema(
 
     paymentStatus: {
         type: String,
-        enum: ["Pending", "Paid"],
+        enum: ["Pending","Paid"],
         default: "Paid"
+    },
+    // Razorpay identifiers for mobile payments
+    razorpay_order_id: {
+        type: String,
+        default: ""
+    },
+    razorpay_payment_id: {
+        type: String,
+        default: ""
     }
+
 
 },
 {
@@ -185,7 +195,26 @@ phoneNumber: {
         type: Boolean,
         default: false
     },
+    // ===========================================
+    // Push Notification Token
+    // ===========================================
+    pushNotification: {
+    expoToken: {
+        type: String,
+        default: ""
+    },
 
+    platform: {
+        type: String,
+        enum: ["android", "ios"],
+        default: "android"
+    },
+
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+},
     // ===========================================
     // OTP
     // ===========================================
@@ -295,38 +324,44 @@ rememberTokenExpires: {
         default: []
     },
 
-    // ===========================================
-    // Payments
-    // ===========================================
+// ===========================================
+// Payments
+// ===========================================
 
-    lastPayment: {
-
-        date: Date,
-
-        amount: {
-            type: Number,
-            default: 0
-        },
-
-        invoice: {
-            type: String,
-            default: ""
-        }
-
+lastPayment: {
+    date: {
+        type: Date,
+        default: null
     },
 
-    makePayment: {
+    amount: {
         type: Number,
         default: 0
     },
 
-    paymentHistory: {
-        type: [paymentHistorySchema],
-        default: []
+    invoice: {
+        type: String,
+        default: ""
     }
-
 },
-{
+
+// Pending Razorpay order ID for mobile payments
+pendingPaymentOrderId: {
+    type: String,
+    default: null
+},
+
+makePayment: {
+    type: Number,
+    default: 0
+},
+
+paymentHistory: {
+    type: [paymentHistorySchema],
+    default: []
+}
+
+}, {
     timestamps: true
 });
 

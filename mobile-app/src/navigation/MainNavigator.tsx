@@ -7,7 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import ResidentsStack from './ResidentsStack';
 import NoticeboardScreen from '../screens/NoticeboardScreen';
-import BillsScreen from '../screens/BillsScreen';
+import BillsStack from '../navigation/BillsStack';
 import HelpdeskScreen from '../screens/HelpdeskScreen';
 import EmergencyScreen from '../screens/EmergencyScreen';
 import ProfileStack from '../navigation/ProfileStack';
@@ -60,7 +60,7 @@ export default function MainNavigator() {
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Residents" component={ResidentsStack} />
         <Tab.Screen name="Noticeboard" component={NoticeboardScreen} />
-        <Tab.Screen name="Bills" component={BillsScreen} />
+        <Tab.Screen name="Bills" component={BillsStack} />
         <Tab.Screen name="Helpdesk" component={HelpdeskScreen} />
         <Tab.Screen name="Emergency" component={EmergencyScreen} />
         <Tab.Screen name="Profile" component={ProfileStack} />

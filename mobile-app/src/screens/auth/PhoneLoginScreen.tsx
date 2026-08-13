@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TextInput, Alert } from 'react-native';
+import { useAppDispatch } from '../../store/hooks';
+
 import { Button, Text, ActivityIndicator } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import api from '../../services/api';
 
 const PhoneLoginScreen = () => {
+  const dispatch = useAppDispatch();
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
@@ -14,16 +17,30 @@ const PhoneLoginScreen = () => {
       Alert.alert('Error', 'Please enter a phone number');
       return;
     }
+    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
     setLoading(true);
     try {
-      const resp = await api.post('/auth/send-phone-otp', { phoneNumber: phone });
+      console.log("API URL:", process.env.EXPO_PUBLIC_API_BASE_URL);
+      const resp = await api.post('/api/auth/send-phone-otp', { phoneNumber: formattedPhone });
       if (resp.data.success) {
-        navigation.navigate('PhoneOtp', { phone });
+        navigation.navigate('PhoneOtp', { phone: formattedPhone });
       } else {
         Alert.alert('Error', resp.data.message || 'Failed to request OTP');
       }
-    } catch (e) {
-      Alert.alert('Error', 'Network error');
+    } catch (error: any) {
+  console.log("========== AXIOS ERROR ==========");
+  console.log("Message:", error.message);
+  console.log("Code:", error.code);
+  console.log("Base URL:", error.config?.baseURL);
+  console.log("URL:", error.config?.url);
+  console.log("Response Status:", error.response?.status);
+  console.log("Response Data:", error.response?.data);
+  console.log("=================================");
+
+  Alert.alert(
+    "Error",
+    error.response?.data?.message || error.message || "Network error"
+  );
     } finally {
       setLoading(false);
     }
@@ -44,7 +61,7 @@ const PhoneLoginScreen = () => {
       ) : (
         <Button mode="contained" onPress={requestOtp} style={styles.button}>Send OTP</Button>
       )}
-      <Button mode="text" onPress={() => navigation.navigate('GoogleLogin')} style={styles.link}>Sign in with Google</Button>
+
     </View>
   );
 };

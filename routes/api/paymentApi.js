@@ -27,7 +27,7 @@ const razorpay = new Razorpay({
 });
 
 router.post(
-    "/payments/create-order",
+    "/payment/create-order",
     isLoggedIn,
     isApproved,
     async (req, res) => {
@@ -88,7 +88,7 @@ router.post(
 );
 
 router.post(
-    "/payments/success",
+    "/payment/payment-success",
     isLoggedIn,
     isApproved,
     async (req, res) => {

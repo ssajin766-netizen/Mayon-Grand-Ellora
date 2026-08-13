@@ -7,7 +7,9 @@ const user_collection = require("../models/userModel");
 const society_collection = require("../models/societyModel");
 
 const otpController = require("../controllers/otpController");
+const webViewTokenController = require("../controllers/webViewTokenController");
 const forgotPasswordController = require("../controllers/forgotPasswordController");
+
 const sendMail = require("../services/sendMail");
 
 
@@ -1026,5 +1028,12 @@ router.post("/newRequest", async (req, res) => {
     }
 
 });
+
+// Mobile WebView session hand‑off endpoint
+router.get(
+    "/api/auth/mobile-webview-session",
+    webViewTokenController.mobileWebViewSession
+);
+
 
 module.exports = router;

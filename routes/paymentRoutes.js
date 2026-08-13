@@ -354,9 +354,11 @@ router.post(
 
                 paidAt: new Date(),
 
-                method: "Manual"
+                method:  "Razorpay"
 
             });
+
+            user.makePayment = 0;
 
             await user.save();
 
