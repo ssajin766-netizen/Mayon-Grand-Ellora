@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useRef,
 } from 'react';
 
 import {
@@ -72,6 +73,10 @@ const PhoneOtpScreen = () => {
   };
 
 
+  // ==================================================
+  // STATE
+  // ==================================================
+
   const [otp, setOtp] =
     useState('');
 
@@ -81,6 +86,25 @@ const PhoneOtpScreen = () => {
   const [seconds, setSeconds] =
     useState(60);
 
+
+  // ==================================================
+  // OTP VERIFICATION LOCK
+  // ==================================================
+  //
+  // Prevents two verify requests from being sent
+  // at the same time.
+  //
+  // This is important because Twilio Verify OTP
+  // should not receive duplicate verification checks.
+  //
+
+  const verifyingRef =
+    useRef(false);
+
+
+  // ==================================================
+  // WEBVIEW
+  // ==================================================
 
   const {
     navigate: navigateWebView,
@@ -96,8 +120,11 @@ const PhoneOtpScreen = () => {
     if (
       seconds <= 0
     ) {
+
       return;
+
     }
+
 
     const timer =
       setInterval(() => {
@@ -125,6 +152,27 @@ const PhoneOtpScreen = () => {
   const verifyOtp =
     async () => {
 
+      // ------------------------------------------------
+      // PREVENT DUPLICATE REQUEST
+      // ------------------------------------------------
+
+      if (
+        verifyingRef.current
+      ) {
+
+        console.log(
+          'OTP verification already in progress.'
+        );
+
+        return;
+
+      }
+
+
+      // ------------------------------------------------
+      // VALIDATE OTP
+      // ------------------------------------------------
+
       if (!otp) {
 
         Alert.alert(
@@ -133,6 +181,7 @@ const PhoneOtpScreen = () => {
         );
 
         return;
+
       }
 
 
@@ -146,25 +195,67 @@ const PhoneOtpScreen = () => {
         );
 
         return;
+
       }
 
+
+      // ------------------------------------------------
+      // LOCK VERIFICATION
+      // ------------------------------------------------
+
+      verifyingRef.current = true;
 
       setLoading(true);
 
 
       try {
 
+        console.log(
+          '========================================'
+        );
+
+        console.log(
+          'VERIFY PHONE OTP'
+        );
+
+        console.log(
+          'Phone:',
+          phone
+        );
+
+        console.log(
+          'OTP verification started'
+        );
+
+        console.log(
+          '========================================'
+        );
+
+
+        // ==================================================
+        // VERIFY OTP API
+        // ==================================================
+
         const resp =
           await api.post(
+
             '/api/auth/verify-phone-otp',
+
             {
+
               phoneNumber:
                 phone,
 
               otp,
+
             }
+
           );
 
+
+        // ==================================================
+        // RESPONSE LOG
+        // ==================================================
 
         console.log(
           '========== OTP VERIFY RESPONSE =========='
@@ -179,6 +270,12 @@ const PhoneOtpScreen = () => {
           'Registration Required:',
           resp.data
             ?.registrationRequired
+        );
+
+        console.log(
+          'Registration Token:',
+          !!resp.data
+            ?.registrationToken
         );
 
         console.log(
@@ -197,7 +294,7 @@ const PhoneOtpScreen = () => {
 
 
         // ==================================================
-        // ERROR
+        // API ERROR RESPONSE
         // ==================================================
 
         if (
@@ -205,12 +302,16 @@ const PhoneOtpScreen = () => {
         ) {
 
           Alert.alert(
+
             'Error',
+
             resp.data?.message ||
               'OTP verification failed'
+
           );
 
           return;
+
         }
 
 
@@ -218,33 +319,52 @@ const PhoneOtpScreen = () => {
         // NEW USER
         // ==================================================
         //
-        // OTP has already been verified.
+        // Phone OTP has been successfully verified.
         //
-        // Do NOT ask for OTP again.
+        // The backend has determined that the phone
+        // number does not belong to an existing user.
         //
-        // Open registration details screen.
+        // DO NOT verify OTP again.
         //
+        // Go directly to registration details.
+        // ==================================================
 
         if (
           resp.data
             ?.registrationRequired
         ) {
 
+          console.log(
+            'NEW USER DETECTED'
+          );
+
+          console.log(
+            'Opening RegisterDetails screen'
+          );
+
+
           if (
-            !resp.data?.registrationToken
+            !resp.data
+              ?.registrationToken
           ) {
 
             Alert.alert(
+
               'Registration Error',
+
               'Registration token was not received. Please try again.'
+
             );
 
             return;
+
           }
 
 
           navigation.navigate(
+
             'RegisterDetails',
+
             {
 
               phone:
@@ -255,16 +375,23 @@ const PhoneOtpScreen = () => {
                 resp.data.registrationToken,
 
             }
+
           );
 
 
           return;
+
         }
 
 
         // ==================================================
         // EXISTING USER
         // ==================================================
+
+        console.log(
+          'EXISTING USER LOGIN'
+        );
+
 
         if (
           !resp.data?.token
@@ -274,12 +401,17 @@ const PhoneOtpScreen = () => {
             'OTP verification succeeded but WebView token is missing'
           );
 
+
           Alert.alert(
+
             'Login Error',
+
             'Authentication token was not received. Please try again.'
+
           );
 
           return;
+
         }
 
 
@@ -303,7 +435,7 @@ const PhoneOtpScreen = () => {
 
 
         // ==================================================
-        // STORE WEBVIEW URL FIRST
+        // STORE WEBVIEW URL
         // ==================================================
 
         navigateWebView(
@@ -370,17 +502,28 @@ const PhoneOtpScreen = () => {
 
 
         Alert.alert(
+
           'Error',
+
           error?.response?.data?.message ||
+
             error?.message ||
+
             'Network error while verifying OTP'
+
         );
 
       }
 
       finally {
 
+        // ------------------------------------------------
+        // UNLOCK VERIFICATION
+        // ------------------------------------------------
+
         setLoading(false);
+
+        verifyingRef.current = false;
 
       }
 
@@ -394,22 +537,52 @@ const PhoneOtpScreen = () => {
   const resendOtp =
     async () => {
 
+      // ------------------------------------------------
+      // Do not resend while another operation is running
+      // ------------------------------------------------
+
       if (
         seconds > 0 ||
-        loading
+        loading ||
+        verifyingRef.current
       ) {
+
         return;
+
       }
 
 
       try {
 
+        console.log(
+          '========================================'
+        );
+
+        console.log(
+          'RESEND PHONE OTP'
+        );
+
+        console.log(
+          'Phone:',
+          phone
+        );
+
+        console.log(
+          '========================================'
+        );
+
+
         await api.post(
+
           '/api/auth/resend-otp',
+
           {
+
             phoneNumber:
               phone,
+
           }
+
         );
 
 
@@ -419,8 +592,11 @@ const PhoneOtpScreen = () => {
 
 
         Alert.alert(
+
           'OTP Sent',
+
           'A new OTP has been sent to your phone.'
+
         );
 
 
@@ -438,9 +614,13 @@ const PhoneOtpScreen = () => {
 
 
         Alert.alert(
+
           'Error',
+
           error?.response?.data?.message ||
+
             'Unable to resend OTP'
+
         );
 
       }
@@ -455,98 +635,181 @@ const PhoneOtpScreen = () => {
   return (
 
     <ImageBackground
-      source={BACKGROUND_IMAGE}
-      style={styles.background}
+
+      source={
+        BACKGROUND_IMAGE
+      }
+
+      style={
+        styles.background
+      }
+
       resizeMode="cover"
+
     >
 
-      <View style={styles.overlay}>
+      <View
+        style={
+          styles.overlay
+        }
+      >
 
         <KeyboardAvoidingView
-          style={styles.keyboard}
+
+          style={
+            styles.keyboard
+          }
+
           behavior={
             Platform.OS === 'ios'
               ? 'padding'
               : undefined
           }
+
         >
 
           <ScrollView
+
             contentContainerStyle={
               styles.scrollContent
             }
+
             keyboardShouldPersistTaps="handled"
+
             showsVerticalScrollIndicator={
               false
             }
+
           >
 
-            <View style={styles.card}>
+            <View
+              style={
+                styles.card
+              }
+            >
 
-              {/* BRAND */}
+              {/* ==================================================
+                  BRAND
+                  ================================================== */}
 
               <Text
+
                 variant="headlineMedium"
-                style={styles.brand}
+
+                style={
+                  styles.brand
+                }
+
               >
+
                 Mayon Grand Ellora
+
               </Text>
 
+
               <Text
-                style={styles.brandSubtitle}
+                style={
+                  styles.brandSubtitle
+                }
               >
+
                 Resident Portal
+
               </Text>
 
 
-              {/* TITLE */}
+              {/* ==================================================
+                  TITLE
+                  ================================================== */}
 
               <Text
+
                 variant="headlineSmall"
-                style={styles.title}
+
+                style={
+                  styles.title
+                }
+
               >
+
                 Enter OTP
+
               </Text>
 
 
               <Text
-                style={styles.subtitle}
+                style={
+                  styles.subtitle
+                }
               >
+
                 We've sent a 6-digit
                 verification code
+
               </Text>
 
 
               <Text
-                style={styles.phone}
+                style={
+                  styles.phone
+                }
               >
+
                 {phone}
+
               </Text>
 
 
-              {/* OTP INPUT */}
+              {/* ==================================================
+                  OTP INPUT
+                  ================================================== */}
 
               <TextInput
+
                 placeholder="Enter 6-digit OTP"
+
                 placeholderTextColor="#999"
+
                 value={otp}
+
                 onChangeText={
                   setOtp
                 }
-                style={styles.input}
-                keyboardType="number-pad"
-                maxLength={6}
-                autoFocus
-                textAlign="center"
-                returnKeyType="done"
-                editable={!loading}
-                onSubmitEditing={
-                  verifyOtp
+
+                style={
+                  styles.input
                 }
+
+                keyboardType="number-pad"
+
+                maxLength={6}
+
+                autoFocus
+
+                textAlign="center"
+
+                returnKeyType="done"
+
+                editable={
+                  !loading
+                }
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * Do NOT call verifyOtp from
+                 * onSubmitEditing.
+                 *
+                 * Verification is performed only
+                 * through the Verify OTP button.
+                 */
+
               />
 
 
-              {/* VERIFY */}
+              {/* ==================================================
+                  VERIFY BUTTON
+                  ================================================== */}
 
               {loading ? (
 
@@ -557,16 +820,22 @@ const PhoneOtpScreen = () => {
                 >
 
                   <ActivityIndicator
+
                     size="small"
+
                     color="#ff9d00"
+
                   />
+
 
                   <Text
                     style={
                       styles.loadingText
                     }
                   >
+
                     Verifying OTP...
+
                   </Text>
 
                 </View>
@@ -574,29 +843,46 @@ const PhoneOtpScreen = () => {
               ) : (
 
                 <Button
+
                   mode="contained"
+
                   onPress={
                     verifyOtp
                   }
+
+                  disabled={
+                    verifyingRef.current
+                  }
+
                   style={
                     styles.button
                   }
+
                   contentStyle={
                     styles.buttonContent
                   }
+
                   buttonColor="#d88900"
+
                   textColor="#fff"
+
                 >
+
                   Verify OTP
+
                 </Button>
 
               )}
 
 
-              {/* TIMER */}
+              {/* ==================================================
+                  TIMER
+                  ================================================== */}
 
               <Text
-                style={styles.timer}
+                style={
+                  styles.timer
+                }
               >
 
                 {seconds > 0
@@ -622,26 +908,42 @@ const PhoneOtpScreen = () => {
               </Text>
 
 
-              {/* RESEND */}
+              {/* ==================================================
+                  RESEND
+                  ================================================== */}
 
               <TouchableOpacity
+
                 disabled={
                   seconds > 0 ||
-                  loading
+                  loading ||
+                  verifyingRef.current
                 }
+
                 onPress={
                   resendOtp
                 }
+
                 style={[
+
                   styles.resendButton,
+
                   {
+
                     opacity:
+
                       seconds > 0 ||
-                      loading
+                      loading ||
+                      verifyingRef.current
+
                         ? 0.45
+
                         : 1,
+
                   },
+
                 ]}
+
               >
 
                 <Text
@@ -649,21 +951,27 @@ const PhoneOtpScreen = () => {
                     styles.resendText
                   }
                 >
+
                   Resend OTP
+
                 </Text>
 
               </TouchableOpacity>
 
 
-              {/* SECURITY */}
+              {/* ==================================================
+                  SECURITY
+                  ================================================== */}
 
               <Text
                 style={
                   styles.securityText
                 }
               >
+
                 Your verification code
                 is private and secure.
+
               </Text>
 
             </View>
@@ -689,34 +997,58 @@ const styles =
   StyleSheet.create({
 
     background: {
+
       flex: 1,
+
       width: '100%',
+
       height: '100%',
+
     },
+
 
     overlay: {
+
       flex: 1,
+
       backgroundColor:
         'rgba(0, 0, 0, 0.48)',
+
     },
+
 
     keyboard: {
+
       flex: 1,
+
     },
+
 
     scrollContent: {
+
       flexGrow: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+
+      justifyContent:
+        'center',
+
+      alignItems:
+        'center',
+
       paddingHorizontal: 20,
+
       paddingVertical: 30,
+
     },
 
+
     card: {
+
       width: '100%',
+
       maxWidth: 420,
 
       paddingHorizontal: 26,
+
       paddingVertical: 30,
 
       borderRadius: 24,
@@ -732,8 +1064,11 @@ const styles =
       shadowColor: '#000',
 
       shadowOffset: {
+
         width: 0,
+
         height: 10,
+
       },
 
       shadowOpacity: 0.35,
@@ -741,47 +1076,83 @@ const styles =
       shadowRadius: 20,
 
       elevation: 12,
+
     },
+
 
     brand: {
+
       color: '#ff9d00',
+
       textAlign: 'center',
+
       fontWeight: 'bold',
+
       marginBottom: 4,
+
     },
+
 
     brandSubtitle: {
+
       color: '#ddd',
+
       textAlign: 'center',
+
       fontSize: 13,
+
       marginBottom: 28,
+
       letterSpacing: 1,
+
     },
+
 
     title: {
+
       color: '#fff',
+
       textAlign: 'center',
+
       fontWeight: '600',
+
       marginBottom: 8,
+
     },
+
 
     subtitle: {
+
       color: '#bbb',
+
       textAlign: 'center',
+
       fontSize: 14,
+
       marginBottom: 8,
+
     },
+
 
     phone: {
+
       color: '#ffb13b',
+
       textAlign: 'center',
+
       fontSize: 15,
+
       fontWeight: '600',
+
       marginBottom: 22,
+
     },
 
+
     input: {
+
       width: '100%',
+
       height: 56,
 
       backgroundColor:
@@ -805,56 +1176,102 @@ const styles =
       fontWeight: '600',
 
       letterSpacing: 8,
+
     },
+
 
     button: {
+
       width: '100%',
+
       borderRadius: 12,
+
       marginBottom: 16,
+
     },
+
 
     buttonContent: {
+
       height: 52,
+
     },
+
 
     loadingContainer: {
+
       height: 52,
+
       width: '100%',
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexDirection: 'row',
+
+      justifyContent:
+        'center',
+
+      alignItems:
+        'center',
+
+      flexDirection:
+        'row',
+
       marginBottom: 16,
+
     },
+
 
     loadingText: {
+
       color: '#ff9d00',
+
       marginLeft: 10,
+
       fontSize: 14,
+
     },
+
 
     timer: {
+
       color: '#aaa',
+
       textAlign: 'center',
+
       fontSize: 13,
+
       marginBottom: 10,
+
     },
+
 
     resendButton: {
+
       alignItems: 'center',
+
       paddingVertical: 8,
+
     },
+
 
     resendText: {
+
       color: '#ff9d00',
+
       fontSize: 15,
+
       fontWeight: '600',
+
     },
 
+
     securityText: {
+
       color: '#777',
+
       textAlign: 'center',
+
       fontSize: 11,
+
       marginTop: 18,
+
     },
 
   });
