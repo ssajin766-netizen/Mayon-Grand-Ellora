@@ -1,281 +1,761 @@
-import React, { useCallback } from 'react';
-import { ActivityIndicator, Linking } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { useNavigation } from '@react-navigation/native';
-import RazorpayCheckout from 'react-native-razorpay';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { logout } from '../store/authSlice';
-import api from '../services/api';
-import { useWebView } from '../context/WebViewContext';
-import { setAuthenticated, setUser } from '../store/authSlice';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 
-// This component renders the persistent WebView used throughout the app.
-const launchRazorpayCheckout = (url: string) => {
-  // TODO: Replace this simple external link with native Razorpay SDK integration.
-  // For now, open the checkout URL in the external browser.
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  Linking.openURL(url);
-};
-// It registers its ref with the WebViewProvider and implements navigation
-// handling such as logout, external link opening, and file downloads.
+import {
+  ActivityIndicator,
+  Linking,
+} from 'react-native';
+
+import { WebView } from 'react-native-webview';
+
+import { useNavigation } from '@react-navigation/native';
+
+import {
+  useAppDispatch,
+} from '../store/hooks';
+
+import {
+  logout,
+  setAuthenticated,
+} from '../store/authSlice';
+
+import {
+  useWebView,
+} from '../context/WebViewContext';
 
 const WebViewComponent: React.FC = () => {
-  const navigation = useNavigation();
-  const dispatch = useAppDispatch();
-  const { setWebViewRef, setCurrentPath, clearSession, injectJavaScript, pendingUrl, clearPendingUrl } = useWebView();
-  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
+  const navigation =
+    useNavigation<any>();
 
-  const HOME_URL = `${process.env.EXPO_PUBLIC_API_BASE_URL}`;
-  console.log('HOME_URL:', HOME_URL);
+  const dispatch =
+    useAppDispatch();
 
-  const hideFooterScript = `
-(function () {
-  'use strict';
+  const {
+    setWebViewRef,
+    setCurrentPath,
+    clearSession,
+    injectJavaScript,
+    pendingUrl,
+    clearPendingUrl,
+  } = useWebView();
 
-  const STYLE_ID = 'mobile-app-hide-footer';
+  // ==================================================
+  // LOCAL WEBVIEW REF
+  // ==================================================
 
-  function hideFooter() {
-    let style = document.getElementById(STYLE_ID);
+  const webViewRef =
+    useRef<WebView | null>(null);
 
-    if (!style) {
-      style = document.createElement('style');
-      style.id = STYLE_ID;
+  const lastPendingUrl =
+    useRef<string | null>(null);
 
-      style.textContent = \`
-        /* Hide website footer in mobile app */
-        footer,
-        footer.footer,
-        .footer,
-        #footer,
-        .site-footer,
-        .main-footer {
-          display: none !important;
-          visibility: hidden !important;
-          height: 0 !important;
-          min-height: 0 !important;
-          max-height: 0 !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          overflow: hidden !important;
-        }
+  // ==================================================
+  // API URL
+  // ==================================================
 
-        /* Remove extra space left by footer */
-        body {
-          padding-bottom: 0 !important;
-          margin-bottom: 0 !important;
-        }
-      \`;
+  const HOME_URL =
+    process.env.EXPO_PUBLIC_API_BASE_URL ||
+    'https://e-society-erp9.onrender.com';
 
-      if (document.head) {
-        document.head.appendChild(style);
-      }
-    }
+  // ==================================================
+  // WEBVIEW SOURCE
+  // ==================================================
 
-    /* Hide any footer elements that already exist */
-    document.querySelectorAll(
-      'footer, footer.footer, .footer, #footer, .site-footer, .main-footer'
-    ).forEach(function (element) {
-      element.style.setProperty('display', 'none', 'important');
-      element.style.setProperty('visibility', 'hidden', 'important');
-      element.style.setProperty('height', '0', 'important');
-      element.style.setProperty('max-height', '0', 'important');
-      element.style.setProperty('margin', '0', 'important');
-      element.style.setProperty('padding', '0', 'important');
-      element.style.setProperty('overflow', 'hidden', 'important');
-    });
-  }
+  const webViewSource =
+    pendingUrl ||
+    `${HOME_URL}/home`;
 
-  function start() {
-    hideFooter();
+  const safeSource =
+    webViewSource.replace(
+      /token=[^&]+/,
+      'token=[REDACTED]'
+    );
 
-    if (document.body) {
-      const observer = new MutationObserver(function () {
-        hideFooter();
-      });
-
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start);
-  } else {
-    start();
-  }
-
-  true;
-})();
-`;
-
-   const webViewSource = pendingUrl ? pendingUrl : `${HOME_URL}/home`;
-
-  // Register the WebView ref on mount via the context
-  const webViewRefCallback = useCallback(
-    (ref: any) => {
-      if (ref) {
-        setWebViewRef(ref);
-      }
-    },
-    [setWebViewRef]
+  console.log(
+    'WEBVIEW SOURCE:',
+    safeSource
   );
 
-  // Navigation state change handling – mirrors previous logic from WebDashboardScreen
+  // ==================================================
+  // FOOTER HIDE SCRIPT
+  // ==================================================
 
-  const onShouldStartLoadWithRequest = (request: any) => {
-    const { url } = request;
-    if (
-      url.startsWith('tel:') ||
-      url.startsWith('mailto:') ||
-      url.startsWith('upi:') ||
-      url.includes('wa.me') ||
-      url.startsWith('whatsapp:')
-    ) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      Linking.openURL(url);
-      return false;
-    }
-    if (url.includes('razorpay.com')) {
-      // Launch native Razorpay checkout instead of loading in WebView
-      launchRazorpayCheckout(url);
-      return false;
-    }
-    if (url.match(/\.(pdf|docx?|xlsx?|zip|jpe?g|png|webp)$/i)) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      Linking.openURL(url);
-      return false;
-    }
-    return true;
-  };
+  const hideFooterScript = `
+    (function () {
+      'use strict';
 
-  const getPath = (url: string) => {
-    try {
-      return url.replace(/^https?:\/\/[^/]+/, '').split('?')[0];
-    } catch {
-      return '/';
-    }
-  };
+      const STYLE_ID =
+        'mobile-app-hide-footer';
 
-  const handleNavigationStateChange = async (event: any) => {
-    const { url } = event;
-    console.log('Navigation URL:', url);
-    const path = getPath(url);
-    // Guard: if navigating to a protected route while not authenticated, redirect to home
-    const protectedRoutes = ['/residents', '/noticeboard', '/profile', '/dashboard'];
-    if (protectedRoutes.includes(path) && !isAuthenticated) {
-      console.log('Redirecting unauthenticated access to home');
-      injectJavaScript(`window.location.href = '${HOME_URL}/home';`);
-      return;
-    }
+      function hideFooter() {
+        let style =
+          document.getElementById(
+            STYLE_ID
+          );
 
-    // Handle logout
-    if (url.includes('/logout')) {
-      try {
-        await api.post('/auth/logout');
-      } catch {}
-      await clearSession();
-      dispatch(logout());
+        if (!style) {
+          style =
+            document.createElement(
+              'style'
+            );
 
-      navigation.reset({ index: 0, routes: [{ name: 'PhoneLogin' as never }] });
-      return;
-    }
+          style.id =
+            STYLE_ID;
 
-    // Handle authenticated routes – verify session
-    if (
-      url.includes('/home') ||
-      url.includes('/dashboard') ||
-      url.includes('/profile') ||
-      url.includes('/residents') ||
-      url.includes('/noticeboard') ||
-      url.includes('/helpdesk') ||
-      url.includes('/contacts')
-    ) {
-      try {
-        const resp = await api.get('/api/auth/me');
-        if (resp.data?.user) {
-          dispatch(setUser(resp.data.user));
-          dispatch(setAuthenticated(true));
+          style.textContent = \`
+            footer,
+            footer.footer,
+            .footer,
+            #footer,
+            .site-footer,
+            .main-footer {
+              display: none !important;
+              visibility: hidden !important;
+              height: 0 !important;
+              min-height: 0 !important;
+              max-height: 0 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: hidden !important;
+            }
+
+            body {
+              padding-bottom: 0 !important;
+              margin-bottom: 0 !important;
+            }
+          \`;
+
+          if (document.head) {
+            document.head.appendChild(
+              style
+            );
+          }
         }
-      } catch (err) {
-        console.log('Session check failed:', err);
+
+        document
+          .querySelectorAll(
+            'footer, footer.footer, .footer, #footer, .site-footer, .main-footer'
+          )
+          .forEach(
+            function (element) {
+              element.style.setProperty(
+                'display',
+                'none',
+                'important'
+              );
+
+              element.style.setProperty(
+                'visibility',
+                'hidden',
+                'important'
+              );
+
+              element.style.setProperty(
+                'height',
+                '0',
+                'important'
+              );
+
+              element.style.setProperty(
+                'max-height',
+                '0',
+                'important'
+              );
+
+              element.style.setProperty(
+                'margin',
+                '0',
+                'important'
+              );
+
+              element.style.setProperty(
+                'padding',
+                '0',
+                'important'
+              );
+
+              element.style.setProperty(
+                'overflow',
+                'hidden',
+                'important'
+              );
+            }
+          );
       }
-    }
 
-    // Handle login redirect – if we end up on /login after OAuth, verify session and go to home
-    if (url.includes('/login')) {
-      try {
-        const resp = await api.get('/api/auth/me');
-        if (resp.data?.user) {
-          dispatch(setUser(resp.data.user));
-          dispatch(setAuthenticated(true));
-          // Update WebView path to home via JS injection
-          injectJavaScript(`window.location.href = '${HOME_URL}/home';`);
+      function start() {
+        hideFooter();
+
+        if (document.body) {
+          const observer =
+            new MutationObserver(
+              function () {
+                hideFooter();
+              }
+            );
+
+          observer.observe(
+            document.body,
+            {
+              childList: true,
+              subtree: true,
+            }
+          );
         }
-      } catch (err) {}
-      // Stop further handling for this navigation event
+      }
+
+      if (
+        document.readyState ===
+        'loading'
+      ) {
+        document.addEventListener(
+          'DOMContentLoaded',
+          start
+        );
+      } else {
+        start();
+      }
+
+    })();
+
+    true;
+  `;
+
+  // ==================================================
+  // REGISTER WEBVIEW
+  // ==================================================
+
+  const webViewRefCallback =
+    useCallback(
+      (ref: WebView | null) => {
+        webViewRef.current =
+          ref;
+
+        setWebViewRef(ref);
+
+        if (ref) {
+          console.log(
+            'WEBVIEW REF READY'
+          );
+        } else {
+          console.log(
+            'WEBVIEW REF CLEARED'
+          );
+        }
+      },
+      [setWebViewRef]
+    );
+
+  // ==================================================
+  // PENDING SESSION URL
+  // ==================================================
+
+  useEffect(() => {
+    if (!pendingUrl) {
       return;
     }
-  };
 
-  // File download progress placeholder – actual UI handled elsewhere
-  const handleFileDownload = (event: any) => {
-    const { downloadUrl } = event.nativeEvent;
-    // For now, simply open the URL directly.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    Linking.openURL(downloadUrl);
-    return true;
-  };
+    const safeUrl =
+      pendingUrl.replace(
+        /token=[^&]+/,
+        'token=[REDACTED]'
+      );
 
-  const handleError = (event: any) => {
-    console.log("WEBVIEW ERROR");
-    console.log(event.nativeEvent);
-  };
+    console.log(
+      'PENDING URL DETECTED:',
+      safeUrl
+    );
 
-  const handleHttpError = (syntheticEvent: any) => {
-    console.log("HTTP ERROR");
-    console.log(syntheticEvent.nativeEvent);
-  };
+    if (
+      lastPendingUrl.current ===
+      pendingUrl
+    ) {
+      return;
+    }
 
-  // React to path changes – no extra actions needed here as the provider updates the URL.
+    lastPendingUrl.current =
+      pendingUrl;
 
+    // ------------------------------------------------
+    // If WebView already exists
+    // ------------------------------------------------
+
+    if (webViewRef.current) {
+      console.log(
+        'FORCING WEBVIEW TO SESSION URL'
+      );
+
+      webViewRef.current.injectJavaScript(`
+        window.location.replace(
+          ${JSON.stringify(pendingUrl)}
+        );
+
+        true;
+      `);
+    } else {
+      console.log(
+        'WEBVIEW NOT READY - SESSION URL WILL BE INITIAL SOURCE'
+      );
+    }
+  }, [pendingUrl]);
+
+  // ==================================================
+  // EXTERNAL URL
+  // ==================================================
+
+  const launchExternalUrl =
+    (url: string) => {
+      Linking.openURL(url)
+        .catch(error => {
+          console.log(
+            'Unable to open external URL:',
+            error
+          );
+        });
+    };
+
+  // ==================================================
+  // WEBVIEW REQUEST
+  // ==================================================
+
+  const onShouldStartLoadWithRequest =
+    (request: any) => {
+      const { url } = request;
+
+      console.log(
+        'WEBVIEW REQUEST:',
+        url.replace(
+          /token=[^&]+/,
+          'token=[REDACTED]'
+        )
+      );
+
+      // ------------------------------------------------
+      // SESSION HAND-OFF
+      // ------------------------------------------------
+
+      if (
+        url.includes(
+          '/api/auth/mobile-webview-session'
+        )
+      ) {
+        console.log(
+          'ALLOWING WEBVIEW SESSION HAND-OFF'
+        );
+
+        return true;
+      }
+
+      // ------------------------------------------------
+      // PHONE / EMAIL / WHATSAPP / UPI
+      // ------------------------------------------------
+
+      if (
+        url.startsWith('tel:') ||
+        url.startsWith('mailto:') ||
+        url.startsWith('upi:') ||
+        url.includes('wa.me') ||
+        url.startsWith('whatsapp:')
+      ) {
+        launchExternalUrl(url);
+
+        return false;
+      }
+
+      // ------------------------------------------------
+      // RAZORPAY
+      // ------------------------------------------------
+
+      if (
+        url.includes(
+          'razorpay.com'
+        ) ||
+        url.includes(
+          'checkout.razorpay.com'
+        )
+      ) {
+        launchExternalUrl(url);
+
+        return false;
+      }
+
+      // ------------------------------------------------
+      // FILES
+      // ------------------------------------------------
+
+      if (
+        url.match(
+          /\.(pdf|docx?|xlsx?|zip|jpe?g|png|webp)$/i
+        )
+      ) {
+        launchExternalUrl(url);
+
+        return false;
+      }
+
+      return true;
+    };
+
+  // ==================================================
+  // GET PATH
+  // ==================================================
+
+  const getPath =
+    (url: string) => {
+      try {
+        return url
+          .replace(
+            /^https?:\/\/[^/]+/,
+            ''
+          )
+          .split('?')[0];
+      } catch {
+        return '/';
+      }
+    };
+
+  // ==================================================
+  // NAVIGATION STATE
+  // ==================================================
+
+  const handleNavigationStateChange =
+    async (event: any) => {
+      const { url } = event;
+
+      console.log(
+        'NAVIGATION URL:',
+        url.replace(
+          /token=[^&]+/,
+          'token=[REDACTED]'
+        )
+      );
+
+      const path =
+        getPath(url);
+
+      setCurrentPath(path);
+
+      // ==================================================
+      // SESSION HAND-OFF
+      // ==================================================
+
+      if (
+        url.includes(
+          '/api/auth/mobile-webview-session'
+        )
+      ) {
+        console.log(
+          'WEBVIEW SESSION HAND-OFF REQUEST'
+        );
+
+        return;
+      }
+
+      // ==================================================
+      // LOGOUT
+      // ==================================================
+
+      if (
+        path === '/logout' ||
+        url.includes('/logout?')
+      ) {
+        console.log(
+          'WEBVIEW LOGOUT DETECTED'
+        );
+
+        try {
+          await clearSession();
+        } catch (error) {
+          console.log(
+            'clearSession error:',
+            error
+          );
+        }
+
+        dispatch(logout());
+
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'PhoneLogin',
+            },
+          ],
+        });
+
+        return;
+      }
+
+      // ==================================================
+      // LOGIN PAGE
+      // ==================================================
+
+      if (
+        path === '/login'
+      ) {
+        console.log(
+          'WEBVIEW REACHED LOGIN'
+        );
+
+        if (pendingUrl) {
+          console.log(
+            'WARNING: SESSION HAND-OFF MAY HAVE FAILED'
+          );
+        }
+
+        return;
+      }
+
+      // ==================================================
+      // PROTECTED PAGES
+      // ==================================================
+
+      if (
+        path === '/home' ||
+        path === '/dashboard' ||
+        path === '/profile' ||
+        path === '/residents' ||
+        path === '/noticeboard' ||
+        path === '/helpdesk' ||
+        path === '/contacts' ||
+        path === '/bill'
+      ) {
+        console.log(
+          'WEBVIEW PROTECTED PAGE:',
+          path
+        );
+      }
+    };
+
+  // ==================================================
+  // DOWNLOAD
+  // ==================================================
+
+  const handleFileDownload =
+    (event: any) => {
+      const {
+        downloadUrl,
+      } = event.nativeEvent;
+
+      if (downloadUrl) {
+        launchExternalUrl(
+          downloadUrl
+        );
+      }
+
+      return true;
+    };
+
+  // ==================================================
+  // ERROR
+  // ==================================================
+
+  const handleError =
+    (event: any) => {
+      console.log(
+        'WEBVIEW ERROR:',
+        event.nativeEvent
+      );
+    };
+
+  const handleHttpError =
+    (event: any) => {
+      console.log(
+        'WEBVIEW HTTP ERROR:',
+        event.nativeEvent
+      );
+    };
+
+  // ==================================================
+  // WEBVIEW
+  // ==================================================
 
   return (
     <WebView
       ref={webViewRefCallback}
-      source={{ uri: webViewSource }}
-      sharedCookiesEnabled
-      thirdPartyCookiesEnabled
-      javaScriptEnabled
-      domStorageEnabled
-      startInLoadingState
-      pullToRefreshEnabled
-      mixedContentMode="always"
-      cacheEnabled
-      allowsBackForwardNavigationGestures
-      originWhitelist={['*']}
-      injectedJavaScriptBeforeContentLoaded={hideFooterScript}
-      onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-      onNavigationStateChange={handleNavigationStateChange}
-      onError={handleError}
-      onHttpError={handleHttpError}
-      onFileDownload={handleFileDownload}
-      onLoadStart={(event) => console.log('WEBVIEW LOAD START', event.nativeEvent.url)}
-      onLoadEnd={(event) => {
-        const url = event.nativeEvent.url;
-        console.log('WEBVIEW LOAD END', url);
-        // Hide footer as before
-        setTimeout(() => {
-          injectJavaScript(hideFooterScript);
-        }, 100);
-        // Clear pendingUrl after navigation to home page
-        if (pendingUrl && url.includes('/home')) {
-          clearPendingUrl();
-        }
+
+      source={{
+        uri: webViewSource,
       }}
-      renderLoading={() => <ActivityIndicator size="large" style={{ flex: 1 }} />}
-      style={{ flex: 1, backgroundColor: '#fff' }}
+
+      sharedCookiesEnabled={true}
+
+      thirdPartyCookiesEnabled={true}
+
+      javaScriptEnabled={true}
+
+      domStorageEnabled={true}
+
+      startInLoadingState={true}
+
+      pullToRefreshEnabled={true}
+
+      mixedContentMode="always"
+
+      cacheEnabled={true}
+
+      allowsBackForwardNavigationGestures={
+        true
+      }
+
+      originWhitelist={['*']}
+
+      injectedJavaScriptBeforeContentLoaded={
+        hideFooterScript
+      }
+
+      onShouldStartLoadWithRequest={
+        onShouldStartLoadWithRequest
+      }
+
+      onNavigationStateChange={
+        handleNavigationStateChange
+      }
+
+      onError={
+        handleError
+      }
+
+      onHttpError={
+        handleHttpError
+      }
+
+      onFileDownload={
+        handleFileDownload
+      }
+
+      onLoadStart={
+        event => {
+          const url =
+            event.nativeEvent.url;
+
+          console.log(
+            '======================================'
+          );
+
+          console.log(
+            'WEBVIEW LOAD START:',
+            url.replace(
+              /token=[^&]+/,
+              'token=[REDACTED]'
+            )
+          );
+
+          console.log(
+            'PENDING URL:',
+            pendingUrl
+              ? pendingUrl.replace(
+                  /token=[^&]+/,
+                  'token=[REDACTED]'
+                )
+              : 'NONE'
+          );
+
+          console.log(
+            '======================================'
+          );
+        }
+      }
+
+      onLoadEnd={
+        event => {
+          const url =
+            event.nativeEvent.url;
+
+          console.log(
+            'WEBVIEW LOAD END:',
+            url
+          );
+
+          setTimeout(() => {
+            injectJavaScript(
+              hideFooterScript
+            );
+          }, 100);
+
+          // ==================================================
+          // SESSION SUCCESS
+          // ==================================================
+
+          if (
+            pendingUrl &&
+            pendingUrl.includes(
+              '/api/auth/mobile-webview-session'
+            ) &&
+            url.includes('/home')
+          ) {
+            console.log(
+              '======================================'
+            );
+
+            console.log(
+              'WEBVIEW SESSION ESTABLISHED'
+            );
+
+            console.log(
+              'AUTHENTICATED HOME LOADED'
+            );
+
+            console.log(
+              '======================================'
+            );
+
+            clearPendingUrl();
+
+            lastPendingUrl.current =
+              null;
+
+            dispatch(
+              setAuthenticated(true)
+            );
+          }
+
+          // ==================================================
+          // SESSION FAILURE
+          // ==================================================
+
+          if (
+            pendingUrl &&
+            pendingUrl.includes(
+              '/api/auth/mobile-webview-session'
+            ) &&
+            url.includes('/login')
+          ) {
+            console.log(
+              '======================================'
+            );
+
+            console.log(
+              'WEBVIEW SESSION HAND-OFF FAILED'
+            );
+
+            console.log(
+              'Session endpoint redirected to /login'
+            );
+
+            console.log(
+              '======================================'
+            );
+          }
+        }
+      }
+
+      renderLoading={() => (
+        <ActivityIndicator
+          size="large"
+          style={{
+            flex: 1,
+          }}
+        />
+      )}
+
+      style={{
+        flex: 1,
+        backgroundColor: '#fff',
+      }}
     />
   );
 };
