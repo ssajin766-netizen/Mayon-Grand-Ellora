@@ -475,6 +475,14 @@ The OTP is verified only once.
 // ==================================================
 // TEMPORARY REGISTRATION TOKENS
 // ==================================================
+
+const mobileRegistrationTokens =
+    new Map();
+
+const mobileOtpVerificationCache =
+    new Map();
+
+
 //
 // A new phone is verified first.
 // We then issue a short-lived registration token.
@@ -487,8 +495,179 @@ The OTP is verified only once.
 // TTL: 15 minutes
 //
 
-const mobileRegistrationTokens =
+
+
+/*
+==================================================
+MOBILE OTP DUPLICATE PROTECTION
+==================================================
+
+Prevents the same phone + OTP from being sent to
+Twilio more than once.
+
+This protects against:
+- double tapping Verify OTP
+- React Native duplicate requests
+- network retry
+- accidental duplicate API calls
+
+TTL:
+5 minutes
+==================================================
+*/
+
+
+
+
+/*
+==================================================
+OTP VERIFICATION IN-FLIGHT REQUESTS
+==================================================
+
+If two requests arrive at exactly the same time,
+the second request waits for the first Twilio
+verification instead of calling Twilio again.
+==================================================
+*/
+
+const mobileOtpVerificationInFlight =
     new Map();
+
+
+function getMobileOtpVerificationKey(
+    phoneNumber,
+    otp
+) {
+
+    return `${phoneNumber}:${otp}`;
+
+}
+
+
+/*
+==================================================
+GET CACHED OTP VERIFICATION
+==================================================
+*/
+
+function getCachedMobileOtpVerification(
+    phoneNumber,
+    otp
+) {
+
+    const key =
+        getMobileOtpVerificationKey(
+            phoneNumber,
+            otp
+        );
+
+
+    const entry =
+        mobileOtpVerificationCache.get(
+            key
+        );
+
+
+    if (!entry) {
+
+        return null;
+
+    }
+
+
+    if (
+        Date.now() >
+        entry.expiresAt
+    ) {
+
+        mobileOtpVerificationCache.delete(
+            key
+        );
+
+        return null;
+
+    }
+
+
+    return entry;
+
+}
+
+
+/*
+==================================================
+SAVE OTP VERIFICATION RESULT
+==================================================
+*/
+
+function saveMobileOtpVerification(
+    phoneNumber,
+    otp,
+    response
+) {
+
+    const key =
+        getMobileOtpVerificationKey(
+            phoneNumber,
+            otp
+        );
+
+
+    const expiresAt =
+        Date.now() +
+        5 * 60 * 1000;
+
+
+    mobileOtpVerificationCache.set(
+
+        key,
+
+        {
+
+            response,
+
+            expiresAt,
+
+        }
+
+    );
+
+
+    /*
+    ----------------------------------------------
+    AUTOMATIC CLEANUP
+    ----------------------------------------------
+    */
+
+    setTimeout(
+
+        () => {
+
+            const current =
+                mobileOtpVerificationCache.get(
+                    key
+                );
+
+
+            if (
+                current &&
+                current.expiresAt <=
+                    Date.now()
+            ) {
+
+                mobileOtpVerificationCache.delete(
+                    key
+                );
+
+            }
+
+        },
+
+        5 * 60 * 1000
+
+    );
+
+}    
 
 
 function generateRegistrationToken(
@@ -1049,17 +1228,198 @@ exports.verifyOtpApi =
             }
 
 
-            /*
-            --------------------------------------
-            VERIFY TWILIO OTP
-            --------------------------------------
-            */
+           /*
+==================================================
+VERIFY TWILIO OTP
+==================================================
+*/
 
-            const result =
-                await checkVerification(
-                    phoneNumber,
-                    otp
-                );
+
+/*
+--------------------------------------------------
+1. CHECK FOR ALREADY VERIFIED OTP
+--------------------------------------------------
+*/
+
+const cachedVerification =
+    getCachedMobileOtpVerification(
+        phoneNumber,
+        otp
+    );
+
+
+if (
+    cachedVerification
+) {
+
+    console.log(
+        '================================'
+    );
+
+    console.log(
+        'DUPLICATE OTP VERIFICATION'
+    );
+
+    console.log(
+        'Phone:',
+        phoneNumber
+    );
+
+    console.log(
+        'OTP already verified'
+    );
+
+    console.log(
+        'Returning cached response'
+    );
+
+    console.log(
+        '================================'
+    );
+
+
+    return res.json(
+        cachedVerification.response
+    );
+
+}
+
+
+/*
+--------------------------------------------------
+2. CREATE UNIQUE REQUEST KEY
+--------------------------------------------------
+*/
+
+const verificationKey =
+    getMobileOtpVerificationKey(
+        phoneNumber,
+        otp
+    );
+
+
+/*
+--------------------------------------------------
+3. CHECK IF SAME VERIFICATION IS ALREADY RUNNING
+--------------------------------------------------
+*/
+
+const existingVerification =
+    mobileOtpVerificationInFlight.get(
+        verificationKey
+    );
+
+
+if (
+    existingVerification
+) {
+
+    console.log(
+        '================================'
+    );
+
+    console.log(
+        'DUPLICATE OTP REQUEST'
+    );
+
+    console.log(
+        'Verification already in progress'
+    );
+
+    console.log(
+        'Waiting for first request'
+    );
+
+    console.log(
+        '================================'
+    );
+
+
+    const result =
+        await existingVerification;
+
+
+    if (
+        result.status !==
+        'approved'
+    ) {
+
+        return res.status(401).json({
+
+            success: false,
+
+            message:
+                'Invalid or expired OTP.'
+
+        });
+
+    }
+
+}
+
+
+/*
+--------------------------------------------------
+4. FIRST VERIFICATION REQUEST
+--------------------------------------------------
+*/
+
+let result;
+
+
+/*
+--------------------------------------------------
+Create shared Twilio promise
+--------------------------------------------------
+*/
+
+if (
+    !mobileOtpVerificationInFlight.has(
+        verificationKey
+    )
+) {
+
+    const verificationPromise =
+        checkVerification(
+            phoneNumber,
+            otp
+        );
+
+
+    mobileOtpVerificationInFlight.set(
+
+        verificationKey,
+
+        verificationPromise
+
+    );
+
+
+    try {
+
+        result =
+            await verificationPromise;
+
+    }
+
+    finally {
+
+        mobileOtpVerificationInFlight.delete(
+            verificationKey
+        );
+
+    }
+
+}
+
+else {
+
+    result =
+        await mobileOtpVerificationInFlight.get(
+            verificationKey
+        );
+
+}
 
 
             if (
@@ -1090,38 +1450,77 @@ exports.verifyOtpApi =
                     phoneNumber
                 });
 
+/*
+==================================================
+NEW USER
+==================================================
+*/
 
-            /*
-            ======================================
-            NEW USER
-            ======================================
-            */
+if (!user) {
 
-            if (!user) {
+    /*
+    ----------------------------------------------
+    CREATE REGISTRATION TOKEN
+    ----------------------------------------------
+    */
 
-                const registrationToken =
-                    generateRegistrationToken(
-                        phoneNumber
-                    );
+    const registrationToken =
+        generateRegistrationToken(
+            phoneNumber
+        );
 
 
-                return res.json({
+    /*
+    ----------------------------------------------
+    CREATE RESPONSE
+    ----------------------------------------------
+    */
 
-                    success: true,
+    const response = {
 
-                    registrationRequired:
-                        true,
+        success: true,
 
-                    registrationToken,
+        registrationRequired:
+            true,
 
-                    phoneNumber,
+        registrationToken,
 
-                    message:
-                        'Phone verified. Please complete your registration.'
+        phoneNumber,
 
-                });
+        message:
+            'Phone verified. Please complete your registration.'
 
-            }
+    };
+
+
+    /*
+    ----------------------------------------------
+    CACHE SUCCESSFUL VERIFICATION
+    ----------------------------------------------
+    */
+
+    saveMobileOtpVerification(
+
+        phoneNumber,
+
+        otp,
+
+        response
+
+    );
+
+
+    /*
+    ----------------------------------------------
+    RETURN RESPONSE
+    ----------------------------------------------
+    */
+
+    return res.json(
+        response
+    );
+
+}
 
 
             /*
@@ -1232,50 +1631,84 @@ exports.verifyOtpApi =
                 );
 
 
-            return res.json({
+            /*
+==================================================
+EXISTING APPROVED USER RESPONSE
+==================================================
+*/
 
-                success: true,
+const response = {
 
-                registrationRequired:
-                    false,
+    success: true,
 
-                message:
-                    'Verification successful.',
+    registrationRequired:
+        false,
 
-                token,
+    message:
+        'Verification successful.',
 
-                user: {
+    token,
 
-                    id:
-                        user._id,
+    user: {
 
-                    username:
-                        user.username,
+        id:
+            user._id,
 
-                    firstName:
-                        user.firstName,
+        username:
+            user.username,
 
-                    lastName:
-                        user.lastName,
+        firstName:
+            user.firstName,
 
-                    phoneNumber:
-                        user.phoneNumber,
+        lastName:
+            user.lastName,
 
-                    societyName:
-                        user.societyName,
+        phoneNumber:
+            user.phoneNumber,
 
-                    flatNumber:
-                        user.flatNumber,
+        societyName:
+            user.societyName,
 
-                    validation:
-                        user.validation,
+        flatNumber:
+            user.flatNumber,
 
-                    isAdmin:
-                        user.isAdmin
+        validation:
+            user.validation,
 
-                }
+        isAdmin:
+            user.isAdmin
 
-            });
+    }
+
+};
+
+
+/*
+--------------------------------------------------
+CACHE SUCCESSFUL LOGIN
+--------------------------------------------------
+*/
+
+saveMobileOtpVerification(
+
+    phoneNumber,
+
+    otp,
+
+    response
+
+);
+
+
+/*
+--------------------------------------------------
+RETURN RESPONSE
+--------------------------------------------------
+*/
+
+return res.json(
+    response
+);
 
         }
 
