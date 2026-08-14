@@ -1,5 +1,3 @@
-// src/navigation/AuthNavigator.tsx
-
 import React from 'react';
 
 import {
@@ -16,6 +14,10 @@ import RegisterDetailsScreen
   from '../screens/auth/RegisterDetailsScreen';
 
 
+// ==================================================
+// AUTH STACK PARAM LIST
+// ==================================================
+
 export type AuthStackParamList = {
 
   PhoneLogin:
@@ -29,39 +31,83 @@ export type AuthStackParamList = {
   RegisterDetails:
     {
       phone: string;
+
       registrationToken: string;
     };
 
 };
 
 
-const Stack =
-  createNativeStackNavigator<AuthStackParamList>();
+// ==================================================
+// STACK
+// ==================================================
 
+const Stack =
+  createNativeStackNavigator<
+    AuthStackParamList
+  >();
+
+
+// ==================================================
+// AUTH NAVIGATOR
+// ==================================================
 
 export default function AuthNavigator() {
 
   return (
 
     <Stack.Navigator
+
+      initialRouteName="PhoneLogin"
+
       screenOptions={{
         headerShown: false,
       }}
+
     >
 
+      {/* ==========================================
+          PHONE LOGIN
+      ========================================== */}
+
       <Stack.Screen
+
         name="PhoneLogin"
-        component={PhoneLoginScreen}
+
+        component={
+          PhoneLoginScreen
+        }
+
       />
 
+
+      {/* ==========================================
+          PHONE OTP
+      ========================================== */}
+
       <Stack.Screen
+
         name="PhoneOtp"
-        component={PhoneOtpScreen}
+
+        component={
+          PhoneOtpScreen
+        }
+
       />
 
+
+      {/* ==========================================
+          NEW USER REGISTRATION
+      ========================================== */}
+
       <Stack.Screen
+
         name="RegisterDetails"
-        component={RegisterDetailsScreen}
+
+        component={
+          RegisterDetailsScreen
+        }
+
       />
 
     </Stack.Navigator>
