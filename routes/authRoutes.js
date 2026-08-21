@@ -8,6 +8,7 @@ const society_collection = require("../models/societyModel");
 
 const otpController = require("../controllers/otpController");
 const webViewTokenController = require("../controllers/webViewTokenController");
+const mobileAuthController = require("../controllers/mobileAuthController");
 const forgotPasswordController = require("../controllers/forgotPasswordController");
 
 const sendMail = require("../services/sendMail");
@@ -487,6 +488,56 @@ router.get("/logout",(req,res)=>{
 
     });
 
+});
+
+// ==================================================
+// MOBILE / APP AUTH SESSION CHECK
+// ==================================================
+
+router.get("/auth/me", async (req, res) => {
+    try {
+
+        if (
+            !req.isAuthenticated ||
+            !req.isAuthenticated() ||
+            !req.user
+        ) {
+            return res.status(401).json({
+                success: false,
+                authenticated: false,
+                user: null
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            authenticated: true,
+            user: {
+                id: req.user._id,
+                email: req.user.email,
+                username: req.user.username,
+                phoneNumber: req.user.phoneNumber,
+                firstName: req.user.firstName,
+                lastName: req.user.lastName,
+                societyName: req.user.societyName,
+                flatNumber: req.user.flatNumber,
+                validation: req.user.validation
+            }
+        });
+
+    } catch (error) {
+
+        console.error(
+            "AUTH ME ERROR:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            authenticated: false,
+            message: "Unable to check authentication"
+        });
+    }
 });
 
 /*
@@ -1033,6 +1084,25 @@ router.post("/newRequest", async (req, res) => {
 router.get(
     "/api/auth/mobile-webview-session",
     webViewTokenController.mobileWebViewSession
+);
+
+// ==================================================
+// CREATE MOBILE WEBVIEW RESTORE TICKET
+// ==================================================
+
+router.post(
+    "/api/auth/mobile-webview-restore-ticket",
+    mobileAuthController.createMobileWebViewRestoreTicket
+);
+
+
+// ==================================================
+// CONSUME WEBVIEW RESTORE TICKET
+// ==================================================
+
+router.get(
+    "/api/auth/mobile-webview-restore",
+    mobileAuthController.mobileWebViewRestore
 );
 
 

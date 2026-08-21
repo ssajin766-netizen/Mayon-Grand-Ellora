@@ -8,22 +8,54 @@ const { sendOtpToUser } = require("../services/otpService");
 
 // In‑memory map for one‑time WebView tokens (60 s TTL)
 const crypto = require('crypto');
-const webViewTokens = new Map();
-function generateWebViewToken(userId) {
-  const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = Date.now() + 60 * 1000;
-  webViewTokens.set(token, { userId, expiresAt });
-  setTimeout(() => webViewTokens.delete(token), 60 * 1000);
-  return token;
+// ==================================================
+// PRODUCTION MOBILE WEBVIEW TOKENS
+// ==================================================
+
+const MobileWebViewToken = require(
+    "../models/mobileWebViewTokenModel"
+);
+
+// Token lifetime
+const WEBVIEW_TOKEN_TTL_MS = 5 * 60 * 1000;
+
+const {
+    generateMobileAuthToken,
+} = require("./mobileAuthController");
+
+
+// ==================================================
+// CREATE WEBVIEW SESSION TOKEN
+// ==================================================
+
+async function generateWebViewToken(userId) {
+
+    const rawToken =
+        crypto.randomBytes(32).toString("hex");
+
+    const tokenHash =
+        crypto
+            .createHash("sha256")
+            .update(rawToken)
+            .digest("hex");
+
+    const expiresAt =
+        new Date(
+            Date.now() +
+            WEBVIEW_TOKEN_TTL_MS
+        );
+
+    await MobileWebViewToken.create({
+        tokenHash,
+        userId,
+        expiresAt,
+    });
+
+    return rawToken;
 }
-function validateWebViewToken(token) {
-  const entry = webViewTokens.get(token);
-  if (!entry) return null;
-  if (Date.now() > entry.expiresAt) { webViewTokens.delete(token); return null; }
-  webViewTokens.delete(token);
-  return entry.userId;
-}
-exports.validateWebViewToken = validateWebViewToken;
+
+exports.generateWebViewToken =
+    generateWebViewToken;
 
 /*
 --------------------------------------------------
@@ -250,7 +282,7 @@ exports.verifyOTP = async (req, res) => {
 
         }
 
-        
+
 
 /*
 ------------------------------------------
@@ -667,7 +699,7 @@ function saveMobileOtpVerification(
 
     );
 
-}    
+}
 
 
 function generateRegistrationToken(
@@ -1626,9 +1658,14 @@ if (!user) {
             */
 
             const token =
-                generateWebViewToken(
-                    user._id.toString()
-                );
+                 await generateWebViewToken(
+                     user._id.toString()
+                 );
+
+            const mobileAuthToken =
+                  await generateMobileAuthToken(
+                     user._id.toString()
+               );
 
 
             /*
@@ -1648,6 +1685,8 @@ const response = {
         'Verification successful.',
 
     token,
+
+    mobileAuthToken,
 
     user: {
 

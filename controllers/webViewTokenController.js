@@ -1,8 +1,11 @@
-const { User } = require("../models/userModel");
+const crypto = require("crypto");
 
-const {
-    validateWebViewToken,
-} = require("./phoneOtpController");
+const { User } =
+    require("../models/userModel");
+
+const MobileWebViewToken =
+    require("../models/mobileWebViewTokenModel");
+
 
 // ==================================================
 // MOBILE WEBVIEW SESSION
@@ -12,18 +15,15 @@ exports.mobileWebViewSession = async (
     req,
     res
 ) => {
+
     try {
+
         console.log(
             "========================================"
         );
 
         console.log(
             "MOBILE WEBVIEW SESSION REQUEST"
-        );
-
-        console.log(
-            "SESSION:",
-            req.sessionID
         );
 
         console.log(
@@ -35,54 +35,93 @@ exports.mobileWebViewSession = async (
             "========================================"
         );
 
+
         // ==================================================
-        // TOKEN
+        // GET TOKEN
         // ==================================================
 
         const token =
-            req.query.token;
+            String(
+                req.query.token || ""
+            ).trim();
+
 
         if (!token) {
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message:
-                        "Token missing",
-                });
-        }
 
-        // ==================================================
-        // VALIDATE TOKEN
-        // ==================================================
-
-        const userId =
-            validateWebViewToken(
-                token
-            );
-
-        if (!userId) {
             console.error(
-                "WebView token invalid or expired"
+                "WEBVIEW TOKEN MISSING"
             );
 
-            return res
-                .status(401)
-                .json({
-                    success: false,
-                    message:
-                        "Invalid or expired token",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Token missing",
+            });
         }
 
-        console.log(
-            "WEBVIEW TOKEN VALID"
-        );
 
-        console.log(
-            "USER ID:",
-            userId
-        );
+        // ==================================================
+        // HASH TOKEN
+        // ==================================================
+
+        const tokenHash =
+            crypto
+                .createHash("sha256")
+                .update(token)
+                .digest("hex");
+
+
+        // ==================================================
+        // ATOMIC TOKEN CONSUMPTION
+        // ==================================================
+        //
+        // Only one request can consume this token.
+        //
+        // This prevents:
+        //
+        // - replay attacks
+        // - duplicate WebView requests
+        // - race conditions
+        //
+        // ==================================================
+
+        const tokenRecord =
+            await MobileWebViewToken.findOneAndUpdate(
+
+                {
+                    tokenHash,
+
+                    expiresAt: {
+                        $gt: new Date(),
+                    },
+
+                    usedAt: null,
+                },
+
+                {
+                    $set: {
+                        usedAt: new Date(),
+                    },
+                },
+
+                {
+                    new: true,
+                }
+            );
+
+
+        if (!tokenRecord) {
+
+            console.error(
+                "WEBVIEW TOKEN INVALID, EXPIRED OR ALREADY USED"
+            );
+
+            return res.status(401).json({
+                success: false,
+                message:
+                    "Invalid or expired token",
+            });
+        }
+
 
         // ==================================================
         // FIND USER
@@ -90,89 +129,89 @@ exports.mobileWebViewSession = async (
 
         const user =
             await User.findById(
-                userId
+                tokenRecord.userId
             );
+
 
         if (!user) {
+
             console.error(
-                "WebView user not found:",
-                userId
+                "WEBVIEW USER NOT FOUND"
             );
 
-            return res
-                .status(404)
-                .json({
-                    success: false,
-                    message:
-                        "User not found",
-                });
+            return res.status(404).json({
+                success: false,
+                message:
+                    "User not found",
+            });
         }
 
-        console.log(
-            "WEBVIEW USER:",
-            user.username ||
-            user.email ||
-            user.phoneNumber
-        );
 
         // ==================================================
-        // PASSPORT LOGIN
+        // SECURITY CHECK
+        // ==================================================
+
+        if (
+            user.validation !==
+            "approved"
+        ) {
+
+            console.error(
+                "WEBVIEW USER NOT APPROVED"
+            );
+
+            return res.status(403).json({
+                success: false,
+                message:
+                    "User account is not approved",
+            });
+        }
+
+
+        // ==================================================
+        // LOGIN USER
         // ==================================================
 
         req.login(
             user,
-            loginErr => {
+            async loginErr => {
+
                 if (loginErr) {
+
                     console.error(
-                        "Passport login error:",
+                        "PASSPORT LOGIN ERROR:",
                         loginErr
                     );
 
-                    return res
-                        .status(500)
-                        .json({
-                            success: false,
-                            message:
-                                "Unable to create login session",
-                        });
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            "Unable to create login session",
+                    });
                 }
 
-                console.log(
-                    "PASSPORT LOGIN SUCCESS"
-                );
-
-                console.log(
-                    "AUTH:",
-                    req.isAuthenticated()
-                );
-
-                console.log(
-                    "USER:",
-                    req.user?.username ||
-                    req.user?.email ||
-                    req.user?.phoneNumber
-                );
 
                 // ==================================================
-                // FORCE SESSION SAVE
+                // SAVE SESSION
                 // ==================================================
 
                 req.session.save(
                     saveErr => {
+
                         if (saveErr) {
+
                             console.error(
-                                "Session save error:",
+                                "SESSION SAVE ERROR:",
                                 saveErr
                             );
 
-                            return res
-                                .status(500)
-                                .json({
-                                    success: false,
-                                    message:
-                                        "Unable to save login session",
-                                });
+                            return res.status(500).json({
+                                success: false,
+                                message:
+                                    "Unable to save login session",
+                            });
                         }
+
 
                         console.log(
                             "========================================"
@@ -183,23 +222,18 @@ exports.mobileWebViewSession = async (
                         );
 
                         console.log(
-                            "SESSION:",
-                            req.sessionID
-                        );
-
-                        console.log(
                             "AUTH:",
                             req.isAuthenticated()
                         );
 
                         console.log(
-                            "COOKIE:",
-                            req.session.cookie
+                            "USER AUTHENTICATED"
                         );
 
                         console.log(
                             "========================================"
                         );
+
 
                         // ==================================================
                         // REDIRECT
@@ -214,18 +248,19 @@ exports.mobileWebViewSession = async (
             }
         );
 
-    } catch (error) {
+    }
+
+    catch (error) {
+
         console.error(
-            "mobileWebViewSession error:",
+            "MOBILE WEBVIEW SESSION ERROR:",
             error
         );
 
-        return res
-            .status(500)
-            .json({
-                success: false,
-                message:
-                    "Unable to establish WebView session",
-            });
+        return res.status(500).json({
+            success: false,
+            message:
+                "Unable to establish WebView session",
+        });
     }
 };
