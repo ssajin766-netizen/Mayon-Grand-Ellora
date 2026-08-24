@@ -30,6 +30,10 @@ import {
 } from '../services/authPersistence';
 
 import {
+  clearMobileAuthToken,
+} from '../services/mobileAuthToken';
+
+import {
   useWebView,
 } from '../context/WebViewContext';
 
@@ -46,7 +50,6 @@ const WebViewComponent: React.FC = () => {
   const {
     setWebViewRef,
     setCurrentPath,
-    clearSession,
     injectJavaScript,
     pendingUrl,
     clearPendingUrl,
@@ -1163,7 +1166,10 @@ const paymentData =
     },
     [
       startNativePayment,
-      verifyNativePayment
+      verifyNativePayment,
+      clearPendingUrl,
+      dispatch,
+      clearAuthState
     ]
   );
 
@@ -1353,122 +1359,195 @@ const paymentData =
 
 if (
   path === '/logout' ||
+  path.startsWith('/logout?') ||
   url.includes('/logout?')
 ) {
 
-  // Prevent duplicate logout handling
+  // IMPORTANT:
+  // Do NOT clear Redux/auth persistence here.
+  //
+  // /logout has only STARTED at this point.
+  // The WebView must remain mounted so Express can complete:
+  //
+  //   req.logout()
+  //   req.session.destroy()
+  //   clearCookie()
+  //   redirect('/login?loggedOut=1')
+  //
+  // Native authentication is cleared only after the
+  // WebView reaches the login page.
+
+  if (!logoutInProgressRef.current) {
+
+    logoutInProgressRef.current = true;
+
+    mobileSessionHandoffRef.current = null;
+
+    mobileSessionEstablishedRef.current = false;
+
+    console.log(
+      '======================================'
+    );
+
+    console.log(
+      'WEBVIEW LOGOUT REQUEST STARTED'
+    );
+
+    console.log(
+      'WAITING FOR SERVER LOGOUT TO COMPLETE'
+    );
+
+    console.log(
+      '======================================'
+    );
+  }
+
+  // IMPORTANT:
+  // Allow /logout to continue to Express.
+  return;
+}
+
+
+// ==================================================
+// LOGIN PAGE / LOGOUT CONFIRMATION
+// ==================================================
+
+const isLoginPage =
+  path === '/login' ||
+  path.startsWith('/login?');
+
+if (isLoginPage) {
+
+  console.log(
+    'WEBVIEW REACHED LOGIN'
+  );
+
+  // ==================================================
+  // SERVER LOGOUT COMPLETED
+  // ==================================================
+
   if (logoutInProgressRef.current) {
 
     console.log(
-      'LOGOUT ALREADY IN PROGRESS'
+      '======================================'
     );
 
-    return false;
+    console.log(
+      'SERVER LOGOUT CONFIRMED'
+    );
+
+    console.log(
+      'CLEARING NATIVE AUTHENTICATION'
+    );
+
+    console.log(
+      '======================================'
+    );
+
+
+    // ------------------------------------------------
+    // CLEAR ASYNC STORAGE AUTH
+    // ------------------------------------------------
+
+    try {
+
+      await clearAuthState();
+
+      console.log(
+        'PERSISTED AUTH STATE CLEARED'
+      );
+
+    } catch (error) {
+
+      console.error(
+        'FAILED TO CLEAR PERSISTED AUTH:',
+        error
+      );
+
+    }
+
+
+    // ------------------------------------------------
+    // CLEAR SECURESTORE MOBILE TOKEN
+    // ------------------------------------------------
+
+    try {
+
+      await clearMobileAuthToken();
+
+      console.log(
+        'MOBILE AUTH TOKEN CLEARED'
+      );
+
+    } catch (error) {
+
+      console.error(
+        'FAILED TO CLEAR MOBILE AUTH TOKEN:',
+        error
+      );
+
+    }
+
+
+    // ------------------------------------------------
+    // CLEAR REDUX AUTH STATE
+    // ------------------------------------------------
+
+    dispatch(
+      logout()
+    );
+
+    console.log(
+      'MOBILE AUTH STATE CLEARED'
+    );
+
+
+    // ------------------------------------------------
+    // RESET MOBILE SESSION STATE
+    // ------------------------------------------------
+
+    logoutInProgressRef.current = false;
+
+    mobileSessionHandoffRef.current = null;
+
+    mobileSessionEstablishedRef.current = false;
+
+
+    console.log(
+      '======================================'
+    );
+
+    console.log(
+      'SWITCHING FROM MAINSTACK TO AUTHSTACK'
+    );
+
+    console.log(
+      '======================================'
+    );
+
+    return;
   }
 
-  logoutInProgressRef.current = true;
 
-  mobileSessionHandoffRef.current = null;
-  mobileSessionEstablishedRef.current = false;
+  // ==================================================
+  // NORMAL LOGIN PAGE
+  // ==================================================
 
-  console.log(
-    '======================================'
-  );
+  if (
+    mobileSessionHandoffRef.current
+  ) {
 
-  console.log(
-    'WEBVIEW LOGOUT DETECTED'
-  );
+    console.log(
+      'WARNING: MOBILE SESSION HAND-OFF RETURNED TO LOGIN'
+    );
 
-  console.log(
-    'CLEARING WEBVIEW SESSION'
-  );
+    mobileSessionHandoffRef.current = null;
 
-  console.log(
-    '======================================'
-  );
+    mobileSessionEstablishedRef.current = false;
+  }
 
-
-  // ------------------------------------------------
-  // CLEAR WEBVIEW SESSION
-  // ------------------------------------------------
-
- try {
-  await clearSession();
-} catch (error) {
-  console.log('clearSession error:', error);
+  return;
 }
-
-try {
-  await clearAuthState();
-
-  console.log(
-    'PERSISTED MOBILE AUTH CLEARED'
-  );
-} catch (error) {
-  console.error(
-    'FAILED TO CLEAR PERSISTED AUTH:',
-    error
-  );
-}
-
-dispatch(
-  logout()
-);
-
-
-  console.log(
-    'MOBILE AUTH STATE CLEARED'
-  );
-
-  console.log(
-    'SWITCHING FROM MAINSTACK TO AUTHSTACK'
-  );
-
-
-  // IMPORTANT:
-  //
-  // DO NOT call:
-  //
-  // navigation.reset(...)
-  //
-  // DO NOT call:
-  //
-  // navigation.navigate('PhoneLogin')
-  //
-  // DO NOT call:
-  //
-  // navigation.replace('PhoneLogin')
-  //
-  // App.tsx automatically switches from
-  // MainStack to AuthStack when Redux
-  // authentication becomes false.
-
-
-  return false;
-}
-
-      // ==================================================
-      // LOGIN PAGE
-      // ==================================================
-
-      if (
-        path === '/login'
-      ) {
-        console.log(
-          'WEBVIEW REACHED LOGIN'
-        );
-
-        if (mobileSessionHandoffRef.current) {
-          console.log(
-            'WARNING: MOBILE SESSION HAND-OFF RETURNED TO LOGIN'
-          );
-
-          mobileSessionHandoffRef.current = null;
-          mobileSessionEstablishedRef.current = false;
-        }
-
-        return;
-      }
 
       // ==================================================
       // PROTECTED PAGES
@@ -1594,6 +1673,33 @@ const handleError =
 
       mobileSessionHandoffRef.current = null;
       mobileSessionEstablishedRef.current = false;
+
+      // Never keep a failed/consumed one-time hand-off URL as pending.
+      // Otherwise React can recreate the same token URL and retry it.
+      clearPendingUrl();
+
+      // The session cookie may already have been created before a
+      // connection reset. Retry the normal protected page without
+      // replaying the one-time token.
+      setTimeout(() => {
+        if (!webViewRef.current) {
+          return;
+        }
+
+        const homeUrl = `${HOME_URL}/home`;
+
+        console.log(
+          'WEBVIEW HAND-OFF RECOVERY -> /home'
+        );
+
+        webViewRef.current.injectJavaScript(`
+          window.location.replace(
+            ${JSON.stringify(homeUrl)}
+          );
+
+          true;
+        `);
+      }, 500);
 
       return;
     }

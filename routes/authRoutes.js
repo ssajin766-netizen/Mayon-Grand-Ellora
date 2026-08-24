@@ -9,6 +9,7 @@ const society_collection = require("../models/societyModel");
 const otpController = require("../controllers/otpController");
 const webViewTokenController = require("../controllers/webViewTokenController");
 const mobileAuthController = require("../controllers/mobileAuthController");
+const MobileAuthToken = require("../models/mobileAuthTokenModel");
 const forgotPasswordController = require("../controllers/forgotPasswordController");
 
 const sendMail = require("../services/sendMail");
@@ -468,107 +469,222 @@ await user.save();
 
 });
 
-/*
---------------------------------------------------
-LOGOUT
---------------------------------------------------
-*/
-
-router.get("/logout",(req,res)=>{
-
-    req.logout(()=>{
-
-        req.session.destroy(()=>{
-
-            res.clearCookie("connect.sid");
-
-            res.redirect("/");
-
-        });
-
-    });
-
-});
-
 // ==================================================
-// MOBILE / APP AUTH SESSION CHECK
+// LOGOUT
 // ==================================================
 
-router.get("/auth/me", async (req, res) => {
+router.get("/logout", async (req, res, next) => {
+
+    console.log("========================================");
+    console.log("WEB LOGOUT REQUEST");
+    console.log(
+        "AUTHENTICATED:",
+        typeof req.isAuthenticated === "function"
+            ? req.isAuthenticated()
+            : false
+    );
+    console.log(
+        "USER:",
+        req.user?.username || "NONE"
+    );
+    console.log("========================================");
+
+    // Keep the user ID before Passport clears req.user.
+    const userId = req.user?._id || null;
+
     try {
 
+        // ==================================================
+        // 1. PASSPORT LOGOUT
+        // ==================================================
+
         if (
-            !req.isAuthenticated ||
-            !req.isAuthenticated() ||
-            !req.user
+            typeof req.logout === "function" &&
+            req.isAuthenticated &&
+            req.isAuthenticated()
         ) {
-            return res.status(401).json({
-                success: false,
-                authenticated: false,
-                user: null
+
+            await new Promise((resolve, reject) => {
+
+                req.logout((err) => {
+
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+
+                    resolve();
+                });
+
             });
+
         }
 
-        return res.status(200).json({
-            success: true,
-            authenticated: true,
-            user: {
-                id: req.user._id,
-                email: req.user.email,
-                username: req.user.username,
-                phoneNumber: req.user.phoneNumber,
-                firstName: req.user.firstName,
-                lastName: req.user.lastName,
-                societyName: req.user.societyName,
-                flatNumber: req.user.flatNumber,
-                validation: req.user.validation
+
+        // ==================================================
+        // 2. REVOKE MOBILE AUTH TOKENS
+        // ==================================================
+        //
+        // Website logout also invalidates the persistent
+        // mobile authentication token.
+        //
+        // This prevents the mobile app from silently
+        // restoring the account after website logout.
+        //
+
+        if (userId) {
+
+            try {
+
+                const result =
+                    await MobileAuthToken.updateMany(
+
+                        {
+                            userId,
+                            revokedAt: null,
+                        },
+
+                        {
+                            $set: {
+                                revokedAt: new Date(),
+                            },
+                        }
+
+                    );
+
+                console.log(
+                    "MOBILE AUTH TOKENS REVOKED:",
+                    result.modifiedCount
+                );
+
+            } catch (tokenError) {
+
+                console.error(
+                    "MOBILE AUTH TOKEN REVOCATION ERROR:",
+                    tokenError
+                );
+
+                // Do not prevent website logout because
+                // of a mobile-token database failure.
             }
-        });
+
+        }
+
+
+        // ==================================================
+        // 3. DESTROY EXPRESS SESSION
+        // ==================================================
+
+        if (req.session) {
+
+            await new Promise((resolve) => {
+
+                req.session.destroy((sessionError) => {
+
+                    if (sessionError) {
+
+                        console.error(
+                            "SESSION DESTROY ERROR:",
+                            sessionError
+                        );
+
+                    } else {
+
+                        console.log(
+                            "SERVER SESSION DESTROYED"
+                        );
+
+                    }
+
+                    // Always continue with cookie cleanup.
+                    resolve();
+
+                });
+
+            });
+
+        }
+
+
+        // ==================================================
+        // 4. CLEAR SESSION COOKIE
+        // ==================================================
+
+        res.clearCookie(
+            "connect.sid",
+            {
+                path: "/",
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+            }
+        );
+
+
+        // ==================================================
+        // 5. LOGOUT COMPLETE
+        // ==================================================
+
+        console.log(
+            "========================================"
+        );
+
+        console.log(
+            "WEB LOGOUT COMPLETE"
+        );
+
+        console.log(
+            "SESSION COOKIE CLEARED"
+        );
+
+        console.log(
+            "REDIRECTING TO LOGIN"
+        );
+
+        console.log(
+            "========================================"
+        );
+
+
+        // ==================================================
+        // 6. DETERMINISTIC PUBLIC REDIRECT
+        // ==================================================
+
+        return res.redirect(
+            302,
+            "/login?loggedOut=1"
+        );
 
     } catch (error) {
 
         console.error(
-            "AUTH ME ERROR:",
+            "LOGOUT ERROR:",
             error
         );
 
-        return res.status(500).json({
-            success: false,
-            authenticated: false,
-            message: "Unable to check authentication"
-        });
+
+        // Even if Passport/session cleanup has an
+        // unexpected error, make sure the browser does
+        // not retain the old session cookie.
+
+        res.clearCookie(
+            "connect.sid",
+            {
+                path: "/",
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+            }
+        );
+
+
+        return res.redirect(
+            302,
+            "/login?loggedOut=1"
+        );
     }
+
 });
-
-/*
---------------------------------------------------
-GOOGLE LOGIN
---------------------------------------------------
-*/
-
-router.get(
-
-    "/auth/google",
-
-    passport.authenticate(
-
-        "google",
-
-        {
-
-            scope: [
-
-                "profile",
-
-                "email"
-
-            ]
-
-        }
-
-    )
-
-);
 
 /*
 --------------------------------------------------
