@@ -16,7 +16,9 @@
       "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/<your-project-id>"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.mayon.ellora",
@@ -34,7 +36,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      ["expo-notifications", {"icon": "./assets/icon.png", "color": "#ffffff"}]
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ffffff"
+        }
+      ],
+      "expo-secure-store",
+      "expo-font"
     ]
   }
 }
