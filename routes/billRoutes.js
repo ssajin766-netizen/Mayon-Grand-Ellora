@@ -25,135 +25,154 @@ router.get(
     async (req, res) => {
         try {
             const foundUser = await user_collection.User.findById(req.user.id);
-            const foundSociety = await society_collection.Society.findOne({societyName: foundUser.societyName});
+            const foundSociety = await society_collection.Society.findOne({
+                societyName: foundUser.societyName
+            });
+
             if (!foundSociety) {
-            return res.status(404).send("Society not found");
+                return res.status(404).send("Society not found");
             }
-            
+
             const dateToday = new Date();
+
             // Payment required for total number of months
             let totalMonth = 0;
+
             // If lastPayment doesn't exist
             let dateFrom = foundUser.createdAt;
+
+            // Track the payment made for the current billing period.
+            // This is separate from the internal calculation used to bring
+            // the current bill to zero after a successful payment.
+            let amountPaid = 0;
+
             // If lastPayment exists
-            if(foundUser.lastPayment.date){
+            if (foundUser.lastPayment?.date) {
                 dateFrom = foundUser.lastPayment.date;
-                totalMonth = date.monthDiff(dateFrom,dateToday);
+                totalMonth = date.monthDiff(dateFrom, dateToday);
+
+                // A payment made in the current month means the current
+                // month's maintenance has already been paid.
+                if (totalMonth === 0) {
+                    amountPaid = Number(foundUser.lastPayment.amount) || 0;
+                }
+            } else {
+                // Add an extra month, as users joining date month's payment is also pending
+                totalMonth = date.monthDiff(dateFrom, dateToday) + 1;
             }
-            else {
-                // Add an extra month, as users joining date month payment's also pending
-                totalMonth = date.monthDiff(dateFrom,dateToday) + 1;
-            }
-            
+
             // Calculate monthly bill of society maintenance
             const monthlyTotal = Object.values(foundSociety.maintenanceBill)
-                .filter(ele => typeof(ele)=='number')
-                .reduce((sum,ele) => sum+ele, 0);
-                
+                .filter(ele => typeof ele === "number")
+                .reduce((sum, ele) => sum + ele, 0);
+
             let credit = 0;
             let due = 0;
-            if(totalMonth==0){
-                // Calculate credit balance
+
+            if (totalMonth === 0) {
+                // The current month is already covered by the latest payment.
+                // Keep this as an internal calculation only; do not display
+                // it as a negative "Credit Balance".
                 credit = monthlyTotal;
-            }
-            else if(totalMonth>1){
+            } else if (totalMonth > 1) {
                 // Calculate pending due
-                due = (totalMonth-1)*monthlyTotal;
+                due = (totalMonth - 1) * monthlyTotal;
             }
+
             const totalAmount = monthlyTotal + due - credit;
-            
+
             // Fetch validated society residents for admin features
             const foundUsers = await user_collection.User.find({
                 $and: [
-                    {"societyName": req.user.societyName},
-                    {"validation": "approved"}
+                    { societyName: req.user.societyName },
+                    { validation: "approved" }
                 ]
             });
-            
-            // Update amount to be paid on respective user collection
-            foundUser.makePayment = totalAmount;
-            await foundUser.save();
-            
-           res.render("bill", {
-               resident: foundUser,
-               society: foundSociety,
-               totalAmount: totalAmount,
-               pendingDue: due,
-               creditBalance: credit,
-               monthName: date.month,
-               date: date.today,
-               year: date.year,
-               receipt: foundUser.lastPayment,
-               societyResidents: foundUsers,
-               monthlyTotal: monthlyTotal,
-               razorpayKey: process.env.RAZORPAY_KEY_ID
+
+            /*
+             * IMPORTANT:
+             * Do not write foundUser.makePayment = totalAmount here.
+             *
+             * Payment state is persisted by the payment-success route.
+             * The bill amount is calculated above and passed directly to
+             * the view. This prevents opening /bill from overwriting the
+             * successful payment state.
+             */
+
+            res.render("bill", {
+                resident: foundUser,
+                society: foundSociety,
+                totalAmount: totalAmount,
+                pendingDue: due,
+                creditBalance: 0,
+                amountPaid: amountPaid,
+                monthName: date.month,
+                date: date.today,
+                year: date.year,
+                receipt: foundUser.lastPayment,
+                societyResidents: foundUsers,
+                monthlyTotal: monthlyTotal,
+                razorpayKey: process.env.RAZORPAY_KEY_ID
             });
-        } catch(err) {
+        } catch (err) {
             console.error(err);
             res.status(500).send("Server error");
         }
-    
-});
+    }
+);
 
 router.get(
     "/editBill",
     isLoggedIn,
     isAdmin,
     async (req, res) => {
-try {
+        try {
+            const foundSociety =
+                await society_collection.Society.findOne(
+                    {
+                        societyName: req.user.societyName
+                    },
+                    {
+                        maintenanceBill: 1
+                    }
+                );
 
-    const foundSociety =
-        await society_collection.Society.findOne(
-            {
-                societyName: req.user.societyName
-            },
-            {
-                maintenanceBill: 1
+            if (!foundSociety) {
+                return res.status(404).send("Society not found");
             }
-        );
 
-    if (!foundSociety) {
-        return res.status(404).send("Society not found");
+            res.render("editBill", {
+                maintenanceBill: foundSociety.maintenanceBill
+            });
+        }
+        catch (err) {
+            console.error(err);
+            res.status(500).send("Server error");
+        }
     }
-
-    res.render("editBill", {
-        maintenanceBill: foundSociety.maintenanceBill
-    });
-
-}
-catch (err) {
-
-    console.error(err);
-
-    res.status(500).send("Server error");
-
-}
-    
-});
+);
 
 router.get(
     "/download-bill",
     isLoggedIn,
     isApproved,
     async (req, res) => {
-
         try {
-
-            const resident = await user_collection.User.findById(req.user.id);
+            const resident =
+                await user_collection.User.findById(req.user.id);
 
             if (!resident) {
                 return res.status(404).send("Resident not found");
             }
 
-            const society = await society_collection.Society.findOne({
-                societyName: resident.societyName
-            });
+            const society =
+                await society_collection.Society.findOne({
+                    societyName: resident.societyName
+                });
 
             if (!society) {
                 return res.status(404).send("Society not found");
             }
-
-            // ↓↓↓ KEEP YOUR EXISTING PDF CODE BELOW ↓↓↓
 
             const bill = society.maintenanceBill;
 
@@ -222,7 +241,6 @@ router.get(
             let y = startY + 30;
 
             rows.forEach(r => {
-
                 doc.rect(50, y, 500, 25).stroke();
 
                 doc.text(r[0], 65, y + 7);
@@ -230,7 +248,6 @@ router.get(
                 doc.text("₹ " + r[2], 450, y + 7);
 
                 y += 25;
-
             });
 
             doc.rect(50, y, 500, 30).fill("#d62839");
@@ -241,15 +258,10 @@ router.get(
             doc.text("₹ " + total, 450, y + 8);
 
             doc.end();
-
         } catch (err) {
-
             console.error(err);
-
             res.status(500).send("Unable to generate PDF");
-
         }
-
     }
 );
 
@@ -258,78 +270,47 @@ router.post(
     isLoggedIn,
     isAdmin,
     async (req, res) => {
-try {
-
-    await society_collection.Society.updateOne(
-
-        {
-            societyName: req.user.societyName
-        },
-
-        {
-
-            $set: {
-
-                maintenanceBill: {
-
-                    societyCharges: req.body.societyCharges,
-
-                    repairsAndMaintenance:
-                        req.body.repairsAndMaintenance,
-
-                    sinkingFund:
-                        req.body.sinkingFund,
-
-                    waterCharges:
-                        req.body.waterCharges,
-
-                    insuranceCharges:
-                        req.body.insuranceCharges,
-
-                    parkingCharges:
-                        req.body.parkingCharges
-
+        try {
+            await society_collection.Society.updateOne(
+                {
+                    societyName: req.user.societyName
+                },
+                {
+                    $set: {
+                        maintenanceBill: {
+                            societyCharges: req.body.societyCharges,
+                            repairsAndMaintenance:
+                                req.body.repairsAndMaintenance,
+                            sinkingFund:
+                                req.body.sinkingFund,
+                            waterCharges:
+                                req.body.waterCharges,
+                            insuranceCharges:
+                                req.body.insuranceCharges,
+                            parkingCharges:
+                                req.body.parkingCharges
+                        }
+                    }
                 }
+            );
 
-            }
+            await createNotification({
+                user: req.user._id,
+                title: "Maintenance Charges Updated",
+                message:
+                    "The maintenance charges have been updated successfully.",
+                type: "success",
+                icon: "fa-file-invoice-dollar",
+                link: "/bill"
+            });
 
+            res.redirect("/bill");
         }
-
-    );
-
-    /*
---------------------------------------------------
-NOTIFICATION
---------------------------------------------------
-*/
-
-await createNotification({
-
-    user: req.user._id,
-
-    title: "Maintenance Charges Updated",
-
-    message: "The maintenance charges have been updated successfully.",
-
-    type: "success",
-
-    icon: "fa-file-invoice-dollar",
-
-    link: "/bill"
-
-});
-
-    res.redirect("/bill");
-
-}
-
-catch (err) {
-
-    console.error(err);
-
-    res.status(500).send("Server error");
-
-}
-});
+        catch (err) {
+            console.error(err);
+            res.status(500).send("Server error");
+        }
+    }
+);
 
 module.exports = router;

@@ -13,15 +13,21 @@
       style="border-radius:3rem; max-width:180px;">
       Download Bill
       </a>
+     <% if (totalAmount > 0) { %>
      <button
      id="pay-btn"
-     <% if(totalAmount==0){ %>
-     disabled
-     <% } %>
      class="btn btn-success btn-md text-uppercase"
      style="border-radius:3rem; max-width:180px;">
-     Pay Bill
-     </button>    
+     PAY BILL
+     </button>
+     <% } else { %>
+     <button
+     class="btn btn-success btn-md text-uppercase"
+     disabled
+     style="border-radius:3rem; max-width:180px;">
+     ✓ PAID
+     </button>
+     <% } %>    
       <% if(resident.isAdmin){ %>
       <a href="/editBill" class="btn btn-primary btn-md text-uppercase" style="border-radius:3rem; max-width:180px; ">
         Edit Bill
@@ -88,19 +94,30 @@
       </tr>
       <tr>
         <td>7</td>
-        <td>Credit Balance</td>
-        <td>- <%= creditBalance %></td>
+        <td>Amount Paid</td>
+        <td>₹ <%= amountPaid || 0 %></td>
       </tr>
       <tr>
         <td>8</td>
         <td>Pending Due</td>
-        <td><%= pendingDue %></td>
+        <td>₹ <%= pendingDue || 0 %></td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>Payment Status</td>
+        <td>
+          <% if (totalAmount == 0 && receipt && receipt.invoice) { %>
+            <strong style="color: #198754;">PAID</strong>
+          <% } else { %>
+            <strong style="color: #dc3545;">PENDING</strong>
+          <% } %>
+        </td>
       </tr>
       <tfoot>
         <tr>
           <td></td>
           <td>Total Amount Due</td>
-          <td><%= totalAmount %></td>
+          <td>₹ <%= totalAmount %></td>
         </tr>
       </tfoot>
     </table>
@@ -242,72 +259,257 @@ if(numberField && wordsField){
 <script>
 
 const payBtn =
-document.getElementById('pay-btn');
+    document.getElementById('pay-btn');
 
-if(payBtn){
+if (payBtn) {
 
-payBtn.addEventListener(
-'click',
-async ()=>{
+    payBtn.addEventListener(
+        'click',
+        async () => {
 
-    try{
+            try {
 
-        const response =
-        await fetch('/create-order',{
-            method:'POST'
-        });
+                payBtn.disabled = true;
 
-        const order =
-        await response.json();
+                payBtn.innerText =
+                    'CREATING PAYMENT...';
 
-        const options = {
+                /*
+                --------------------------------------
+                CREATE ORDER
+                --------------------------------------
+                */
 
-           key: '<%= razorpayKey %>',
+                const response =
+                    await fetch(
+                        '/create-order',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type':
+                                    'application/json'
+                            }
+                        }
+                    );
 
-            amount:
-            order.amount,
+                const data =
+                    await response.json();
 
-            currency:
-            order.currency,
+                console.log(
+                    'RAZORPAY ORDER:',
+                    data
+                );
 
-            name:
-            '<%= society.societyName %>',
+                if (!response.ok ||
+                    !data.success) {
 
-            order_id:
-            order.id,
+                    throw new Error(
+                        data.message ||
+                        'Unable to create payment order.'
+                    );
 
-            handler:
-            async function(payment){
+                }
 
-                await fetch(
-                '/payment-success',
-                {
-                    method:'POST',
-                    headers:{
-                        'Content-Type':
-                        'application/json'
+                /*
+                --------------------------------------
+                VERIFY SERVER AMOUNT
+                --------------------------------------
+                */
+
+                if (
+                    !data.amount ||
+                    Number(data.amount) <= 0
+                ) {
+
+                    throw new Error(
+                        'Invalid payment amount.'
+                    );
+
+                }
+
+                console.log(
+                    'PAYMENT AMOUNT:',
+                    data.amount
+                );
+
+                /*
+                --------------------------------------
+                RAZORPAY OPTIONS
+                --------------------------------------
+                */
+
+                const options = {
+
+                    key:
+                        data.key,
+
+                    amount:
+                        data.order.amount,
+
+                    currency:
+                        data.order.currency,
+
+                    name:
+                        '<%= society.societyName %>',
+
+                    description:
+                        'Maintenance Bill',
+
+                    order_id:
+                        data.order.id,
+
+                    prefill: {
+
+                        name:
+                            '<%= resident.firstName %> <%= resident.lastName %>',
+
+                        email:
+                            '<%= resident.username %>',
+
+                        contact:
+                            '<%= resident.phoneNumber || "" %>'
+
                     },
-                    body: JSON.stringify(payment)
-                });
 
-                window.location.reload();
+                    theme: {
+
+                        color:
+                            '#0d6efd'
+
+                    },
+
+                    handler:
+                        async function (
+                            payment
+                        ) {
+
+                            try {
+
+                                const verifyResponse =
+                                    await fetch(
+                                        '/payment-success',
+                                        {
+
+                                            method:
+                                                'POST',
+
+                                            headers: {
+
+                                                'Content-Type':
+                                                    'application/json'
+
+                                            },
+
+                                            body:
+                                                JSON.stringify(
+                                                    payment
+                                                )
+
+                                        }
+                                    );
+
+                                const result =
+                                    await verifyResponse.json();
+
+                                if (
+                                    !verifyResponse.ok ||
+                                    !result.success
+                                ) {
+
+                                    throw new Error(
+                                        result.message ||
+                                        'Payment verification failed.'
+                                    );
+
+                                }
+
+                                alert(
+                                    'Payment successful!\nInvoice: ' +
+                                    result.invoice
+                                );
+
+                                window.location.reload();
+
+                            }
+
+                            catch (error) {
+
+                                console.error(
+                                    'PAYMENT VERIFICATION ERROR:',
+                                    error
+                                );
+
+                                alert(
+                                    error.message ||
+                                    'Payment verification failed.'
+                                );
+
+                            }
+
+                        }
+
+                };
+
+                /*
+                --------------------------------------
+                OPEN RAZORPAY
+                --------------------------------------
+                */
+
+                const rzp =
+                    new Razorpay(
+                        options
+                    );
+
+                rzp.on(
+                    'payment.failed',
+                    function (
+                        response
+                    ) {
+
+                        console.error(
+                            'RAZORPAY PAYMENT FAILED:',
+                            response
+                        );
+
+                        alert(
+                            response.error?.description ||
+                            'Payment failed.'
+                        );
+
+                    }
+                );
+
+                rzp.open();
+
             }
-        };
 
-        const rzp =
-        new Razorpay(options);
+            catch (err) {
 
-        rzp.open();
+                console.error(
+                    'RAZORPAY PAYMENT ERROR:',
+                    err
+                );
 
-    }catch(err){
+                alert(
+                    err?.message ||
+                    'Unable to start payment.'
+                );
 
-        console.log(err);
+            }
 
-        alert(
-        'Unable to start payment'
-        );
-    }
-});
+            finally {
+
+                payBtn.disabled =
+                    false;
+
+                payBtn.innerText =
+                    'PAY BILL';
+
+            }
+
+        }
+    );
 
 }
 

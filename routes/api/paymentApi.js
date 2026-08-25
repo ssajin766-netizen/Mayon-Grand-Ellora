@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+const crypto = require("crypto");
 const Razorpay = require("razorpay");
 
 const sendMail = require("../../services/sendMail");
@@ -18,13 +19,29 @@ const {
     isApproved
 } = require("../../middleware/auth");
 
+
+/*
+==================================================
+RAZORPAY INSTANCE
+==================================================
+*/
+
 const razorpay = new Razorpay({
 
-    key_id: process.env.RAZORPAY_KEY_ID,
+    key_id:
+        process.env.RAZORPAY_KEY_ID,
 
-    key_secret: process.env.RAZORPAY_KEY_SECRET
+    key_secret:
+        process.env.RAZORPAY_KEY_SECRET
 
 });
+
+
+/*
+==================================================
+CREATE RAZORPAY ORDER
+==================================================
+*/
 
 router.post(
     "/payment/create-order",
@@ -34,7 +51,17 @@ router.post(
 
         try {
 
-            const user = await User.findById(req.user._id);
+            /*
+            ------------------------------------------
+            GET CURRENT USER
+            ------------------------------------------
+            */
+
+            const user =
+                await User.findById(
+                    req.user._id
+                );
+
 
             if (!user) {
 
@@ -42,29 +69,124 @@ router.post(
 
                     success: false,
 
-                    message: "User not found."
+                    message:
+                        "User not found."
 
                 });
 
             }
 
-            const order = await razorpay.orders.create({
 
-                amount: user.makePayment * 100,
+            /*
+            ------------------------------------------
+            GET PAYMENT AMOUNT
+            ------------------------------------------
+            */
 
-                currency: "INR",
+            const paymentAmount =
+                Number(user.makePayment);
 
-                receipt: "receipt_" + Date.now()
 
-            });
+            /*
+            ------------------------------------------
+            VALIDATE PAYMENT
+            ------------------------------------------
+            */
+
+            if (
+                !Number.isFinite(paymentAmount) ||
+                paymentAmount <= 0
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "No pending payment amount found."
+
+                });
+
+            }
+
+
+            /*
+            ------------------------------------------
+            CREATE ORDER
+            ------------------------------------------
+            */
+
+            const order =
+                await razorpay.orders.create({
+
+                    amount:
+                        Math.round(
+                            paymentAmount * 100
+                        ),
+
+                    currency:
+                        "INR",
+
+                    receipt:
+                        "receipt_" +
+                        Date.now(),
+
+                    notes: {
+
+                        userId:
+                            String(user._id),
+
+                        amount:
+                            String(paymentAmount)
+
+                    }
+
+                });
+
+
+            /*
+            ------------------------------------------
+            RESPONSE
+            ------------------------------------------
+            */
 
             return res.json({
 
                 success: true,
 
-                key: process.env.RAZORPAY_KEY_ID,
+                message:
+                    "Payment order created successfully.",
 
-                order
+                key:
+                    process.env.RAZORPAY_KEY_ID,
+
+                order: {
+
+                    id:
+                        order.id,
+
+                    entity:
+                        order.entity,
+
+                    amount:
+                        order.amount,
+
+                    amount_paid:
+                        order.amount_paid,
+
+                    amount_due:
+                        order.amount_due,
+
+                    currency:
+                        order.currency,
+
+                    receipt:
+                        order.receipt,
+
+                    status:
+                        order.status
+
+                }
 
             });
 
@@ -72,13 +194,18 @@ router.post(
 
         catch (err) {
 
-            console.error(err);
+            console.error(
+                "RAZORPAY CREATE ORDER ERROR:",
+                err
+            );
+
 
             return res.status(500).json({
 
                 success: false,
 
-                message: "Unable to create payment order."
+                message:
+                    "Unable to create payment order."
 
             });
 
@@ -86,6 +213,13 @@ router.post(
 
     }
 );
+
+
+/*
+==================================================
+RAZORPAY PAYMENT SUCCESS
+==================================================
+*/
 
 router.post(
     "/payment/payment-success",
@@ -95,7 +229,62 @@ router.post(
 
         try {
 
-            const user = await User.findById(req.user._id);
+            /*
+            ------------------------------------------
+            GET RAZORPAY DATA
+            ------------------------------------------
+            */
+
+            const {
+
+                razorpay_order_id,
+
+                razorpay_payment_id,
+
+                razorpay_signature
+
+            } = req.body;
+
+
+            /*
+            ------------------------------------------
+            VALIDATE REQUEST
+            ------------------------------------------
+            */
+
+            if (
+
+                !razorpay_order_id ||
+
+                !razorpay_payment_id ||
+
+                !razorpay_signature
+
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Missing Razorpay payment details."
+
+                });
+
+            }
+
+
+            /*
+            ------------------------------------------
+            GET USER
+            ------------------------------------------
+            */
+
+            const user =
+                await User.findById(
+                    req.user._id
+                );
+
 
             if (!user) {
 
@@ -103,23 +292,149 @@ router.post(
 
                     success: false,
 
-                    message: "User not found."
+                    message:
+                        "User not found."
 
                 });
 
             }
 
-            const invoice = "INV-" + Date.now();
+
+            /*
+            ------------------------------------------
+            PAYMENT AMOUNT
+            ------------------------------------------
+            */
+
+            const paymentAmount =
+                Number(user.makePayment);
+
+
+            if (
+                !Number.isFinite(paymentAmount) ||
+                paymentAmount <= 0
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "No pending payment amount found."
+
+                });
+
+            }
+
+
+            /*
+            ------------------------------------------
+            VERIFY RAZORPAY SIGNATURE
+            ------------------------------------------
+            */
+
+            const generatedSignature =
+                crypto
+                    .createHmac(
+                        "sha256",
+                        process.env.RAZORPAY_KEY_SECRET
+                    )
+                    .update(
+                        `${razorpay_order_id}|${razorpay_payment_id}`
+                    )
+                    .digest("hex");
+
+
+            if (
+                generatedSignature !==
+                razorpay_signature
+            ) {
+
+                console.error(
+                    "INVALID RAZORPAY SIGNATURE"
+                );
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid payment signature."
+
+                });
+
+            }
+
+
+            /*
+            ------------------------------------------
+            PREVENT DUPLICATE PAYMENT
+            ------------------------------------------
+            */
+
+            const duplicatePayment =
+                user.paymentHistory &&
+                user.paymentHistory.some(
+
+                    payment =>
+                        payment.razorpayPaymentId ===
+                        razorpay_payment_id
+
+                );
+
+
+            if (duplicatePayment) {
+
+                return res.status(409).json({
+
+                    success: false,
+
+                    message:
+                        "This payment has already been processed."
+
+                });
+
+            }
+
+
+            /*
+            ------------------------------------------
+            CREATE INVOICE
+            ------------------------------------------
+            */
+
+            const invoice =
+                "INV-" + Date.now();
+
+
+            const paymentDate =
+                new Date();
+
+
+            /*
+            ------------------------------------------
+            LAST PAYMENT
+            ------------------------------------------
+            */
 
             user.lastPayment = {
 
-                date: new Date(),
+                date:
+                    paymentDate,
 
-                amount: user.makePayment,
+                amount:
+                    paymentAmount,
 
                 invoice
 
             };
+
+
+            /*
+            ------------------------------------------
+            PAYMENT HISTORY
+            ------------------------------------------
+            */
 
             if (!user.paymentHistory) {
 
@@ -127,77 +442,77 @@ router.post(
 
             }
 
+
             user.paymentHistory.push({
 
-                amount: user.makePayment,
+                amount:
+                    paymentAmount,
 
                 invoice,
 
-                paidAt: new Date(),
+                paidAt:
+                    paymentDate,
 
-                method: "Razorpay"
+                method:
+                    "Razorpay",
+
+                razorpayOrderId:
+                    razorpay_order_id,
+
+                razorpayPaymentId:
+                    razorpay_payment_id
 
             });
+
+
+            /*
+            ------------------------------------------
+            CLEAR CURRENT PAYMENT
+            ------------------------------------------
+            */
 
             user.makePayment = 0;
 
+
+            /*
+            ------------------------------------------
+            SAVE
+            ------------------------------------------
+            */
+
             await user.save();
 
-            await createNotification({
 
-                user: user._id,
-
-                title: "Payment Successful",
-
-                message: `₹${user.lastPayment.amount} maintenance payment received successfully.`,
-
-                type: "success",
-
-                icon: "fa-credit-card",
-
-                link: "/bill",
-
-                sendEmail: true
-
-            });
-
-            await createNotification({
-
-                user: user._id,
-
-                title: "Receipt Generated",
-
-                message: `Invoice ${invoice} has been generated successfully.`,
-
-                type: "info",
-
-                icon: "fa-receipt",
-
-                link: "/bill",
-
-                sendEmail: true
-
-            });
+            /*
+            ==================================================
+            SUCCESS NOTIFICATION
+            ==================================================
+            */
 
             try {
 
-                await sendWhatsApp(
+                await createNotification({
 
-                    `+91${user.phoneNumber}`,
+                    user:
+                        user._id,
 
-                    `Payment of ₹${user.lastPayment.amount} received successfully.\nInvoice: ${invoice}`
+                    title:
+                        "Payment Successful",
 
-                );
+                    message:
+                        `₹${paymentAmount} maintenance payment received successfully.`,
 
-                await WhatsAppLog.create({
+                    type:
+                        "success",
 
-                    residentId: user._id,
+                    icon:
+                        "fa-credit-card",
 
-                    mobileNumber: user.phoneNumber,
+                    link:
+                        "/bill",
 
-                    message: `Payment of ₹${user.lastPayment.amount} received successfully.`,
-
-                    status: "Sent"
+                    sendEmail:
+                        true
 
                 });
 
@@ -205,47 +520,208 @@ router.post(
 
             catch (err) {
 
-                console.log(err.message);
+                console.error(
+                    "PAYMENT NOTIFICATION ERROR:",
+                    err.message
+                );
 
             }
 
+
+            /*
+            ==================================================
+            RECEIPT NOTIFICATION
+            ==================================================
+            */
+
             try {
 
-                await sendMail(
+                await createNotification({
 
-                    user.username,
+                    user:
+                        user._id,
 
-                    "Maintenance Payment Receipt",
+                    title:
+                        "Receipt Generated",
 
-                    `
-                    <h2>Payment Successful</h2>
+                    message:
+                        `Invoice ${invoice} has been generated successfully.`,
 
-                    <p><b>Invoice:</b> ${invoice}</p>
+                    type:
+                        "info",
 
-                    <p><b>Amount:</b> ₹${user.lastPayment.amount}</p>
+                    icon:
+                        "fa-receipt",
 
-                    <p><b>Society:</b> ${user.societyName}</p>
-                    `
+                    link:
+                        "/bill",
 
-                );
+                    sendEmail:
+                        true
+
+                });
 
             }
 
             catch (err) {
 
-                console.log(err.message);
+                console.error(
+                    "RECEIPT NOTIFICATION ERROR:",
+                    err.message
+                );
 
             }
 
+
+            /*
+            ==================================================
+            WHATSAPP
+            ==================================================
+            */
+
+            try {
+
+                if (user.phoneNumber) {
+
+                    await sendWhatsApp(
+
+                        `+91${user.phoneNumber}`,
+
+                        `Payment of ₹${paymentAmount} received successfully.\nInvoice: ${invoice}`
+
+                    );
+
+
+                    await WhatsAppLog.create({
+
+                        residentId:
+                            user._id,
+
+                        mobileNumber:
+                            user.phoneNumber,
+
+                        message:
+                            `Payment of ₹${paymentAmount} received successfully.`,
+
+                        status:
+                            "Sent"
+
+                    });
+
+                }
+
+            }
+
+            catch (err) {
+
+                console.error(
+                    "WHATSAPP PAYMENT ERROR:",
+                    err.message
+                );
+
+            }
+
+
+            /*
+            ==================================================
+            EMAIL
+            ==================================================
+            */
+
+            try {
+
+                if (user.username) {
+
+                    await sendMail(
+
+                        user.username,
+
+                        "Maintenance Payment Receipt",
+
+                        `
+                        <h2>Payment Successful</h2>
+
+                        <p>
+                            <strong>Invoice:</strong>
+                            ${invoice}
+                        </p>
+
+                        <p>
+                            <strong>Amount:</strong>
+                            ₹${paymentAmount}
+                        </p>
+
+                        <p>
+                            <strong>Society:</strong>
+                            ${user.societyName}
+                        </p>
+
+                        <p>
+                            <strong>Razorpay Payment ID:</strong>
+                            ${razorpay_payment_id}
+                        </p>
+
+                        <p>
+                            Thank you for your payment.
+                        </p>
+                        `
+
+                    );
+
+                }
+
+            }
+
+            catch (err) {
+
+                console.error(
+                    "EMAIL PAYMENT ERROR:",
+                    err.message
+                );
+
+            }
+
+
+            /*
+            ==================================================
+            RESPONSE
+            ==================================================
+            */
+
             return res.json({
 
-                success: true,
+                success:
+                    true,
 
-                message: "Payment successful.",
+                message:
+                    "Payment successful.",
 
                 invoice,
 
-                payment: user.lastPayment
+                amount:
+                    paymentAmount,
+
+                payment: {
+
+                    date:
+                        paymentDate,
+
+                    amount:
+                        paymentAmount,
+
+                    invoice
+
+                },
+
+                razorpay: {
+
+                    orderId:
+                        razorpay_order_id,
+
+                    paymentId:
+                        razorpay_payment_id
+
+                }
 
             });
 
@@ -253,13 +729,65 @@ router.post(
 
         catch (err) {
 
-            console.error(err);
+            console.error(
+                "RAZORPAY PAYMENT VERIFICATION ERROR:",
+                err
+            );
+
+
+            /*
+            ------------------------------------------
+            FAILURE NOTIFICATION
+            ------------------------------------------
+            */
+
+            try {
+
+                if (req.user) {
+
+                    await createNotification({
+
+                        user:
+                            req.user._id,
+
+                        title:
+                            "Payment Failed",
+
+                        message:
+                            "Your maintenance payment could not be completed. Please try again.",
+
+                        type:
+                            "error",
+
+                        icon:
+                            "fa-circle-xmark",
+
+                        link:
+                            "/bill"
+
+                    });
+
+                }
+
+            }
+
+            catch (notificationError) {
+
+                console.error(
+                    "FAILURE NOTIFICATION ERROR:",
+                    notificationError.message
+                );
+
+            }
+
 
             return res.status(500).json({
 
-                success: false,
+                success:
+                    false,
 
-                message: "Payment failed."
+                message:
+                    "Payment verification failed."
 
             });
 
@@ -267,6 +795,13 @@ router.post(
 
     }
 );
+
+
+/*
+==================================================
+MANUAL PAYMENT
+==================================================
+*/
 
 router.post(
     "/payments/manual",
@@ -276,7 +811,17 @@ router.post(
 
         try {
 
-            const user = await User.findById(req.user._id);
+            /*
+            ------------------------------------------
+            GET USER
+            ------------------------------------------
+            */
+
+            const user =
+                await User.findById(
+                    req.user._id
+                );
+
 
             if (!user) {
 
@@ -284,23 +829,79 @@ router.post(
 
                     success: false,
 
-                    message: "User not found."
+                    message:
+                        "User not found."
 
                 });
 
             }
 
-            const invoice = "INV-" + Date.now();
+
+            /*
+            ------------------------------------------
+            SAVE AMOUNT BEFORE CLEARING
+            ------------------------------------------
+            */
+
+            const paymentAmount =
+                Number(user.makePayment);
+
+
+            if (
+                !Number.isFinite(paymentAmount) ||
+                paymentAmount <= 0
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "No pending payment amount found."
+
+                });
+
+            }
+
+
+            /*
+            ------------------------------------------
+            CREATE INVOICE
+            ------------------------------------------
+            */
+
+            const invoice =
+                "INV-" + Date.now();
+
+
+            const paymentDate =
+                new Date();
+
+
+            /*
+            ------------------------------------------
+            LAST PAYMENT
+            ------------------------------------------
+            */
 
             user.lastPayment = {
 
-                date: new Date(),
+                date:
+                    paymentDate,
 
-                amount: user.makePayment,
+                amount:
+                    paymentAmount,
 
                 invoice
 
             };
+
+
+            /*
+            ------------------------------------------
+            PAYMENT HISTORY
+            ------------------------------------------
+            */
 
             if (!user.paymentHistory) {
 
@@ -308,47 +909,163 @@ router.post(
 
             }
 
+
             user.paymentHistory.push({
 
-                amount: user.makePayment,
+                amount:
+                    paymentAmount,
 
                 invoice,
 
-                paidAt: new Date(),
+                paidAt:
+                    paymentDate,
 
-                method: "Manual"
+                method:
+                    "Manual"
 
             });
+
+
+            /*
+            ------------------------------------------
+            CLEAR DUE
+            ------------------------------------------
+            */
 
             user.makePayment = 0;
 
+
             await user.save();
 
-            await createNotification({
 
-                user: user._id,
+            /*
+            ------------------------------------------
+            NOTIFICATION
+            ------------------------------------------
+            */
 
-                title: "Payment Recorded",
+            try {
 
-                message: `₹${user.lastPayment.amount} payment has been recorded.`,
+                await createNotification({
 
-                type: "success",
+                    user:
+                        user._id,
 
-                icon: "fa-money-check-dollar",
+                    title:
+                        "Payment Recorded",
 
-                link: "/bill"
+                    message:
+                        `₹${paymentAmount} payment has been recorded.`,
 
-            });
+                    type:
+                        "success",
+
+                    icon:
+                        "fa-money-check-dollar",
+
+                    link:
+                        "/bill"
+
+                });
+
+            }
+
+            catch (err) {
+
+                console.error(
+                    "MANUAL PAYMENT NOTIFICATION ERROR:",
+                    err.message
+                );
+
+            }
+
+
+            /*
+            ------------------------------------------
+            EMAIL
+            ------------------------------------------
+            */
+
+            try {
+
+                if (user.username) {
+
+                    await sendMail(
+
+                        user.username,
+
+                        "Maintenance Payment Received",
+
+                        `
+                        <h2>Payment Recorded</h2>
+
+                        <p>
+                            Your maintenance payment
+                            has been recorded.
+                        </p>
+
+                        <p>
+                            <strong>Invoice:</strong>
+                            ${invoice}
+                        </p>
+
+                        <p>
+                            <strong>Amount:</strong>
+                            ₹${paymentAmount}
+                        </p>
+
+                        <p>
+                            <strong>Society:</strong>
+                            ${user.societyName}
+                        </p>
+                        `
+
+                    );
+
+                }
+
+            }
+
+            catch (err) {
+
+                console.error(
+                    "MANUAL PAYMENT EMAIL ERROR:",
+                    err.message
+                );
+
+            }
+
+
+            /*
+            ------------------------------------------
+            RESPONSE
+            ------------------------------------------
+            */
 
             return res.json({
 
-                success: true,
+                success:
+                    true,
 
-                message: "Manual payment recorded successfully.",
+                message:
+                    "Manual payment recorded successfully.",
 
                 invoice,
 
-                payment: user.lastPayment
+                amount:
+                    paymentAmount,
+
+                payment: {
+
+                    date:
+                        paymentDate,
+
+                    amount:
+                        paymentAmount,
+
+                    invoice
+
+                }
 
             });
 
@@ -356,13 +1073,19 @@ router.post(
 
         catch (err) {
 
-            console.error(err);
+            console.error(
+                "MANUAL PAYMENT ERROR:",
+                err
+            );
+
 
             return res.status(500).json({
 
-                success: false,
+                success:
+                    false,
 
-                message: "Unable to record payment."
+                message:
+                    "Unable to record payment."
 
             });
 
@@ -370,5 +1093,6 @@ router.post(
 
     }
 );
+
 
 module.exports = router;

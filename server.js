@@ -145,6 +145,11 @@ app.use(cookieParser());
 SESSION
 --------------------------------------------------
 */
+
+const isProduction =
+    process.env.NODE_ENV === "production";
+
+
 app.use(
     session({
 
@@ -154,27 +159,40 @@ app.use(
 
         saveUninitialized: false,
 
-        proxy: true,
+        proxy: isProduction,
 
         store: MongoStore.create({
 
             mongoUrl: process.env.MONGO_URI,
 
-            collectionName: "sessions"
+            collectionName: "sessions",
 
+            ttl: 60 * 60 * 24
         }),
 
-      cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite:
-        process.env.NODE_ENV === "production"
-            ? "none"
-            : "lax",
-    maxAge: 1000 * 60 * 60 * 24,
-    path: "/"
-}
+        cookie: {
 
+            // Prevent JavaScript from accessing the session cookie
+            httpOnly: true,
+
+            // Local:
+            //   http://10.0.2.2:3000
+            //
+            // Production:
+            //   https://e-society-erp9.onrender.com
+            secure: isProduction,
+
+            // Local WebView and production WebView
+            sameSite: isProduction
+                ? "none"
+                : "lax",
+
+            // 24 hours
+            maxAge:
+                1000 * 60 * 60 * 24,
+
+            path: "/"
+        }
     })
 );
 
@@ -405,6 +423,18 @@ app.get("/home", (req, res) => {
         content: "Please contact the society administrator."
     });
 
+});
+
+// ==================================================
+// MOBILE APP VERSION
+// ==================================================
+
+app.get("/app/version", (req, res) => {
+    return res.status(200).json({
+        success: true,
+        minimumVersion: "1.1.0",
+        forceUpdate: false
+    });
 });
 
 /*
