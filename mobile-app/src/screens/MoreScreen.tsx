@@ -11,14 +11,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 import { useWebView } from '../context/WebViewContext';
-import { useAppDispatch } from '../store/hooks';
-import { logout } from '../store/authSlice';
-import api from '../services/api';
 
 const MoreScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const { navigate, clearSession } = useWebView();
-  const dispatch = useAppDispatch();
+  const { navigate } = useWebView();
 
   const openPage = (path: string) => {
     // Close More screen first
@@ -43,24 +39,12 @@ const MoreScreen: React.FC = () => {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
-            try {
-              await api.post('/api/auth/logout');
-            } catch (error) {
-              console.log('Logout API error:', error);
-            }
-
-            await clearSession();
-
-            dispatch(logout());
-
-            navigation.reset({
-              index: 0,
-              routes: [
-                {
-                  name: 'PhoneLogin',
-                },
-              ],
-            });
+            // The Passport session belongs to the WebView cookie jar.
+            // Do NOT use Axios here: it does not destroy the WebView session.
+            // Navigate the existing WebView to the real server logout route.
+            // WebViewComponent will wait for /login, then clear native auth.
+            console.log('MOBILE LOGOUT REQUEST -> WEBVIEW /logout');
+            navigate('/logout');
           },
         },
       ],

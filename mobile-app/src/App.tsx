@@ -68,6 +68,7 @@ import {
 const linking = {
   prefixes: [
     'mayon-ellora://',
+    'com.mayongrandellora.app://',
   ],
 
   config: {

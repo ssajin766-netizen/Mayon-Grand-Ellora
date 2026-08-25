@@ -1,26 +1,45 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../services/api';
 import { resetAllState } from '../store';
 import { AppDispatch } from '../store';
 import { logout } from '../store/authSlice';
-import { AuthStackParamList } from '../navigation/AuthNavigator';
-import { NavigationProp } from '@react-navigation/native';
+import { clearAuthState } from '../services/authPersistence';
+import { clearMobileAuthToken } from '../services/mobileAuthToken';
 
 /**
- * Performs full logout:
- *  - Calls backend to destroy session
- *  - Clears AsyncStorage (cached data)
- *  - Resets Redux store
- *  - Navigates back to the Auth stack (Login screen)
+ * Clears native authentication state.
+ *
+ * IMPORTANT:
+ * The Passport session is owned by the React Native WebView cookie jar.
+ * Server logout MUST therefore be initiated by navigating the WebView to
+ * `/logout`; do not use Axios to call the server logout endpoint.
+ * WebViewComponent performs that navigation and calls this cleanup after
+ * the server redirects to `/login`.
+ *
+ * This helper is retained for any future native-only cleanup use.
  */
-export const performLogout = async (dispatch: AppDispatch, navigation: NavigationProp<AuthStackParamList>) => {
+export const performLocalLogout = async (
+  dispatch: AppDispatch
+): Promise<void> => {
   try {
-    await api.post('/auth/logout');
-    await AsyncStorage.clear();
-    dispatch(resetAllState());
-    // Update Redux auth state to unauthenticated
-    dispatch(logout());
-  } catch (e) {
-    console.error('Logout failed', e);
+    await clearAuthState();
+  } catch (error) {
+    console.error('FAILED TO CLEAR PERSISTED AUTH:', error);
   }
+
+  try {
+    await clearMobileAuthToken();
+  } catch (error) {
+    console.error('FAILED TO CLEAR MOBILE AUTH TOKEN:', error);
+  }
+
+  try {
+    dispatch(resetAllState());
+  } catch (error) {
+    console.error('REDUX RESET FAILED:', error);
+  }
+
+  dispatch(logout());
 };
+
+// Backward-compatible alias. Prefer triggering server logout through the
+// WebView and allowing WebViewComponent to perform the final cleanup.
+export const performLogout = performLocalLogout;

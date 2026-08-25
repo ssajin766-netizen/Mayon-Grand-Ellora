@@ -69,6 +69,11 @@ const WebViewComponent: React.FC = () => {
   const logoutInProgressRef =
     useRef(false);
 
+  // Prevent an Android WebView TLS/network error from leaving
+  // the logout flow permanently stuck on /logout.
+  const logoutRetryCountRef =
+    useRef(0);
+
   // ==================================================
   // MOBILE SESSION HAND-OFF STATE
   // ==================================================
@@ -1044,7 +1049,8 @@ const paymentData =
               'RAZORPAY PAYMENT SUCCESS'
             );
             console.log(
-              paymentData
+              'PAYMENT ID:',
+              paymentData?.razorpay_payment_id
             );
             console.log(
               '========================================'
@@ -1249,6 +1255,65 @@ const paymentData =
       }
 
       // ------------------------------------------------
+      // LOGOUT
+      // ------------------------------------------------
+      //
+      // IMPORTANT:
+      // The server can redirect /logout to /login so quickly
+      // that Android WebView may not emit a navigation-state
+      // event for /logout. Therefore logoutInProgressRef MUST
+      // be set here, in onShouldStartLoadWithRequest, before
+      // Express processes the request.
+      //
+      // Without this, the following sequence can happen:
+      //
+      //   REQUEST /logout
+      //       -> REQUEST /login?loggedOut=1
+      //
+      // and handleNavigationStateChange sees only /login.
+      // Native auth then incorrectly remains logged in.
+      //
+
+      const requestPath =
+        getPath(url);
+
+      if (
+        requestPath === '/logout' ||
+        requestPath.startsWith('/logout?') ||
+        url.includes('/logout?')
+      ) {
+
+        if (!logoutInProgressRef.current) {
+
+          logoutInProgressRef.current = true;
+
+          logoutRetryCountRef.current = 0;
+
+          mobileSessionHandoffRef.current = null;
+          mobileSessionEstablishedRef.current = false;
+
+          console.log(
+            '======================================'
+          );
+
+          console.log(
+            'WEBVIEW LOGOUT REQUEST ACCEPTED'
+          );
+
+          console.log(
+            'SERVER LOGOUT IN PROGRESS'
+          );
+
+          console.log(
+            '======================================'
+          );
+        }
+
+        // Allow the request to reach Express.
+        return true;
+      }
+
+      // ------------------------------------------------
       // PHONE / EMAIL / WHATSAPP / UPI
       // ------------------------------------------------
 
@@ -1381,6 +1446,8 @@ if (
 
     logoutInProgressRef.current = true;
 
+    logoutRetryCountRef.current = 0;
+
     mobileSessionHandoffRef.current = null;
 
     mobileSessionEstablishedRef.current = false;
@@ -1507,6 +1574,8 @@ if (isLoginPage) {
     // ------------------------------------------------
 
     logoutInProgressRef.current = false;
+
+    logoutRetryCountRef.current = 0;
 
     mobileSessionHandoffRef.current = null;
 
@@ -1645,6 +1714,99 @@ const handleError =
 
 
     // --------------------------------------------------
+    // LOGOUT NETWORK/TLS ERROR
+    // --------------------------------------------------
+    //
+    // Android WebView can occasionally report a TLS/network
+    // error for the logout navigation even though the server
+    // is healthy. Do not clear native auth on this error
+    // because the server session may still exist.
+    //
+    // Retry the server logout request a maximum of two times.
+    //
+
+    if (
+      logoutInProgressRef.current &&
+      errorUrl.includes('/logout')
+    ) {
+
+      console.log(
+        '======================================'
+      );
+
+      console.log(
+        'WEBVIEW LOGOUT NETWORK ERROR'
+      );
+
+      console.log(
+        'LOGOUT ERROR CODE:',
+        error?.code
+      );
+
+      console.log(
+        'LOGOUT ERROR DESCRIPTION:',
+        error?.description
+      );
+
+      console.log(
+        'LOGOUT RETRY COUNT:',
+        logoutRetryCountRef.current
+      );
+
+      console.log(
+        '======================================'
+      );
+
+      if (
+        logoutRetryCountRef.current >= 2
+      ) {
+
+        console.error(
+          'WEBVIEW LOGOUT FAILED AFTER RETRIES'
+        );
+
+        Alert.alert(
+          'Logout Failed',
+          'Unable to contact the server. Please check your internet connection and try again.'
+        );
+
+        logoutInProgressRef.current = false;
+        logoutRetryCountRef.current = 0;
+
+        return;
+      }
+
+      logoutRetryCountRef.current += 1;
+
+      setTimeout(() => {
+
+        if (!webViewRef.current) {
+          return;
+        }
+
+        const retryUrl =
+          `${HOME_URL}/logout?mobileRetry=${Date.now()}`;
+
+        console.log(
+          'WEBVIEW LOGOUT RETRY:',
+          retryUrl
+        );
+
+        webViewRef.current.injectJavaScript(`
+          window.location.replace(
+            ${JSON.stringify(retryUrl)}
+          );
+
+          true;
+        `);
+
+      }, 700);
+
+      return;
+    }
+
+
+    // --------------------------------------------------
     // SESSION HAND-OFF ERROR
     // --------------------------------------------------
 
@@ -1777,13 +1939,20 @@ return (
 
     mixedContentMode="never"
 
+    /*
+     * Avoid stale Android WebView network/cache state after
+     * intermittent Render/Cloudflare HTTPS errors.
+     */
     cacheEnabled={true}
+    cacheMode="LOAD_DEFAULT"
+
+    androidLayerType="hardware"
 
     allowsBackForwardNavigationGestures={
       true
     }
 
-    originWhitelist={['https://e-society-erp9.onrender.com']}
+    originWhitelist={['https://*']}
 
     onMessage={
       handleWebViewMessage

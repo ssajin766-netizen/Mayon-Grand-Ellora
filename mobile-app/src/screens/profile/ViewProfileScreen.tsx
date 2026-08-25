@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl, Image, TouchableOpa
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchProfile, resetProfileState } from '../../store/profileSlice';
 import { useNavigation } from '@react-navigation/native';
-import { performLogout } from '../../utils/logout';
+import { useWebView } from '../../context/WebViewContext';
 import { Avatar } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import GlassCard from '../../components/GlassCard';
@@ -14,6 +14,7 @@ const ViewProfileScreen = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<any>(); // TODO: Replace with strongly typed navigation params after TS stabilization.
   const { data, loading, error } = useAppSelector(state => state.profile);
+  const { navigate: navigateWebView } = useWebView();
 
   useEffect(() => {
     dispatch(fetchProfile());
@@ -23,8 +24,12 @@ const ViewProfileScreen = () => {
     dispatch(fetchProfile());
   }, [dispatch]);
 
-  const handleLogout = async () => {
-    await performLogout(dispatch, navigation);
+  const handleLogout = () => {
+    // Passport authentication lives in the WebView cookie jar.
+    // Send the WebView through the server's real GET /logout route.
+    // WebViewComponent clears native auth only after /login is reached.
+    console.log('MOBILE LOGOUT REQUEST -> WEBVIEW /logout');
+    navigateWebView('/logout');
   };
 
   if (loading && !data) {
