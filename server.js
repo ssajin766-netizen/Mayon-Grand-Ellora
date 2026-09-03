@@ -430,11 +430,12 @@ app.get("/home", (req, res) => {
 // ==================================================
 
 app.get("/app/version", (req, res) => {
-    return res.status(200).json({
-        success: true,
-        minimumVersion: "1.1.0",
-        forceUpdate: false
-    });
+  return res.status(200).json({
+    success: true,
+    minimumVersion: "1.0.0",
+    latestVersion: "1.0.0",
+    forceUpdate: false
+  });
 });
 
 /*
