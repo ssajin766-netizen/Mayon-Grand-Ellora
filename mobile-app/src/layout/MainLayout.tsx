@@ -9,7 +9,7 @@ const MainLayout: React.FC = () => {
   return (
     <View style={styles.container}>
 
-      {/* 
+      {/*
        * Restore the server-side Passport session before the
        * WebView is used for protected pages.
        *
@@ -19,10 +19,21 @@ const MainLayout: React.FC = () => {
        */}
       <MobileSessionRestore />
 
-      {/* Website occupies the complete screen */}
-      <WebViewComponent />
+      {/*
+       * WebView takes the available space above the
+       * native bottom navigation.
+       *
+       * Because the navigation is no longer absolute,
+       * WebView content will not be hidden underneath it.
+       */}
+      <View style={styles.webViewContainer}>
+        <WebViewComponent />
+      </View>
 
-      {/* Native bottom navigation overlays the WebView */}
+      {/*
+       * Native bottom navigation is now part of the normal
+       * layout instead of overlaying the WebView.
+       */}
       <View style={styles.bottomNavigation}>
         <BottomNavigation />
       </View>
@@ -38,11 +49,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
 
+  webViewContainer: {
+    flex: 1,
+  },
+
   bottomNavigation: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    width: '100%',
+    backgroundColor: '#000',
   },
 
 });

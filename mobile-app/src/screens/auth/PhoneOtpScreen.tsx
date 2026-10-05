@@ -42,6 +42,10 @@ import {
   saveMobileAuthToken,
 } from '../../services/mobileAuthToken';
 
+import {
+  saveAuthState,
+} from '../../services/authPersistence';
+
 
 // ==========================================================
 // BACKGROUND
@@ -70,12 +74,16 @@ const PhoneOtpScreen = () => {
     navigate: navigateWebView,
   } = useWebView();
 
-  const [otp, setOtp] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [seconds, setSeconds] = useState(60);
+const [otp, setOtp] = useState('');
+const [loading, setLoading] = useState(false);
+const [seconds, setSeconds] = useState(60);
 
-  // Prevent double taps / duplicate OTP requests.
-  const verifyingRef = useRef(false);
+// Prevent double taps / duplicate OTP requests.
+const verifyingRef = useRef(false);
+
+// Prevent automatic verification from firing more than once
+// for the same autofilled OTP.
+const autoVerifyOtpRef = useRef('');
 
 
   // ========================================================
@@ -95,7 +103,6 @@ const PhoneOtpScreen = () => {
 
     return () => clearInterval(timer);
   }, [seconds]);
-
 
   // ========================================================
   // VERIFY OTP
@@ -207,6 +214,9 @@ const PhoneOtpScreen = () => {
       if (!data?.success) {
         verifyingRef.current = false;
         setLoading(false);
+
+          // Allow the user to retry the same/new OTP.
+           autoVerifyOtpRef.current = '';
 
         Alert.alert(
           'Verification Failed',
@@ -385,39 +395,68 @@ const PhoneOtpScreen = () => {
       // ======================================================
 
       try {
+  // ------------------------------------------------------
+  // SAVE PERSISTENT MOBILE AUTH TOKEN
+  // ------------------------------------------------------
 
-        await saveMobileAuthToken(
-          data.mobileAuthToken
-        );
+  await saveMobileAuthToken(
+    data.mobileAuthToken
+  );
 
-        console.log(
-          'MOBILE AUTH TOKEN SAVED SUCCESSFULLY'
-        );
+  console.log(
+    'MOBILE AUTH TOKEN SAVED SUCCESSFULLY'
+  );
 
-      } catch (storageError) {
+  // ------------------------------------------------------
+  // SAVE PERSISTENT NATIVE AUTH STATE
+  // ------------------------------------------------------
+  //
+  // This is required so the app remains logged in after
+  // being completely closed and reopened.
+  //
+  // mobileAuthToken = secure persistent credential
+  // authState      = native persisted login state
+  //
+  // Both must exist for startup restoration.
+  // ------------------------------------------------------
 
-        console.error(
-          'MOBILE AUTH TOKEN SAVE FAILED'
-        );
+  if (!data?.user) {
+    throw new Error(
+      'User data missing — cannot persist authentication state'
+    );
+  }
 
-        dispatch(
-          setUser(null)
-        );
+  await saveAuthState(data.user);
 
-        dispatch(
-          setAuthenticated(false)
-        );
+  console.log(
+    'AUTH STATE SAVED SUCCESSFULLY'
+  );
 
-        verifyingRef.current = false;
-        setLoading(false);
+} catch (storageError) {
 
-        Alert.alert(
-          'Login Error',
-          'Unable to securely save your login session. Please try again.'
-        );
+  console.error(
+    'PERSISTENT AUTH SAVE FAILED:',
+    storageError
+  );
 
-        return;
-      }
+  dispatch(
+    setUser(null)
+  );
+
+  dispatch(
+    setAuthenticated(false)
+  );
+
+  verifyingRef.current = false;
+  setLoading(false);
+
+  Alert.alert(
+    'Login Error',
+    'Unable to securely save your login session. Please try again.'
+  );
+
+  return;
+}
 
 
 
@@ -490,6 +529,9 @@ const PhoneOtpScreen = () => {
       verifyingRef.current = false;
       setLoading(false);
 
+      // Allow another OTP attempt.
+      autoVerifyOtpRef.current = '';
+
       Alert.alert(
         'Verification Error',
         error?.response?.data?.message ||
@@ -498,6 +540,47 @@ const PhoneOtpScreen = () => {
       );
     }
   };
+
+  // ========================================================
+// ANDROID OTP AUTOFILL
+// ========================================================
+
+useEffect(() => {
+  const cleanOtp = otp
+    .replace(/\D/g, '')
+    .slice(0, 6);
+
+  if (cleanOtp !== otp) {
+    setOtp(cleanOtp);
+    return;
+  }
+
+  if (cleanOtp.length !== 6) {
+    return;
+  }
+
+  if (loading || verifyingRef.current) {
+    return;
+  }
+
+  if (autoVerifyOtpRef.current === cleanOtp) {
+    return;
+  }
+
+  autoVerifyOtpRef.current = cleanOtp;
+
+  console.log(
+    '6-DIGIT OTP DETECTED - AUTO VERIFYING'
+  );
+
+  const timer = setTimeout(() => {
+    verifyOtp();
+  }, 300);
+
+  return () => {
+    clearTimeout(timer);
+  };
+}, [otp, loading]);
 
 
   // ========================================================
@@ -545,9 +628,11 @@ const PhoneOtpScreen = () => {
       setOtp('');
       setSeconds(60);
 
+      autoVerifyOtpRef.current = '';
+
       Alert.alert(
-        'OTP Sent',
-        'A new OTP has been sent to your phone.'
+      'OTP Sent',
+      'A new OTP has been sent to your phone.'
       );
 
     } catch (error: any) {
@@ -637,23 +722,52 @@ const PhoneOtpScreen = () => {
               {/* OTP INPUT */}
 
               <TextInput
-                placeholder="Enter 6-digit OTP"
-                placeholderTextColor="#999"
-                value={otp}
-                onChangeText={setOtp}
-                style={styles.input}
-                keyboardType="number-pad"
-                maxLength={6}
-                autoFocus
-                textAlign="center"
-                returnKeyType="done"
-                editable={!loading}
-                onSubmitEditing={() => {
-                  if (!loading) {
-                    verifyOtp();
-                  }
-                }}
-              />
+              placeholder="Enter 6-digit OTP"
+              placeholderTextColor="#999"
+
+              value={otp}
+
+              onChangeText={(value) => {
+              const cleanValue = value
+              .replace(/\D/g, '')
+              .slice(0, 6);
+
+              setOtp(cleanValue);
+              }}
+
+              style={styles.input}
+
+              keyboardType="number-pad"
+
+              maxLength={6}
+
+              autoFocus
+
+              textAlign="center"
+
+              returnKeyType="done"
+
+              editable={!loading}
+
+           // Android OTP autofill
+               autoComplete="sms-otp"
+
+           // iOS one-time-code support
+              textContentType="oneTimeCode"
+
+           // Tell Android this field participates
+          // in autofill.
+              importantForAutofill="yes"
+
+              onSubmitEditing={() => {
+              if (
+              !loading &&
+              otp.length === 6
+              ) {
+              verifyOtp();
+             }
+             }}
+             />
 
 
               {/* VERIFY */}

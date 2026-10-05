@@ -82,7 +82,7 @@ app.use(cors({
 
     console.log("Blocked Origin:", origin);
 
-    return callback(null, true);   // <-- TEMPORARY for debugging
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true
 }));
@@ -128,7 +128,28 @@ helmet({
 );
 app.use(compression());
 
-app.use(morgan("dev"));
+app.use(
+  morgan((tokens, req, res) => {
+    const originalUrl = tokens.url(req);
+
+    const safeUrl = originalUrl
+      ? originalUrl.replace(
+          /([?&]token=)[^&]+/gi,
+          '$1[REDACTED]'
+        )
+      : originalUrl;
+
+    return [
+      tokens.method(req, res),
+      safeUrl,
+      tokens.status(req, res),
+      tokens['response-time'](req, res),
+      'ms',
+      '-',
+      tokens.res(req, res, 'content-length') || '-',
+    ].join(' ');
+  })
+);
 
 app.use(express.static("public"));
 
@@ -212,15 +233,10 @@ app.use((req, res, next) => {
     if (req.path === "/login" || req.path === "/home") {
         console.log("========== SESSION CHECK ==========");
         console.log("PATH:", req.path);
-        console.log("SESSION ID:", req.sessionID);
         console.log("AUTH:", req.isAuthenticated());
         console.log(
             "USER:",
             req.user ? req.user.username : "NONE"
-        );
-        console.log(
-            "COOKIE:",
-            req.headers.cookie || "NO COOKIE"
         );
         console.log("==================================");
     }
@@ -278,29 +294,16 @@ SESSION DEBUG
 */
 
 if (process.env.NODE_ENV !== "production") {
-
     app.use((req, res, next) => {
-
         console.log("====================================");
-
-        console.log("SESSION :", req.sessionID);
-
         console.log("AUTH :", req.isAuthenticated());
-
         console.log(
-
             "USER :",
-
             req.user ? req.user.username : "NONE"
-
         );
-
         console.log("====================================");
-
         next();
-
     });
-
 }
 
 /*
@@ -533,14 +536,18 @@ GLOBAL ERROR HANDLER
 */
 
 app.use((err, req, res, next) => {
+
     console.error("========== ERROR ==========");
     console.error(err);
     console.error(err.stack);
 
-    res.status(500).send(`
-        <h1>Internal Server Error</h1>
-        <pre>${err.stack}</pre>
-    `);
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    return res.status(500).send(
+        "Internal Server Error"
+    );
 });
 
 /*

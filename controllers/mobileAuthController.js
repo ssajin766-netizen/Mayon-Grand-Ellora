@@ -438,104 +438,117 @@ exports.mobileWebViewRestore =
             }
 
 
-            // ==================================================
-            // CREATE PASSPORT SESSION
-            // ==================================================
+ // ==================================================
+// CREATE PASSPORT SESSION
+// ==================================================
 
-            req.login(
-                user,
-                async loginErr => {
+req.login(
+    user,
+    loginErr => {
 
-                    if (loginErr) {
-
-                        console.error(
-                            "PASSPORT RESTORE LOGIN ERROR:",
-                            loginErr
-                        );
-
-                        return res.status(500).send(
-                            "Unable to restore login session"
-                        );
-
-                    }
-
-
-                    // ------------------------------------------
-                    // SAVE SESSION
-                    // ------------------------------------------
-
-                    req.session.save(
-                        saveErr => {
-
-                            if (saveErr) {
-
-                                console.error(
-                                    "RESTORE SESSION SAVE ERROR:",
-                                    saveErr
-                                );
-
-                                return res.status(500).send(
-                                    "Unable to save login session"
-                                );
-
-                            }
-
-
-                            console.log(
-                                "========================================"
-                            );
-
-                            console.log(
-                                "WEBVIEW SESSION RESTORED"
-                            );
-
-                            console.log(
-                                "SESSION:",
-                                req.sessionID
-                            );
-
-                            console.log(
-                                "AUTH:",
-                                req.isAuthenticated()
-                            );
-
-                            console.log(
-                                "USER:",
-                                user.username
-                            );
-
-                            console.log(
-                                "========================================"
-                            );
-
-
-                            return res.redirect(
-                                302,
-                                "/home"
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-        }
-
-        catch (error) {
+        if (loginErr) {
 
             console.error(
-                "WEBVIEW SESSION RESTORE ERROR:",
-                error
+                "PASSPORT RESTORE LOGIN ERROR:",
+                loginErr
             );
 
-            return res.status(500).send(
-                "Unable to restore WebView session"
-            );
+            if (!res.headersSent) {
+                return res.status(500).send(
+                    "Unable to restore login session"
+                );
+            }
 
+            return;
         }
 
-    };
+
+        // ------------------------------------------
+        // SAVE SESSION
+        // ------------------------------------------
+
+        req.session.save(
+            saveErr => {
+
+                if (saveErr) {
+
+                    console.error(
+                        "RESTORE SESSION SAVE ERROR:",
+                        saveErr
+                    );
+
+                    if (!res.headersSent) {
+                        return res.status(500).send(
+                            "Unable to save login session"
+                        );
+                    }
+
+                    return;
+                }
+
+
+                console.log(
+                    "========================================"
+                );
+
+                console.log(
+                    "WEBVIEW SESSION RESTORED"
+                );
+
+                console.log(
+                    "AUTH:",
+                    req.isAuthenticated()
+                );
+
+                console.log(
+                    "USER:",
+                    user.username
+                );
+
+                console.log(
+                    "========================================"
+                );
+
+
+                // ------------------------------------------
+                // REDIRECT ONLY IF RESPONSE IS STILL OPEN
+                // ------------------------------------------
+
+                if (res.headersSent) {
+                    return;
+                }
+
+                return res.redirect(
+                    302,
+                    "/home"
+                );
+
+            }
+        );
+
+    }
+);
+
+}
+
+catch (error) {
+
+    console.error(
+        "WEBVIEW SESSION RESTORE ERROR:",
+        error
+    );
+
+    if (res.headersSent) {
+        return;
+    }
+
+    return res.status(500).send(
+        "Unable to restore WebView session"
+    );
+
+}
+
+};
 
 
 // ==================================================
