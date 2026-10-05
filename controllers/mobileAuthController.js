@@ -437,8 +437,7 @@ exports.mobileWebViewRestore =
 
             }
 
-
- // ==================================================
+// ==================================================
 // CREATE PASSPORT SESSION
 // ==================================================
 
@@ -464,66 +463,43 @@ req.login(
 
 
         // ------------------------------------------
-        // SAVE SESSION
+        // SESSION CREATED BY PASSPORT
         // ------------------------------------------
 
-        req.session.save(
-            saveErr => {
+        console.log(
+            "========================================"
+        );
 
-                if (saveErr) {
+        console.log(
+            "WEBVIEW SESSION RESTORED"
+        );
 
-                    console.error(
-                        "RESTORE SESSION SAVE ERROR:",
-                        saveErr
-                    );
+        console.log(
+            "AUTH:",
+            req.isAuthenticated()
+        );
 
-                    if (!res.headersSent) {
-                        return res.status(500).send(
-                            "Unable to save login session"
-                        );
-                    }
+        console.log(
+            "USER:",
+            user.username
+        );
 
-                    return;
-                }
-
-
-                console.log(
-                    "========================================"
-                );
-
-                console.log(
-                    "WEBVIEW SESSION RESTORED"
-                );
-
-                console.log(
-                    "AUTH:",
-                    req.isAuthenticated()
-                );
-
-                console.log(
-                    "USER:",
-                    user.username
-                );
-
-                console.log(
-                    "========================================"
-                );
+        console.log(
+            "========================================"
+        );
 
 
-                // ------------------------------------------
-                // REDIRECT ONLY IF RESPONSE IS STILL OPEN
-                // ------------------------------------------
+        // ------------------------------------------
+        // REDIRECT TO HOME
+        // ------------------------------------------
 
-                if (res.headersSent) {
-                    return;
-                }
+        if (res.headersSent) {
+            return;
+        }
 
-                return res.redirect(
-                    302,
-                    "/home"
-                );
-
-            }
+        return res.redirect(
+            302,
+            "/home"
         );
 
     }
