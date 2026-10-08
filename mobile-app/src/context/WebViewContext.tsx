@@ -239,14 +239,11 @@ const setRestoreTicket = useCallback(
     // ----------------------------------------------------
     // IMPORTANT:
     //
-    // Always store the one-time session URL as pending.
+    // If WebView is already ready, navigate immediately.
     //
-    // Do NOT directly call injectJavaScript() here.
-    //
-    // The WebView can be mounted/unmounted during the
-    // authentication stack transition. Using the pending
-    // URL allows setWebViewRef() to start the navigation
-    // only after the WebView is actually ready.
+    // If WebView is not ready, store the URL as pending
+    // so setWebViewRef() can start it when the WebView
+    // becomes ready.
     // ----------------------------------------------------
 
     console.log(
@@ -257,8 +254,28 @@ const setRestoreTicket = useCallback(
       'STARTING ONE-TIME WEBVIEW SESSION'
     );
 
+    if (webViewRef.current) {
+      console.log(
+        'WEBVIEW ALREADY READY - DIRECT NAVIGATION'
+      );
+
+      console.log(
+        '========================================'
+      );
+
+      webViewRef.current.injectJavaScript(`
+        window.location.replace(
+          ${JSON.stringify(sessionUrl)}
+        );
+
+        true;
+      `);
+
+      return;
+    }
+
     console.log(
-      'STORING SESSION URL FOR WEBVIEW'
+      'WEBVIEW NOT READY - STORING SESSION URL'
     );
 
     console.log(
