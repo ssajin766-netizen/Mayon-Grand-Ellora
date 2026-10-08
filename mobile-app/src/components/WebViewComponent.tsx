@@ -88,6 +88,9 @@ const {
   const mobileSessionEstablishedRef =
     useRef(false);
 
+  const restoreNavigationStartedRef =
+    useRef(false);  
+
   // ==================================================
   // SESSION HAND-OFF STATE
   // ==================================================
@@ -1240,20 +1243,34 @@ const paymentData =
       // SESSION HAND-OFF
       // ------------------------------------------------
 
-      if (
-        url.includes(
-          '/api/auth/mobile-webview-session'
-        )
-      ) {
-        console.log(
-          'ALLOWING WEBVIEW SESSION HAND-OFF'
-        );
+if (
+  url.includes(
+    '/api/auth/mobile-webview-session'
+  )
+) {
 
-        mobileSessionHandoffRef.current = url;
-        mobileSessionEstablishedRef.current = false;
+  if (
+    restoreNavigationStartedRef.current
+  ) {
 
-        return true;
-      }
+    console.log(
+      'BLOCKING DUPLICATE WEBVIEW SESSION REQUEST'
+    );
+
+    return false;
+  }
+
+  restoreNavigationStartedRef.current = true;
+
+  console.log(
+    'ALLOWING WEBVIEW SESSION HAND-OFF'
+  );
+
+  mobileSessionHandoffRef.current = url;
+  mobileSessionEstablishedRef.current = false;
+
+  return true;
+}
 
       // ------------------------------------------------
       // LOGOUT
@@ -2081,6 +2098,8 @@ return (
 
   mobileSessionEstablishedRef.current = true;
   mobileSessionHandoffRef.current = null;
+
+  restoreNavigationStartedRef.current = false;
 
   console.log(
     '========================================'

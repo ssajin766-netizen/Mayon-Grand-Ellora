@@ -263,16 +263,43 @@ const setRestoreTicket = useCallback(
       safeSessionUrl
     );
 
-    // ----------------------------------------------------
-    // IMPORTANT:
-    //
-    // WebViewComponent uses pendingUrl as its source.
-    //
-    // Setting this here prevents the WebView from simply
-    // opening /home before the Passport session exists.
-    // ----------------------------------------------------
+    if (webViewRef.current) {
 
-    setPendingUrl(sessionUrl);
+      console.log(
+        '========================================'
+      );
+
+      console.log(
+        'STARTING ONE-TIME WEBVIEW SESSION'
+      );
+
+      console.log(
+        'USING DIRECT WEBVIEW NAVIGATION'
+      );
+
+      console.log(
+        '========================================'
+      );
+
+      // Do NOT put the one-time URL into React
+      // source state when WebView is already ready.
+      webViewRef.current.injectJavaScript(`
+        window.location.replace(
+          ${JSON.stringify(sessionUrl)}
+        );
+
+        true;
+      `);
+
+    } else {
+
+      console.log(
+        'WEBVIEW NOT READY - STORING SESSION URL'
+      );
+
+      setPendingUrl(sessionUrl);
+
+    }
 
   },
   []
