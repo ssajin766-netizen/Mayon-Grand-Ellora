@@ -234,19 +234,8 @@ const setRestoreTicket = useCallback(
     setRestoreTicketState(ticket);
 
     // ----------------------------------------------------
-    // IMPORTANT:
-    //
     // Convert the one-time restore ticket into the
     // WebView session hand-off URL.
-    //
-    // This URL causes the backend to:
-    //
-    //   1. Consume the one-time ticket
-    //   2. Load the user
-    //   3. Create Passport session
-    //   4. Set the session cookie
-    //   5. Redirect to /home
-    //
     // ----------------------------------------------------
 
     const sessionUrl =
@@ -281,8 +270,10 @@ const setRestoreTicket = useCallback(
         '========================================'
       );
 
-      // Do NOT put the one-time URL into React
-      // source state when WebView is already ready.
+      // Directly navigate the already-mounted WebView.
+      // Do not put the one-time URL into source state,
+      // otherwise React may trigger duplicate navigation.
+
       webViewRef.current.injectJavaScript(`
         window.location.replace(
           ${JSON.stringify(sessionUrl)}
