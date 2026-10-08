@@ -1199,7 +1199,7 @@ router.post("/newRequest", async (req, res) => {
 // Mobile WebView session hand‑off endpoint
 router.get(
     "/api/auth/mobile-webview-session",
-    webViewTokenController.mobileWebViewSession
+    mobileAuthController.mobileWebViewRestore
 );
 
 // ==================================================

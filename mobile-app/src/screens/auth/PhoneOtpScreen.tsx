@@ -35,10 +35,6 @@ import {
 import api from '../../services/api';
 
 import {
-  useWebView,
-} from '../../context/WebViewContext';
-
-import {
   saveMobileAuthToken,
 } from '../../services/mobileAuthToken';
 
@@ -69,10 +65,6 @@ const PhoneOtpScreen = () => {
   } = route.params as {
     phone: string;
   };
-
-  const {
-    navigate: navigateWebView,
-  } = useWebView();
 
 const [otp, setOtp] = useState('');
 const [loading, setLoading] = useState(false);
@@ -280,58 +272,6 @@ const autoVerifyOtpRef = useRef('');
         return;
       }
 
-
-      // ======================================================
-      // EXISTING USER
-      // ======================================================
-
-      console.log(
-        '========================================'
-      );
-      console.log('EXISTING USER LOGIN');
-      console.log(
-        '========================================'
-      );
-
-
-      // ------------------------------------------------------
-      // TOKEN IS REQUIRED FOR WEBVIEW SESSION HANDOFF
-      // ------------------------------------------------------
-
-      if (!data?.token) {
-        verifyingRef.current = false;
-        setLoading(false);
-
-        console.error(
-          'OTP succeeded but WebView token is missing'
-        );
-
-        Alert.alert(
-          'Login Error',
-          'Authentication token was not received. Please try again.'
-        );
-
-        return;
-      }
-
-      if (!data?.mobileAuthToken) {
-
-        verifyingRef.current = false;
-        setLoading(false);
-
-        console.error(
-        'OTP succeeded but persistent mobile auth token is missing'
-        );
-
-        Alert.alert(
-        'Login Error',
-        'Persistent authentication token was not received. Please try again.'
-        );
-
-        return;
-      }
-
-
       // ------------------------------------------------------
       // STORE USER
       // ------------------------------------------------------
@@ -343,56 +283,39 @@ const autoVerifyOtpRef = useRef('');
       }
 
 
-      // ------------------------------------------------------
-      // CREATE ONE-TIME WEBVIEW SESSION URL
-      // ------------------------------------------------------
-
-      const sessionUrl =
-        `/api/auth/mobile-webview-session?token=${encodeURIComponent(
-          data.token
-        )}`;
-
-      console.log(
-        'WEBVIEW SESSION URL:',
-        sessionUrl.replace(
-          /token=[^&]+/,
-          'token=[REDACTED]'
-        )
-      );
-
-
-      // ======================================================
-      // IMPORTANT AUTHENTICATION ORDER
-      // ======================================================
-      //
-      // 1. Validate both server-issued tokens.
-      // 2. Persist mobileAuthToken securely.
-      // 3. Put the one-time session URL into WebViewContext.
-      // 4. Authenticate the native Redux tree.
-      // 5. MainStack mounts.
-      // 6. WebViewComponent consumes the pending URL.
-      // 7. Backend creates the Passport session.
-      // 8. Backend redirects to /home.
-      //
-      // Do NOT navigate to "Main" or "Home" here because those
-      // are not necessarily routes in AuthStack.
-      // ======================================================
 // ======================================================
-     // SAVE PERSISTENT MOBILE AUTH TOKEN
-     // ======================================================
-      // ======================================================
-      // SAVE PERSISTENT MOBILE AUTH TOKEN
-      // ======================================================
-      //
-      // This token is the persistent mobile credential.
-      // It is stored in SecureStore and is intentionally kept
-      // separate from data.token, which is a one-time WebView
-      // session hand-off token.
-      //
-      // Persist BEFORE enabling Redux authentication or starting
-      // the WebView hand-off. This prevents a partially
-      // authenticated app if SecureStore fails.
-      // ======================================================
+// AUTHENTICATION ORDER
+// ======================================================
+//
+// 1. Verify the OTP response.
+// 2. Persist mobileAuthToken securely.
+// 3. Persist native authentication state.
+// 4. Enable Redux authentication.
+// 5. MainStack mounts.
+// 6. WebViewContext creates the restore ticket.
+// 7. WebViewComponent performs the one-time session hand-off.
+// 8. Backend creates the Passport session.
+// 9. Backend redirects to /home.
+//
+// IMPORTANT:
+// PhoneOtpScreen must NOT directly navigate to
+// /api/auth/mobile-webview-session.
+//
+// WebViewContext owns the WebView authentication hand-off
+// after the MainStack is mounted.
+// ======================================================
+
+// ======================================================
+// SAVE PERSISTENT MOBILE AUTH TOKEN
+// ======================================================
+//
+// This token is the persistent mobile credential.
+// It is stored in SecureStore.
+//
+// Persist BEFORE enabling Redux authentication.
+// This prevents a partially authenticated app if
+// SecureStore fails.
+// ======================================================
 
       try {
   // ------------------------------------------------------
@@ -461,15 +384,17 @@ const autoVerifyOtpRef = useRef('');
 
 
 
-      // ======================================================
-      // START ONE-TIME WEBVIEW SESSION HAND-OFF
-      // ======================================================
-      //
-      // data.token is intentionally NOT persisted. It is a
-      // short-lived, one-time token consumed by the backend.
-      // ======================================================
+// ======================================================
+// WEBVIEW SESSION HAND-OFF
+// ======================================================
+//
+// Do NOT navigate the WebView here.
+//
+// WebViewContext/MainStack owns the one-time restore
+// ticket flow after authentication is enabled.
+// ======================================================
 
-      navigateWebView(sessionUrl);
+     
 
     // ======================================================
     // ENABLE AUTHENTICATION
@@ -491,7 +416,7 @@ const autoVerifyOtpRef = useRef('');
       );
 
       console.log(
-        'WEBVIEW HAND-OFF STARTED'
+         'WEBVIEW RESTORE FLOW DELEGATED TO MAIN STACK'
       );
 
       console.log(
