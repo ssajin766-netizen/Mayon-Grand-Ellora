@@ -221,27 +221,60 @@ exports.mobileWebViewRestore =
             // ==================================================
             // ATOMIC CONSUMPTION
             // ==================================================
-            const ticketRecord =
-                await MobileWebViewRestoreTicket
-                    .findOneAndUpdate(
-                        {
-                            ticketHash,
-                            expiresAt: {
-                                $gt: new Date(),
-                            },
-                            usedAt: null,
-                        },
-                        {
-                            $set: {
-                                usedAt:
-                                    new Date(),
-                            },
-                        },
-                        {
-                            new: true,
-                        }
-                    );
-            if (!ticketRecord) {
+const existingTicket =
+    await MobileWebViewRestoreTicket.findOne({
+        ticketHash,
+    });
+
+console.log("========== RESTORE TICKET DEBUG ==========");
+console.log("HASH MATCH:", !!existingTicket);
+
+if (existingTicket) {
+    console.log(
+        "EXPIRES AT:",
+        existingTicket.expiresAt
+    );
+
+    console.log(
+        "CURRENT TIME:",
+        new Date()
+    );
+
+    console.log(
+        "EXPIRED:",
+        existingTicket.expiresAt <= new Date()
+    );
+
+    console.log(
+        "USED:",
+        existingTicket.usedAt
+    );
+}
+
+console.log("==========================================");
+
+const ticketRecord =
+    await MobileWebViewRestoreTicket
+        .findOneAndUpdate(
+            {
+                ticketHash,
+                expiresAt: {
+                    $gt: new Date(),
+                },
+                usedAt: null,
+            },
+            {
+                $set: {
+                    usedAt:
+                        new Date(),
+                },
+            },
+            {
+                new: true,
+            }
+        );
+
+if (!ticketRecord) {
                 console.error(
                     "RESTORE TICKET INVALID/EXPIRED/USED"
                 );
