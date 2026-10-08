@@ -71,11 +71,20 @@ app.use(cors({
 
     console.log("Origin:", origin);
 
-    // Allow requests with no Origin (same-origin navigation, Postman, curl)
+    // Allow requests with no Origin.
+    // This includes same-origin navigation, curl, Postman, etc.
     if (!origin) {
       return callback(null, true);
     }
 
+    // Android/iOS WebView can send Origin: null.
+    // This is required for the mobile WebView.
+    if (origin === "null") {
+      console.log("Allowing WebView Origin: null");
+      return callback(null, true);
+    }
+
+    // Allow configured web/mobile development origins.
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
@@ -84,6 +93,7 @@ app.use(cors({
 
     return callback(new Error("Not allowed by CORS"));
   },
+
   credentials: true
 }));
 
