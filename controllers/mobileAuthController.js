@@ -203,9 +203,11 @@ exports.mobileWebViewRestore =
                 "========================================"
             );
             const ticket =
-                String(
-                    req.query?.ticket || ""
-                ).trim();
+              String(
+                     req.query?.ticket ||
+                     req.query?.token ||
+                     ""
+                ).trim();
             if (!ticket) {
                 console.error(
                     "RESTORE TICKET MISSING"
