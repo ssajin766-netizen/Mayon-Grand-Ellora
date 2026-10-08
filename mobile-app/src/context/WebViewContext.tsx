@@ -182,77 +182,92 @@ const setWebViewRef = useCallback(
 // SET RESTORE TICKET
 // ========================================================
 const setRestoreTicket = useCallback(
-  (ticket: string | null) => {
-    if (!ticket) {
-      console.log(
-        'CLEARING WEBVIEW RESTORE TICKET'
-      );
-      setRestoreTicketState(null);
-      return;
-    }
-    console.log(
-      '========================================'
-    );
-    console.log(
-      'WEBVIEW RESTORE TICKET RECEIVED'
-    );
-    console.log(
-      'RESTORE TICKET:',
-      '[REDACTED]'
-    );
-    console.log(
-      '========================================'
-    );
-    // ----------------------------------------------------
-    // Store ticket only in React memory.
-    // Never persist this one-time ticket.
-    // ----------------------------------------------------
-    setRestoreTicketState(ticket);
-    // ----------------------------------------------------
-    // Convert the one-time restore ticket into the
-    // WebView session hand-off URL.
-    // ----------------------------------------------------
-    const sessionUrl =
-      `${HOME_URL}/api/auth/mobile-webview-session?token=${encodeURIComponent(ticket)}`;
-    const safeSessionUrl =
-      sessionUrl.replace(
-        /token=[^&]+/i,
-        'token=[REDACTED]'
-      );
-    console.log(
-      'WEBVIEW SESSION URL:',
-      safeSessionUrl
-    );
-    if (webViewRef.current) {
-      console.log(
-        '========================================'
-      );
-      console.log(
-        'STARTING ONE-TIME WEBVIEW SESSION'
-      );
-      console.log(
-        'USING DIRECT WEBVIEW NAVIGATION'
-      );
-      console.log(
-        '========================================'
-      );
-      // Directly navigate the already-mounted WebView.
-      // Do not put the one-time URL into source state,
-      // otherwise React may trigger duplicate navigation.
-      webViewRef.current.injectJavaScript(`
-        window.location.replace(
-          ${JSON.stringify(sessionUrl)}
-        );
-        true;
-      `);
-    } else {
-      console.log(
-        'WEBVIEW NOT READY - STORING SESSION URL'
-      );
-      setPendingUrl(sessionUrl);
-    }
-  },
-  []
+  (ticket: string | null) => {
+    if (!ticket) {
+      console.log(
+        'CLEARING WEBVIEW RESTORE TICKET'
+      );
+
+      setRestoreTicketState(null);
+
+      return;
+    }
+
+    console.log(
+      '========================================'
+    );
+
+    console.log(
+      'WEBVIEW RESTORE TICKET RECEIVED'
+    );
+
+    console.log(
+      'RESTORE TICKET:',
+      '[REDACTED]'
+    );
+
+    console.log(
+      '========================================'
+    );
+
+    // ----------------------------------------------------
+    // Store ticket only in React memory.
+    // Never persist this one-time ticket.
+    // ----------------------------------------------------
+
+    setRestoreTicketState(ticket);
+
+    // ----------------------------------------------------
+    // Convert the one-time restore ticket into the
+    // WebView session hand-off URL.
+    // ----------------------------------------------------
+
+    const sessionUrl =
+      `${HOME_URL}/api/auth/mobile-webview-session?token=${encodeURIComponent(ticket)}`;
+
+    const safeSessionUrl =
+      sessionUrl.replace(
+        /token=[^&]+/i,
+        'token=[REDACTED]'
+      );
+
+    console.log(
+      'WEBVIEW SESSION URL:',
+      safeSessionUrl
+    );
+
+    // ----------------------------------------------------
+    // IMPORTANT:
+    //
+    // Always store the one-time session URL as pending.
+    //
+    // Do NOT directly call injectJavaScript() here.
+    //
+    // The WebView can be mounted/unmounted during the
+    // authentication stack transition. Using the pending
+    // URL allows setWebViewRef() to start the navigation
+    // only after the WebView is actually ready.
+    // ----------------------------------------------------
+
+    console.log(
+      '========================================'
+    );
+
+    console.log(
+      'STARTING ONE-TIME WEBVIEW SESSION'
+    );
+
+    console.log(
+      'STORING SESSION URL FOR WEBVIEW'
+    );
+
+    console.log(
+      '========================================'
+    );
+
+    setPendingUrl(sessionUrl);
+  },
+  []
 );
   // ========================================================
   // CLEAR RESTORE TICKET
