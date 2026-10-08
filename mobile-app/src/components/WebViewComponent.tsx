@@ -47,13 +47,14 @@ const WebViewComponent: React.FC = () => {
     state => state.auth.user
   );
 
-  const {
-    setWebViewRef,
-    setCurrentPath,
-    injectJavaScript,
-    pendingUrl,
-    clearPendingUrl,
-  } = useWebView();
+const {
+  setWebViewRef,
+  setCurrentPath,
+  injectJavaScript,
+  pendingUrl,
+  clearPendingUrl,
+  clearRestoreTicket,
+} = useWebView();
 
   // ==================================================
   // LOCAL WEBVIEW REF
@@ -2073,53 +2074,74 @@ return (
           url.includes('/bill');
 
         if (
-          mobileSessionHandoffRef.current &&
-          !mobileSessionEstablishedRef.current &&
-          isAuthenticatedPage
-        ) {
+  mobileSessionHandoffRef.current &&
+  !mobileSessionEstablishedRef.current &&
+  isAuthenticatedPage
+) {
 
-          mobileSessionEstablishedRef.current = true;
-          mobileSessionHandoffRef.current = null;
+  mobileSessionEstablishedRef.current = true;
+  mobileSessionHandoffRef.current = null;
 
-          console.log(
-            '========================================'
-          );
-          console.log(
-            'WEBVIEW SESSION ESTABLISHED'
-          );
-          console.log(
-            'AUTHENTICATED PAGE LOADED'
-          );
-          console.log(
-            '========================================'
-          );
+  console.log(
+    '========================================'
+  );
 
-          clearPendingUrl();
+  console.log(
+    'WEBVIEW SESSION ESTABLISHED'
+  );
 
-          try {
-            if (user) {
-              await saveAuthState(user);
-              console.log(
-                'MOBILE AUTH STATE PERSISTED'
-              );
-            } else {
-              console.warn(
-                'USER NOT AVAILABLE - AUTH PERSISTENCE SKIPPED'
-              );
-            }
-          } catch (error) {
-            console.error(
-              'FAILED TO PERSIST MOBILE AUTH STATE:',
-              error
-            );
-          }
+  console.log(
+    'AUTHENTICATED PAGE LOADED'
+  );
 
-          dispatch(setAuthenticated(true));
+  console.log(
+    '========================================'
+  );
 
-          console.log(
-            'MOBILE AUTHENTICATION ENABLED'
-          );
-        }
+  // ----------------------------------------------------
+  // The one-time restore ticket has now been consumed.
+  // It must never be reused.
+  // ----------------------------------------------------
+
+  clearRestoreTicket();
+
+  clearPendingUrl();
+
+  try {
+
+    if (user) {
+
+      await saveAuthState(user);
+
+      console.log(
+        'MOBILE AUTH STATE PERSISTED'
+      );
+
+    } else {
+
+      console.warn(
+        'USER NOT AVAILABLE - AUTH PERSISTENCE SKIPPED'
+      );
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      'FAILED TO PERSIST MOBILE AUTH STATE:',
+      error
+    );
+
+  }
+
+  dispatch(
+    setAuthenticated(true)
+  );
+
+  console.log(
+    'MOBILE AUTHENTICATION ENABLED'
+  );
+}
 
         // ==================================================
         // SESSION FAILURE
@@ -2149,14 +2171,52 @@ return (
             '======================================'
           );
 
+          // ------------------------------------------------
+          // Clear the failed one-time session hand-off.
+          // ------------------------------------------------
+
           mobileSessionHandoffRef.current = null;
+
           mobileSessionEstablishedRef.current = false;
 
-          // Do NOT automatically logout here.
-          // The mobile OTP login has already succeeded; only the
-          // WebView session hand-off failed.
+          // ------------------------------------------------
+          // The one-time restore ticket can no longer be
+          // reused after the session hand-off fails.
+          // ------------------------------------------------
+
+          clearRestoreTicket();
+
+          // ------------------------------------------------
+          // Prevent the failed session URL from remaining
+          // as the WebView pending source.
+          // ------------------------------------------------
+
+          clearPendingUrl();
+
+          console.log(
+            'FAILED RESTORE TICKET CLEARED'
+          );
+
+          console.log(
+            'FAILED PENDING SESSION URL CLEARED'
+          );
+
+          // ------------------------------------------------
+          // IMPORTANT:
+          //
+          // Do NOT clear native authentication here.
+          //
+          // Native OTP authentication is still valid.
+          // Only the WebView session hand-off failed.
+          //
+          // The native authentication restore flow can
+          // create a new restore ticket when required.
+          // ------------------------------------------------
+
         }
+
       }
+
     }
 
     renderLoading={() => (
@@ -2174,6 +2234,9 @@ return (
     }}
 
   />
+
 );
+
 };
+
 export default WebViewComponent;

@@ -191,51 +191,92 @@ export const WebViewProvider:
     );
 
 
-  // ========================================================
-  // SET RESTORE TICKET
-  // ========================================================
+// ========================================================
+// SET RESTORE TICKET
+// ========================================================
 
-  const setRestoreTicket =
-    useCallback(
-      (
-        ticket: string | null
-      ) => {
+const setRestoreTicket = useCallback(
+  (ticket: string | null) => {
 
-        if (!ticket) {
+    if (!ticket) {
 
-          setRestoreTicketState(
-            null
-          );
+      console.log(
+        'CLEARING WEBVIEW RESTORE TICKET'
+      );
 
-          return;
+      setRestoreTicketState(null);
 
-        }
+      return;
+    }
 
-
-        console.log(
-          'WEBVIEW RESTORE TICKET RECEIVED'
-        );
-
-
-        /*
-        --------------------------------------------------
-        Never print the actual ticket.
-        --------------------------------------------------
-        */
-
-        console.log(
-          'RESTORE TICKET:',
-          '[REDACTED]'
-        );
-
-
-        setRestoreTicketState(
-          ticket
-        );
-
-      },
-      []
+    console.log(
+      '========================================'
     );
+
+    console.log(
+      'WEBVIEW RESTORE TICKET RECEIVED'
+    );
+
+    console.log(
+      'RESTORE TICKET:',
+      '[REDACTED]'
+    );
+
+    console.log(
+      '========================================'
+    );
+
+    // ----------------------------------------------------
+    // Store ticket only in React memory.
+    // Never persist this one-time ticket.
+    // ----------------------------------------------------
+
+    setRestoreTicketState(ticket);
+
+    // ----------------------------------------------------
+    // IMPORTANT:
+    //
+    // Convert the one-time restore ticket into the
+    // WebView session hand-off URL.
+    //
+    // This URL causes the backend to:
+    //
+    //   1. Consume the one-time ticket
+    //   2. Load the user
+    //   3. Create Passport session
+    //   4. Set the session cookie
+    //   5. Redirect to /home
+    //
+    // ----------------------------------------------------
+
+    const sessionUrl =
+      `${HOME_URL}/api/auth/mobile-webview-session?token=${encodeURIComponent(ticket)}`;
+
+    const safeSessionUrl =
+      sessionUrl.replace(
+        /token=[^&]+/i,
+        'token=[REDACTED]'
+      );
+
+    console.log(
+      'WEBVIEW SESSION URL:',
+      safeSessionUrl
+    );
+
+    // ----------------------------------------------------
+    // IMPORTANT:
+    //
+    // WebViewComponent uses pendingUrl as its source.
+    //
+    // Setting this here prevents the WebView from simply
+    // opening /home before the Passport session exists.
+    // ----------------------------------------------------
+
+    setPendingUrl(sessionUrl);
+
+  },
+  []
+);
 
 
   // ========================================================
