@@ -165,30 +165,69 @@ export const WebViewProvider:
     );
 
 
-  // ========================================================
-  // SET WEBVIEW REF
-  // ========================================================
+// ========================================================
+// SET WEBVIEW REF
+// ========================================================
 
-  const setWebViewRef =
-    useCallback(
-      (
-        ref: WebView | null
-      ) => {
+const setWebViewRef = useCallback(
+  (ref: WebView | null) => {
 
-        webViewRef.current =
-          ref;
+    webViewRef.current = ref;
 
+    console.log(
+      'WEBVIEW REF:',
+      ref
+        ? 'READY'
+        : 'CLEARED'
+    );
 
-        console.log(
-          'WEBVIEW REF:',
-          ref
-            ? 'READY'
-            : 'CLEARED'
+    // ----------------------------------------------------
+    // If a restore URL was waiting for the WebView,
+    // start it now that the WebView is mounted.
+    // ----------------------------------------------------
+
+    if (ref && pendingUrl) {
+
+      const urlToLoad = pendingUrl;
+
+      const safeUrl =
+        urlToLoad.replace(
+          /token=[^&]+/i,
+          'token=[REDACTED]'
         );
 
-      },
-      []
-    );
+      console.log(
+        '========================================'
+      );
+
+      console.log(
+        'WEBVIEW READY - STARTING PENDING URL'
+      );
+
+      console.log(
+        'PENDING URL:',
+        safeUrl
+      );
+
+      console.log(
+        '========================================'
+      );
+
+      // Clear first so this one-time restore URL
+      // cannot be processed again.
+      setPendingUrl(null);
+
+      ref.injectJavaScript(`
+        window.location.replace(
+          ${JSON.stringify(urlToLoad)}
+        );
+
+        true;
+      `);
+    }
+  },
+  [pendingUrl]
+);
 
 
 // ========================================================
