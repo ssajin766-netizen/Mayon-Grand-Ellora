@@ -329,8 +329,10 @@ exports.mobileWebViewRestore =
 
             const ticket =
                 String(
-                    req.query?.ticket || ""
-                ).trim();
+                       req.query?.ticket ||
+                       req.query?.token ||
+                       ""
+                     ).trim();
 
 
             if (!ticket) {
