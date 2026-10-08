@@ -82,7 +82,6 @@ const {
   // WEBVIEW SOURCE
   // ==================================================
   const webViewSource =
-    pendingUrl ||
     `${HOME_URL}/home`;
   const safeSource =
     webViewSource.replace(
